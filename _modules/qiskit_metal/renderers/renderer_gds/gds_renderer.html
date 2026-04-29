@@ -509,7 +509,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">operator</span><span class="w"> </span><span class="kn">import</span> <span class="n">itemgetter</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span> <span class="k">as</span> <span class="n">DictType</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">gdstk</span>
@@ -1113,7 +1113,7 @@
                 <span class="n">table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_table</span><span class="p">(</span><span class="n">table_name</span><span class="p">,</span> <span class="n">unique_qcomponents</span><span class="p">,</span> <span class="n">chip_name</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">table_name</span> <span class="o">==</span> <span class="s2">&quot;junction&quot;</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">chip_info</span><span class="p">[</span><span class="n">chip_name</span><span class="p">][</span><span class="s2">&quot;junction&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">chip_info</span><span class="p">[</span><span class="n">chip_name</span><span class="p">][</span><span class="s2">&quot;junction&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">table</span><span class="p">[:]</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># For every chip, and layer, separate the &quot;subtract&quot;</span>
                     <span class="c1"># and &quot;no_subtract&quot; elements and gather bounds.</span>
@@ -1178,16 +1178,14 @@
         <span class="n">all_layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">design</span><span class="o">.</span><span class="n">qgeometry</span><span class="o">.</span><span class="n">get_all_unique_layers</span><span class="p">(</span><span class="n">chip_name</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">chip_layer</span> <span class="ow">in</span> <span class="n">all_layers</span><span class="p">:</span>
-            <span class="n">copy_subtract</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">copy_no_subtract</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">copy_subtract</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">all_table_subtracts</span><span class="p">)</span>
             <span class="n">copy_no_subtract</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">all_table_no_subtracts</span><span class="p">)</span>
 
-            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">copy_subtract</span><span class="p">:</span>
-                <span class="n">item</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;layer&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">chip_layer</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">copy_subtract</span><span class="p">):</span>
+                <span class="n">copy_subtract</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;layer&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">chip_layer</span><span class="p">]</span>
 
-            <span class="k">for</span> <span class="n">item_no</span> <span class="ow">in</span> <span class="n">copy_no_subtract</span><span class="p">:</span>
-                <span class="n">item_no</span> <span class="o">=</span> <span class="n">item_no</span><span class="p">[</span><span class="n">item_no</span><span class="p">[</span><span class="s2">&quot;layer&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">chip_layer</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">item_no</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">copy_no_subtract</span><span class="p">):</span>
+                <span class="n">copy_no_subtract</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">item_no</span><span class="p">[</span><span class="n">item_no</span><span class="p">[</span><span class="s2">&quot;layer&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">chip_layer</span><span class="p">]</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">chip_info</span><span class="p">[</span><span class="n">chip_name</span><span class="p">][</span><span class="n">chip_layer</span><span class="p">][</span><span class="s2">&quot;all_subtract_true&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
                 <span class="n">geopandas</span><span class="o">.</span><span class="n">GeoDataFrame</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">copy_subtract</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
@@ -1225,7 +1223,10 @@
     <span class="c1"># Handling Fillet issues.</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_fix_short_segments_within_table</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">chip_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chip_layer</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">all_sub_true_or_false</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">chip_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">chip_layer</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">all_sub_true_or_false</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;all_subtract_true&quot;</span><span class="p">,</span> <span class="s2">&quot;all_subtract_false&quot;</span><span class="p">],</span>
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update self.chip_info geopandas.GeoDataFrame.</span>
 
@@ -1256,14 +1257,12 @@
                 <span class="k">if</span> <span class="n">status</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">edit_index</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">all_shapelys</span>
 
-            <span class="n">df_copy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chip_info</span><span class="p">[</span><span class="n">chip_name</span><span class="p">][</span><span class="n">chip_layer</span><span class="p">][</span><span class="n">all_sub_true_or_false</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
-                <span class="n">deep</span><span class="o">=</span><span class="kc">True</span>
-            <span class="p">)</span>
+            <span class="n">df_copy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chip_info</span><span class="p">[</span><span class="n">chip_name</span><span class="p">][</span><span class="n">chip_layer</span><span class="p">][</span><span class="n">all_sub_true_or_false</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">del_key</span><span class="p">,</span> <span class="n">the_shapes</span> <span class="ow">in</span> <span class="n">edit_index</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="c1"># copy row &quot;index&quot; into a new data-frame &quot;status&quot; times.</span>
                 <span class="c1"># Then replace the LONG shapely with all_shapelys.</span>
                 <span class="c1"># For any entries in edit_index, edit table here.</span>
-                <span class="n">orig_row</span> <span class="o">=</span> <span class="n">df_copy</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">del_key</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">orig_row</span> <span class="o">=</span> <span class="n">df_copy</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">del_key</span><span class="p">]</span>
                 <span class="n">df_copy</span> <span class="o">=</span> <span class="n">df_copy</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">del_key</span><span class="p">)</span>
 
                 <span class="k">for</span> <span class="n">dummy_new_row</span><span class="p">,</span> <span class="n">short_shape</span> <span class="ow">in</span> <span class="n">the_shapes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -1273,9 +1272,7 @@
                     <span class="c1"># the other del_key will not be found.</span>
                     <span class="n">df_copy</span> <span class="o">=</span> <span class="n">df_copy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">orig_row</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">chip_info</span><span class="p">[</span><span class="n">chip_name</span><span class="p">][</span><span class="n">chip_layer</span><span class="p">][</span><span class="n">all_sub_true_or_false</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
-                <span class="n">deep</span><span class="o">=</span><span class="kc">True</span>
-            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">chip_info</span><span class="p">[</span><span class="n">chip_name</span><span class="p">][</span><span class="n">chip_layer</span><span class="p">][</span><span class="n">all_sub_true_or_false</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_copy</span><span class="p">[:]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_check_length</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">a_shapely</span><span class="p">:</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">LineString</span><span class="p">,</span> <span class="n">a_fillet</span><span class="p">:</span> <span class="nb">float</span>
@@ -3236,7 +3233,7 @@
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2026/04/28</div>
+              Last updated on 2026/04/29</div>
           </div>
           <div class="right-details">
             
