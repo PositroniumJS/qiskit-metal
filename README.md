@@ -250,7 +250,7 @@ for bugs and feature requests.
 
 For a high-level walkthrough of the codebase — Core, Renderers, Analyses, GUI,
 Utilities — and how they interact, see
-[`README_Architecture.md`](./README_Architecture.md).
+[`docs/architecture.rst`](./docs/architecture.rst).
 
 Module-level deep dive:
 [`docs/overview.rst`](./docs/overview.rst) ·
