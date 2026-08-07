@@ -23,7 +23,7 @@ from collections import OrderedDict
 from collections.abc import Callable
 from inspect import signature
 from pathlib import Path
-from typing import TYPE_CHECKING, Type, Union
+from typing import TYPE_CHECKING, Type, Union, get_args
 
 import numpy as np
 from PySide6 import QtGui, QtWidgets
@@ -345,7 +345,6 @@ class ParameterEntryWindow(QMainWindow):
             def_con_pads = "_default_connection_pads"
             con_pads = "connection_pads"
             if def_con_pads in param_dict[arg_options]:
-                print(param_dict[arg_options])
                 if (
                     con_pads not in param_dict[arg_options]
                     or len(param_dict[arg_options][con_pads]) < 1
@@ -362,7 +361,19 @@ class ParameterEntryWindow(QMainWindow):
     @staticmethod
     def is_param_usable(param):
         """Determines if a given parameter is usable."""
-        ignore_params = {"self", "design", "make", "kwargs", "args"}
+        # ``component_template`` is a registration-time knob, not a per-instance
+        # option: it is merged into ``design.template_options[<class>]`` the first
+        # time a class is registered, so anything entered here persists for every
+        # later instance of that class in the design. Never synthesize a value for
+        # it -- leave it at its ``None`` default.
+        ignore_params = {
+            "self",
+            "design",
+            "make",
+            "kwargs",
+            "args",
+            "component_template",
+        }
         if param.name in ignore_params:
             return False
 
@@ -509,6 +520,16 @@ def create_default_from_type(my_t: type, param_name: str = None):
     """
     if param_name is not None:
         return param_name + "-" + str(random.randint(0, 1000))
+
+    # Unwrap `X | None` / `Optional[X]` annotations (e.g. QComponent.__init__'s
+    # `component_template: Dict | None`) to the underlying type X, so the checks
+    # below still match it instead of falling through to the np.ndarray default.
+    union_args = get_args(my_t)
+    if union_args:
+        non_none_args = [a for a in union_args if a is not type(None)]
+        if len(non_none_args) == 1:
+            my_t = non_none_args[0]
+
     if my_t is int:
         return 0
     elif my_t is float:
