@@ -44,19 +44,29 @@ def blend_colors(color1: QColor, color2: QColor, r: float = 0.2, alpha=255) -> Q
 
 # ------------------------------------------------------------------------------------------
 
-STYLE_HIGHLIGHT_ = r"""
-QWidget {
-    outline: 3px solid red;
-    border: 3px solid red;
-}"""
+# Qt stylesheets cascade: a rule set on a widget also matches every
+# descendant that satisfies the selector. A bare ``QWidget { border: ... }``
+# therefore outlined the widget *and* every child -- clicking Refresh
+# red-boxed all the toolbars and icons inside the main view, not just the
+# view. Scope by object name so only the target widget matches.
+STYLE_HIGHLIGHT_TEMPLATE_ = "QWidget#{name} {{ border: 3px solid red; }}"
+
+# Fallback object name for a target that has none, so the scoped selector
+# above still has something to bind to.
+_HIGHLIGHT_FALLBACK_NAME = "metalHighlightTarget"
 
 
 def doShowHighlighWidget(self: QDockWidget, timeout=1500, style_highlight=None):
     """Highlight temporarily, raise, show the widget.
     Force resets the style at the component to None after a period.
+
+    The highlight is scoped to this widget by object name; it does not
+    outline child widgets.
     """
     if style_highlight is None:
-        style_highlight = STYLE_HIGHLIGHT_
+        if not self.objectName():
+            self.setObjectName(_HIGHLIGHT_FALLBACK_NAME)
+        style_highlight = STYLE_HIGHLIGHT_TEMPLATE_.format(name=self.objectName())
     self.setStyleSheet(style_highlight)
     self.show()
     self.raise_()
