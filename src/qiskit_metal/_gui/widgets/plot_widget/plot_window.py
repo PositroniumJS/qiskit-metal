@@ -20,6 +20,8 @@ toolbars available.
 from typing import TYPE_CHECKING
 
 from PySide6 import QtWidgets
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -104,6 +106,62 @@ class QMainWindowPlot(QMainWindow):
         )
 
         self.ui.centralwidget.layout().addWidget(self.canvas)
+
+        self._add_label_actions()
+
+    def _add_label_actions(self):
+        """Add the component-labelling actions to the plot toolbar.
+
+        Added here rather than in the .ui because ``plot_window_ui.py`` is
+        pyside6-uic output and is regenerated from the .ui on demand.
+        """
+        toolbar = self.ui.toolBar
+
+        toolbar.addSeparator()
+
+        self.action_label_all = QAction("Label all", self)
+        self.action_label_all.setShortcut("L")
+        self.action_label_all.setShortcutContext(Qt.WindowShortcut)
+        self.action_label_all.setStatusTip(
+            "Label every component and its pins (L). Cleared by the next replot."
+        )
+        self.action_label_all.setToolTip(self.action_label_all.statusTip())
+        self.action_label_all.triggered.connect(self.label_all_components)
+        toolbar.addAction(self.action_label_all)
+
+        self.action_label_components = QAction("Label components", self)
+        self.action_label_components.setShortcut("Shift+L")
+        self.action_label_components.setShortcutContext(Qt.WindowShortcut)
+        self.action_label_components.setStatusTip(
+            "Label components without pins (Shift+L). Cleared by the next replot."
+        )
+        self.action_label_components.setToolTip(
+            self.action_label_components.statusTip()
+        )
+        self.action_label_components.triggered.connect(
+            self.label_components_without_pins
+        )
+        toolbar.addAction(self.action_label_components)
+
+        self.action_clear_labels = QAction("Clear labels", self)
+        self.action_clear_labels.setShortcut("Shift+C")
+        self.action_clear_labels.setShortcutContext(Qt.WindowShortcut)
+        self.action_clear_labels.setStatusTip("Remove all component labels (Shift+C).")
+        self.action_clear_labels.setToolTip(self.action_clear_labels.statusTip())
+        self.action_clear_labels.triggered.connect(self.clear_labels)
+        toolbar.addAction(self.action_clear_labels)
+
+    def label_all_components(self):
+        """Label every component, including its pins."""
+        self.gui.highlight_all_components(show_pins=True)
+
+    def label_components_without_pins(self):
+        """Label every component, omitting pins."""
+        self.gui.highlight_all_components(show_pins=False)
+
+    def clear_labels(self):
+        """Remove component labels from the canvas."""
+        self.gui.clear_highlight()
 
     def set_design(self, design):
         """Set the design.

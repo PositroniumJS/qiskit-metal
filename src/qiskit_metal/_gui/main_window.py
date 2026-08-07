@@ -1142,13 +1142,45 @@ class MetalGUI(QMainWindowBaseHandler):
         if self.component_window:
             self.component_window.set_component(name)
 
-    def highlight_components(self, component_names: list[str]):
+    def highlight_components(self, component_names: list[str], show_pins: bool = True):
         """Visually highlight components in the plot canvas.
 
         Args:
             component_names (List[str]): Names to highlight; others remain unhighlighted.
+            show_pins (bool): Also draw pin arrows and pin names.
+                Defaults to True.
         """
-        self.canvas.highlight_components(component_names)
+        self.canvas.highlight_components(component_names, show_pins=show_pins)
+
+    def highlight_all_components(self, show_pins: bool = True):
+        """Label every component in the design on the canvas.
+
+        Draws each component's bounding box and name, and by default its
+        pins. Useful for orienting yourself on a design someone else built,
+        or for a labelled screenshot.
+
+        Bound to the "Label all" button on the plot toolbar (shortcut ``L``);
+        ``Shift+L`` labels components only, without pins.
+
+        Args:
+            show_pins (bool): Also draw pin arrows and pin names. Turn off on
+                dense chips, where per-pin labels swamp the component names.
+                Defaults to True.
+
+        Returns:
+            int: Number of components labelled.
+        """
+        count = self.canvas.highlight_all_components(show_pins=show_pins)
+        self.logger.info(
+            f"Labelled {count} component(s)"
+            f"{' with pins' if show_pins else ''}. "
+            "Any replot or rebuild clears the labels."
+        )
+        return count
+
+    def clear_highlight(self):
+        """Remove any component labels/highlights from the canvas."""
+        self.canvas.clear_annotation()
 
     def zoom_on_components(self, components: list[str]):
         """Zoom the canvas to fit the given components.

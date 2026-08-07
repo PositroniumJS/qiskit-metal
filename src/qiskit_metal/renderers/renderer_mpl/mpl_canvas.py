@@ -743,11 +743,28 @@ class PlotCanvas(FigureCanvas):
         self._annotations["patch"] = []
         self._annotations["text"] = []
 
-    def highlight_components(self, component_names: list[str]):
+    def highlight_all_components(self, show_pins: bool = True):
+        """Highlight and label every component in the design.
+
+        Args:
+            show_pins (bool): Also draw pin arrows and pin names.
+                Defaults to True.
+
+        Returns:
+            int: Number of components labelled.
+        """
+        names = list(self.design.components.keys())
+        self.highlight_components(names, show_pins=show_pins)
+        return len(names)
+
+    def highlight_components(self, component_names: list[str], show_pins: bool = True):
         """Highlight a list of components.
 
         Args:
             component_names (List[str]): A list of component names
+            show_pins (bool): Draw pin arrows and pin names alongside the
+                component name. Turn off on dense chips, where per-pin
+                labels swamp the component labels. Defaults to True.
         """
         # Defaults - todo eventually move to some option place where can be changed
         text_kw = dict(
@@ -811,7 +828,7 @@ class PlotCanvas(FigureCanvas):
                             ax.add_artist(text)
                         self._annotations["text"] += [text]
 
-                if 1:  # Draw the pins
+                if show_pins:  # Draw the pins
                     # for component_id in self.design.components.keys():
                     for pin_name in component.pins.keys():
                         # self.logger.debug(f'Pin {pin_name}')
