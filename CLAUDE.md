@@ -207,8 +207,7 @@ component, which is too slow for a hot docs-build path).
 ## Testing & CI quick reference
 
 - Full suite: `QISKIT_METAL_HEADLESS=1 uv run pytest tests/` (~30s)
-- Lint: `uvx ruff check src` (currently 13 known findings, all in
-  HFSS/`_gui/` zones — see lessons-learned)
+- Lint: `uvx ruff check src` (clean, 0 findings — see Status snapshot)
 - Format: `uvx ruff format src`
 - Docs build: `tox -e docs`
 - Env-drift check: `uv run scripts/check_env_consistency.py`
@@ -217,9 +216,13 @@ CI matrix on every PR: 9 test combos (py3.10/3.11/3.12 ×
 ubuntu/macos/windows) + `lint` + `env-consistency` + `coverage` +
 `tests-lite` (including notebook-execute).
 
-## Status snapshot (as of v0.7.4, June 2026)
+## Status snapshot (as of v0.8.0, August 2026)
 
-- Latest release: **v0.7.4** on PyPI
+- Latest release: **v0.8.0** on PyPI — design-rule checking
+  (`qiskit_metal.validation`, #1169), the `QMplRenderer` die outline,
+  and a hero-gif refresh, no breaking changes. (**Note:** a `v0.7.7`
+  tag/GitHub Release exist on `a7efeeb1` but were never published to
+  PyPI — see `changelog.md`. PyPI went 0.7.6 → 0.8.0 directly.)
 - Test count: **~496 collected** (lite local run; the `_gui` suite
   adds more under the Qt/Xvfb CI jobs), 0 failing, 0 flaky in CI
 - Lite-by-default (shipped in v0.7.0): `qm.view(design)` and headless

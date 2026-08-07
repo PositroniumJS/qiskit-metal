@@ -54,11 +54,20 @@ Two things shape the next year:
 
 ---
 
-## Recently shipped — post-v0.7.4 cycle (June 2026) `[shipped]`
+## Recently shipped — through v0.8.0 (August 2026) `[shipped]`
 
-A maintenance + community-PR cycle on top of v0.7.4. Linked PRs are
-the source of truth.
+A maintenance + community-PR cycle on top of v0.7.4, followed by the
+v0.8.0 release (#1168): design-rule checking, the die outline, and a
+hero-gif refresh — no breaking changes. Linked PRs are the source of
+truth.
 
+- ✅ **Design-rule-check (DRC) validation stage** (#1169, v0.8.0) — see
+  the dedicated section below.
+- ✅ **RouteMeander sharp-kink geometry fix** (commit `541ddf667`,
+  closes #1086) — shipped as part of the v0.8.0 bump.
+- ✅ **TransmonCross `connector_location='270'` fix** (closes #1052,
+  hardened further by #1174) — the rotation chain now wraps mod 360;
+  out-of-range angles no longer land arbitrarily.
 - ✅ **Reference design notebooks** (#1108) — three executed,
   headless-rendered full-chip examples (single transmon + readout
   resonator, two coupled transmons, 4-qubit multiplexed readout)
@@ -113,9 +122,9 @@ below.
    dependency blockers, so this is mostly writing.
 5. **`renderer_palace/` eigenmode PoC** — the strategic unlock for
    HFSS-free CI validation. Larger effort; external help wanted.
-6. **Design-rule-check (DRC) validation stage** (#1169) — first pass
-   shipped as `qiskit_metal.validation`; more rules, a tutorial, and
-   CI integration remain. See the dedicated section below.
+6. **Design-rule-check (DRC) validation stage** (#1169, shipped v0.8.0) —
+   more rules and per-PDK rule sets remain. See the dedicated section
+   below.
 7. **Extend the design-examples gallery** — more patterns
    (e.g. surface-code patch) now that the notebook pattern exists.
 
@@ -313,9 +322,9 @@ External contributor leverage is enormous here.
 
 ---
 
-## Design-rule-check (DRC) validation stage `[in-progress]`
+## Design-rule-check (DRC) validation stage `[shipped, v0.8.0]`
 
-Tracking issue: #1169. `qiskit_metal.validation` ships the first pass:
+Tracking issue: #1169, closed. `qiskit_metal.validation` shipped in v0.8.0:
 
 ```python
 from qiskit_metal.validation import validate
@@ -680,11 +689,13 @@ Full background and remediation options are in PR #1085's discussion.
 
 ## Known bug-triage queue `[needs re-verification]`
 
-10 issues triaged on 2026-05-22. **All reports are on Metal 0.5.x or earlier**
-(0.1.5 / 0.5.2.post4 / 0.5.3.post1); none re-verified against v0.7.x. Before
-acting on any, reproduce on a current `quantum-metal[full]` install — some
-may have been fixed by the lite-flip / renderer-protocol / Qt6 work and just
-need closing.
+10 issues triaged on 2026-05-22 (now ~2.5 months stale against the current
+v0.8.0 release — two have since been fixed, see below; the rest still need
+a re-triage pass). **All reports are on Metal 0.5.x or earlier**
+(0.1.5 / 0.5.2.post4 / 0.5.3.post1); most not yet re-verified against
+v0.8.x. Before acting on any, reproduce on a current `quantum-metal[full]`
+install — some may have been fixed by the lite-flip / renderer-protocol /
+Qt6 work and just need closing.
 
 **Real bugs with reproducer + community-proposed fix:**
 
@@ -694,10 +705,11 @@ need closing.
   though the segment intersects the actual contour. **Fixed in #1113**
   (reimplements the community fix #1038 by @Jinyuan426, with a regression
   test).
-- [#1086](https://github.com/qiskit-community/qiskit-metal/issues/1086)
-  `RouteMeander` produces asymmetric geometry for rotated routes (filed
-  2026-05-22 with HFSS-validation rubric, workaround already in
-  `scripts/make_hero_gif.py`).
+- ✅ `[shipped]` [#1086](https://github.com/qiskit-community/qiskit-metal/issues/1086)
+  `RouteMeander` produces asymmetric geometry for rotated routes. **Fixed
+  in commit `541ddf667`** (part of the v0.8.0 bump, capping
+  `meander_number` in `meandered.py`); `scripts/make_hero_gif.py` still
+  references the fix in a comment on its sizing logic.
 
 **Easy / small fixes:**
 
@@ -731,12 +743,15 @@ need closing.
   job for the still-open on-screen init crash — not yet confirmed fixed,
   awaiting reporter validation.
 
-**Needs reproducer:**
+**Needs reproducer:** (none remaining in this batch — see shipped fixes below)
 
-- [#1052](https://github.com/qiskit-community/qiskit-metal/issues/1052)
-  Xmon angle bug — bus angle 270° doesn't put pin at bottom. Reporter
-  posted screenshots but left "Steps to reproduce" + "Expected behavior"
-  sections blank.
+- ✅ `[shipped]` [#1052](https://github.com/qiskit-community/qiskit-metal/issues/1052)
+  `TransmonCross` `connector_location='270'` placed the connector on the
+  east arm instead of the south arm — the rotation chain had no branch
+  above 225°, so 270 matched the `> 135` test. **Fixed**, and
+  `connector_location` now wraps mod 360 so out-of-range angles no
+  longer land arbitrarily (#1174, which also hardened
+  `TransmonCrossFL`'s south-arm flux-line warning).
 
 **Filed by us (info-only, needs external action):**
 
