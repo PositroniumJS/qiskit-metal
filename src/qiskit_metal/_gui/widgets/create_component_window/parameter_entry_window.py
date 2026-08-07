@@ -393,7 +393,32 @@ class ParameterEntryWindow(QMainWindow):
         if self._gui is not None:  # for the sake of testing, we won't have gui
             self._gui.refresh()
             self._gui.autoscale()
+        self.close_window()
+
+    def close_window(self):
+        """Close this window, including the dock that wraps it.
+
+        ``create_parameter_entry_window`` puts this ``QMainWindow`` inside a
+        floating ``QDockWidget``, so closing only ``self`` hides the contents
+        and leaves an empty dock frame behind.
+        """
+        dock = getattr(self, "dock_widget", None)
+        if dock is not None:
+            dock.close()
         self.close()
+
+    def keyPressEvent(self, event):
+        """Close the window on Escape.
+
+        Only reached when no child consumed the key first, so Escape still
+        cancels an in-progress cell edit in the parameter tree rather than
+        discarding the whole form.
+        """
+        if event.key() == Qt.Key_Escape:
+            self.close_window()
+            event.accept()
+            return
+        super().keyPressEvent(event)
 
     @QComponentParameterEntryExceptionDecorators.entry_exception_pop_up_warning
     def traverse_model_to_create_dictionary(self):

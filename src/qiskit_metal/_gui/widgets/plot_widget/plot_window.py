@@ -41,6 +41,28 @@ if TYPE_CHECKING:
     from ...main_window import MetalGUI, QMainWindowExtension
 
 
+# Bindings come from ``renderers.renderer_mpl.mpl_interaction.PanAndZoom``:
+# left drag pans, right drag rubber-band zooms, the wheel zooms about the
+# cursor, and the autoscale QAction is bound to "A".
+NAVIGATION_HELP_HTML = """
+<h3>Navigating the plot</h3>
+<table cellpadding="4">
+  <tr><td><b>Pan</b></td>
+      <td>Drag with the <b>left</b> mouse button.</td></tr>
+  <tr><td><b>Zoom</b></td>
+      <td>Scroll the mouse wheel. Zoom centres on the pointer, so put it
+          over the region you care about.</td></tr>
+  <tr><td><b>Zoom to region</b></td>
+      <td>Drag with the <b>right</b> mouse button to rubber-band a
+          rectangle. Drags shorter than a few pixels are ignored.</td></tr>
+  <tr><td><b>Fit to design</b></td>
+      <td>Press <b>A</b>, or use the autoscale button on the toolbar.</td></tr>
+</table>
+<p>Editing a component's options replots without moving the camera, so your
+current zoom and pan are preserved.</p>
+"""
+
+
 class QMainWindowPlot(QMainWindow):
     """This is just a handler (container) for the UI; it a child object of the
     main gui.
@@ -106,32 +128,22 @@ class QMainWindowPlot(QMainWindow):
         self.logger.debug("Autoscale")
         self.canvas.auto_scale()
 
+    def _navigation_help(self, title: str):
+        """Show the shared navigation cheat-sheet.
+
+        Args:
+            title (str): Dialog title, so the Pan and Zoom toolbar buttons
+                can each open it under their own name.
+        """
+        QMessageBox.about(self, title, NAVIGATION_HELP_HTML)
+
     def pan(self):
-        """Displays a message about how to pan."""
-        QMessageBox.about(
-            self,
-            "Pan",
-            """Navigation help:
-
-Pan:
-(click and drag)
-Click and drag the plot screen.
-
-Zoom:
-(scroll, or right click and drag)
-Either use the mouse middle wheel to zoom in and out by scrolling,
-or use the right click and drag to select a region.""",
-        )
+        """Displays a message about how to navigate the plot."""
+        self._navigation_help("Pan")
 
     def zoom(self):
-        """Displays a message about how to zoom."""
-        QMessageBox.about(
-            self,
-            "Zoom",
-            "Either use the mouse middle wheel"
-            " to zoom in and out by scrolling, or use the right click and"
-            " drag to select a region.",
-        )
+        """Displays a message about how to navigate the plot."""
+        self._navigation_help("Zoom")
 
     def set_position_track(self, yesno: bool):
         """Set the position tracker.
