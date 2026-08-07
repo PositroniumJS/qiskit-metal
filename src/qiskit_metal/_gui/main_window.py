@@ -722,19 +722,52 @@ class MetalGUI(QMainWindowBaseHandler):
         toolbar = self.ui.toolBarView
         toolbarInsertBefore = self.ui.actionToggleDocks  # insert before this action
 
+        # (dock, icon, caption, tooltip). The caption is deliberately one
+        # short word -- it sits under the icon on a narrow vertical toolbar.
+        # Without it these buttons were icon-only, and because each QAction
+        # was built with empty text every one of them inherited the
+        # toolbar's own "View Toolbar" tooltip on hover, which said nothing
+        # about what the button does.
         DOCKS = [
-            (self.ui.dockLibrary, r":/design"),
-            (self.ui.dockDesign, r":/component"),
-            (None, "-----"),
-            (self.ui.dockVariables, r":/variables"),
-            (self.ui.dockConnectors, r":/connectors"),
-            (self.ui.dockLog, r":/log"),
-            (None, "-----"),
+            (
+                self.ui.dockLibrary,
+                r":/design",
+                "Lib",
+                "QComponent library — browse and place new components",
+            ),
+            (
+                self.ui.dockDesign,
+                r":/component",
+                "Edit",
+                "QComponents in this design — select one to edit its options",
+            ),
+            (None, "-----", None, None),
+            (
+                self.ui.dockVariables,
+                r":/variables",
+                "Vars",
+                "Design variables — named values reusable in component options",
+            ),
+            (
+                self.ui.dockConnectors,
+                r":/connectors",
+                "Pins",
+                "Pins — connection points exposed by each component",
+            ),
+            (
+                self.ui.dockLog,
+                r":/log",
+                "Log",
+                "Log messages (hidden by default)",
+            ),
+            (None, "-----", None, None),
         ]
 
-        for row in DOCKS:
-            dock = row[0]
-            iconName = row[1]
+        # Show the caption under each icon; icon-only left users guessing.
+        toolbar.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        toolbar.setIconSize(QSize(_TOOLBAR_ICON_PX, _TOOLBAR_ICON_PX))
+
+        for dock, iconName, caption, tooltip in DOCKS:
             if iconName == "-----":
                 toolbar.insertSeparator(toolbarInsertBefore)
                 continue
@@ -747,12 +780,21 @@ class MetalGUI(QMainWindowBaseHandler):
             dock.doShow = doShowHighlighWidget.__get__(dock, type(dock))
 
             # QT Action with trigger, embed in toolbar
-            action = QAction("", dock, triggered=dock.doShow)
+            action = QAction(caption, dock, triggered=dock.doShow)
             action.setIcon(icon)
+            action.setToolTip(tooltip)
+            action.setStatusTip(tooltip)
             dock.actionShow = action  # save action
 
             # insert action in toolbar
             toolbar.insertAction(toolbarInsertBefore, action)
+
+        # The two actions that come from the .ui: give the toggle a tooltip
+        # that says what it does rather than repeating its object name.
+        self.ui.actionToggleDocks.setText("Dock")
+        self.ui.actionToggleDocks.setToolTip("Show or hide all side panels at once")
+        self.ui.actionToggleDocks.setStatusTip(self.ui.actionToggleDocks.toolTip())
+        self.ui.actionScreenshot.setText("Snap")
 
     def _set_element_tab(self, yesno: bool):
         """Set the elements tabl to Elements or View.
