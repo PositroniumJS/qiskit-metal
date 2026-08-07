@@ -461,16 +461,26 @@ class PlotCanvas(FigureCanvas):
                 self._watermark_axis(ax)
 
         def final():
+            # Restore the view BEFORE drawing. ``clear_axis`` resets the axes
+            # and ``_plot`` re-autoscales to the new data, so at this point the
+            # axes hold the autoscaled view rather than the user's. ``draw()``
+            # renders the canvas buffer from whatever the limits are *at that
+            # moment*; restoring them afterwards fixes the axes but leaves the
+            # buffer showing the autoscaled view. The user sees the view jump
+            # on edit, then snap back on the next interaction-driven redraw.
+            if "xlim" in self._state:
+                ax.set_xlim(self._state["xlim"])
+                ax.set_ylim(self._state["ylim"])
             self.draw()
-            # Restore the state
-            ax.set_xlim(self._state["xlim"])
-            ax.set_ylim(self._state["ylim"])
             self.show()
+
+        # ``prep`` must run on both paths: ``final`` restores from
+        # ``self._state``, so skipping it would replay a previous plot's view.
+        prep()
 
         if with_try:
             # speed impact?
             try:
-                prep()
                 main_plot()
 
             except Exception as e:
