@@ -36,6 +36,9 @@ from qiskit_metal._gui.component_widget_ui import Ui_ComponentWidget
 from qiskit_metal._gui.widgets.edit_component.tree_model_options import (
     QTreeModel_Options,
 )
+from qiskit_metal._gui.widgets.edit_component.tree_delegate_options import (
+    OptionsCompletingDelegate,
+)
 
 __all__ = ["create_QTextDocument", "format_docstr"]
 
@@ -188,6 +191,12 @@ class ComponentWidget(QTabWidget):
         self.ui.treeView.setModel(self.model)
         self.ui.treeView.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.ui.treeView.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
+        # Same component/pin/chip-name autocomplete the create-component
+        # window offers -- editing an existing RoutePathfinder's pin_inputs
+        # (say) was otherwise free-text with no hint of what already exists.
+        self.ui.treeView.setItemDelegate(
+            OptionsCompletingDelegate(gui, self.ui.treeView)
+        )
 
         self.ui.textSource.setStyleSheet("""
             color: #000000;
