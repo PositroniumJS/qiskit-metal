@@ -79,6 +79,11 @@ if not config.is_building_docs():
 if TYPE_CHECKING:
     from ..renderers.renderer_mpl.mpl_canvas import PlotCanvas
 
+#: Styling for the selection hint in the status bar. A mid-tone teal reads
+#: against both the dark and light stylesheets, so the hint does not need to
+#: change with the theme. Scoped to the one label by being set on it directly.
+SELECTION_HINT_STYLE = "color: #2a9d8f; font-weight: bold;"
+
 #: Renderer key -> the pip extra that provides it, for the
 #: "this renderer is not installed" message. Mirrors the install matrix in
 #: docs/installation.rst.
@@ -753,9 +758,25 @@ class MetalGUI(QMainWindowBaseHandler):
 
         # Add a second label to the status bar
         status_bar = self.main_window.statusBar()
+
+        # ``addPermanentWidget``, not ``addWidget``: the window sets a standing
+        # status message ("Qiskit Metal: Quantum Creator"), and Qt hides every
+        # *normal* status-bar widget for as long as a message is displayed.
+        # Added as normal widgets these labels are constructed, updated, and
+        # never seen. Permanent widgets are exempt, and sit to the right of
+        # the message rather than fighting it for the same space.
         self.statusbar_label = QLabel(status_bar)
         self.statusbar_label.setText("")
-        status_bar.addWidget(self.statusbar_label)
+        status_bar.addPermanentWidget(self.statusbar_label)
+
+        # Second label, for what is selected and what you can do with it.
+        # Separate from the coordinate readout above because that one updates
+        # on every mouse-move; sharing one label would erase the hint the
+        # moment the pointer moved.
+        self.statusbar_selection = QLabel(status_bar)
+        self.statusbar_selection.setText("")
+        self.statusbar_selection.setStyleSheet(SELECTION_HINT_STYLE)
+        status_bar.addPermanentWidget(self.statusbar_selection)
 
         # Docks
         # Left handside
@@ -1412,8 +1433,44 @@ class MetalGUI(QMainWindowBaseHandler):
             This does not rebuild geometry; use ``rebuild()`` if options are changed.
         """
         self._selected_component = name
+        self._show_selection_hint(name)
         if self.component_window:
             self.component_window.set_component(name)
+
+    def _show_selection_hint(self, name):
+        """Say what is selected and that the arrow keys will move it.
+
+        Nudging is otherwise undiscoverable: nothing on screen suggests the
+        arrow keys do anything. Components positioned by their pins say so
+        instead of advertising a move that would be refused.
+
+        Args:
+            name (str): Selected component, or None to clear the hint.
+        """
+        label = getattr(self, "statusbar_selection", None)
+        if label is None:
+            return
+
+        if not name:
+            label.setText("")
+            return
+
+        movable = False
+        if self.design is not None and name in self.design.components:
+            options = self.design.components[name].options
+            movable = "pos_x" in options and "pos_y" in options
+
+        if movable:
+            label.setText(
+                f"{name} selected  ·  arrow keys move it (Shift = ×10, Alt = ×0.1)"
+            )
+        else:
+            label.setText(f"{name} selected  ·  positioned by its pins")
+
+    def clear_selection(self):
+        """Forget the selected component and clear its hint."""
+        self._selected_component = None
+        self._show_selection_hint(None)
 
     @property
     def selected_component(self):
