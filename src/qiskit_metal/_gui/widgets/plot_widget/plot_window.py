@@ -174,6 +174,51 @@ class QMainWindowPlot(QMainWindow):
         """Remove component labels from the canvas."""
         self.gui.clear_highlight()
 
+    #: Grid step for one arrow-key press, in millimetres.
+    NUDGE_STEP_MM = 0.05
+
+    #: Multipliers for the modifier keys. Shift coarsens, Alt refines --
+    #: the convention every drawing tool uses.
+    NUDGE_COARSE_FACTOR = 10.0
+    NUDGE_FINE_FACTOR = 0.1
+
+    #: Arrow key -> unit displacement (x, y). Y is positive upward, matching
+    #: the data coordinates rather than screen coordinates.
+    _NUDGE_DIRECTIONS = {
+        Qt.Key_Left: (-1, 0),
+        Qt.Key_Right: (1, 0),
+        Qt.Key_Down: (0, -1),
+        Qt.Key_Up: (0, 1),
+    }
+
+    def keyPressEvent(self, event):
+        """Nudge the selected component with the arrow keys.
+
+        Deliberately keyboard-only. Dragging would have to share the left
+        mouse button with panning and needs a live preview to feel right,
+        because a rebuild per mouse-move is far too slow; a keypress is one
+        discrete rebuild and has neither problem. It is also trivially
+        reversible with the opposite arrow, which matters because there is
+        no undo stack yet.
+
+        Args:
+            event (QKeyEvent): The key event.
+        """
+        direction = self._NUDGE_DIRECTIONS.get(event.key())
+        if direction is None:
+            super().keyPressEvent(event)
+            return
+
+        modifiers = event.modifiers()
+        step = self.NUDGE_STEP_MM
+        if modifiers & Qt.ShiftModifier:
+            step *= self.NUDGE_COARSE_FACTOR
+        elif modifiers & Qt.AltModifier:
+            step *= self.NUDGE_FINE_FACTOR
+
+        self.gui.nudge_selected(direction[0] * step, direction[1] * step)
+        event.accept()
+
     def set_design(self, design):
         """Set the design.
 

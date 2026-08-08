@@ -56,6 +56,7 @@ from qiskit_metal._gui.renderer_gds_gui import RendererGDSWidget
 from qiskit_metal._gui.renderer_hfss_gui import RendererHFSSWidget
 from qiskit_metal._gui.renderer_q3d_gui import RendererQ3DWidget
 from qiskit_metal._gui.utility._handle_qt_messages import slot_catch_error
+from qiskit_metal._gui.utility._nudge import offset_length
 from qiskit_metal._gui.utility._toolbox_qt import doShowHighlighWidget
 from qiskit_metal._gui.widgets.all_components.table_model_all_components import (
     QTableModel_AllComponents,
@@ -1369,8 +1370,86 @@ class MetalGUI(QMainWindowBaseHandler):
         Note:
             This does not rebuild geometry; use ``rebuild()`` if options are changed.
         """
+        self._selected_component = name
         if self.component_window:
             self.component_window.set_component(name)
+
+    @property
+    def selected_component(self):
+        """Name of the component last opened in the editor, or None.
+
+        Set by :meth:`edit_component`, which the canvas calls on click, so
+        clicking a component on the canvas is enough to make it the nudge
+        target.
+        """
+        return getattr(self, "_selected_component", None)
+
+    def nudge_component(self, name: str, dx_mm: float, dy_mm: float) -> bool:
+        """Move a component by a displacement in millimetres.
+
+        Positions are unit-bearing strings, so the displacement is converted
+        into whatever unit each option already uses -- a design authored in
+        microns stays in microns rather than being silently rewritten in mm.
+
+        Only components exposing ``pos_x``/``pos_y`` can be moved. Routes are
+        positioned by their pins, so nudging one is meaningless and is
+        refused rather than half-applied.
+
+        Args:
+            name (str): Component to move.
+            dx_mm (float): Displacement along x, in millimetres.
+            dy_mm (float): Displacement along y, in millimetres.
+
+        Returns:
+            bool: True if the component moved.
+        """
+        if self.design is None or name not in self.design.components:
+            return False
+
+        component = self.design.components[name]
+        options = component.options
+        if "pos_x" not in options or "pos_y" not in options:
+            self.logger.info(
+                f"{name} has no pos_x/pos_y to nudge — it is positioned by "
+                "its pins or is fixed."
+            )
+            return False
+
+        new_x = offset_length(options["pos_x"], dx_mm, self.design.parse_value)
+        new_y = offset_length(options["pos_y"], dy_mm, self.design.parse_value)
+        if new_x is None or new_y is None:
+            self.logger.warning(
+                f"Could not nudge {name}: pos_x/pos_y are not simple lengths "
+                f"({options['pos_x']!r}, {options['pos_y']!r})."
+            )
+            return False
+
+        options["pos_x"] = new_x
+        options["pos_y"] = new_y
+
+        component.rebuild()
+        self.refresh()
+        # Re-assert the highlight: the rebuild cleared the annotations, and
+        # losing the outline mid-nudge makes it unclear what is moving.
+        self.highlight_components([name], show_pins=False)
+        self.logger.info(f"Nudged {name} to ({new_x}, {new_y})")
+        return True
+
+    def nudge_selected(self, dx_mm: float, dy_mm: float) -> bool:
+        """Nudge the currently selected component.
+
+        Args:
+            dx_mm (float): Displacement along x, in millimetres.
+            dy_mm (float): Displacement along y, in millimetres.
+
+        Returns:
+            bool: True if a component moved.
+        """
+        name = self.selected_component
+        if name is None:
+            self.logger.info("Nothing selected — click a component first.")
+            return False
+        return self.nudge_component(name, dx_mm, dy_mm)
 
     def highlight_components(self, component_names: list[str], show_pins: bool = True):
         """Visually highlight components in the plot canvas.
