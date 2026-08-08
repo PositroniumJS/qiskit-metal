@@ -487,6 +487,13 @@ class QTreeModel_Base(QAbstractItemModel):
                         if self.optionstype == "component":
                             self.component.rebuild()
                             self.gui.refresh()
+                        elif self.optionstype == "chip":
+                            # Chip geometry is shared: the die outline and
+                            # every component's placement are derived from it,
+                            # so a chip edit needs a full design rebuild
+                            # rather than one component's.
+                            self.design.rebuild()
+                            self.gui.refresh()
                         return True
         return False
 

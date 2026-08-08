@@ -22,6 +22,7 @@ from PySide6.QtCore import Qt, QTimer, QSize
 from PySide6.QtGui import QIcon, QPixmap, QAction
 from PySide6.QtWidgets import (
     QApplication,
+    QTreeView,
     QWidget,
     QDialog,
     QDockWidget,
@@ -67,6 +68,7 @@ from qiskit_metal._gui.widgets.create_component_window import (
 )
 from qiskit_metal._gui.widgets.edit_component.component_widget import ComponentWidget
 from qiskit_metal._gui.widgets.plot_widget.plot_window import QMainWindowPlot
+from qiskit_metal._gui.widgets.edit_chip import QTreeModel_Chips
 from qiskit_metal._gui.widgets.variable_table import PropertyTableWidget
 
 if not config.is_building_docs():
@@ -599,6 +601,8 @@ class MetalGUI(QMainWindowBaseHandler):
         self._setup_elements_widget()
         _trace_init("_setup_variables_widget")
         self._setup_variables_widget()
+        _trace_init("_setup_chip_widget")
+        self._setup_chip_widget()
         _trace_init("_ui_adjustments_final")
         self._ui_adjustments_final()
         _trace_init("_setup_library_widget")
@@ -705,6 +709,13 @@ class MetalGUI(QMainWindowBaseHandler):
             self.main_window.q3d_gui.set_design(design)
 
         self.variables_window.set_design(design)
+
+        # The chip model is constructed before any design exists, so its
+        # first load found nothing. Reload now rather than leaving the panel
+        # blank until the refresh timer next fires. Guarded because
+        # ``set_design`` can be called on a partially built GUI.
+        if getattr(self, "chips_model", None) is not None:
+            self.chips_model.load()
 
         # Refresh
         self.refresh()
@@ -855,23 +866,7 @@ class MetalGUI(QMainWindowBaseHandler):
             if iconName == "-----":
                 toolbar.insertSeparator(toolbarInsertBefore)
                 continue
-
-            # Icons
-            icon = QIcon()
-            icon.addPixmap(QPixmap(iconName), QIcon.Normal, QIcon.Off)
-
-            # Function call & monkey patch class instance ala Monkey Patch
-            dock.doShow = doShowHighlighWidget.__get__(dock, type(dock))
-
-            # QT Action with trigger, embed in toolbar
-            action = QAction(caption, dock, triggered=dock.doShow)
-            action.setIcon(icon)
-            action.setToolTip(tooltip)
-            action.setStatusTip(tooltip)
-            dock.actionShow = action  # save action
-
-            # insert action in toolbar
-            toolbar.insertAction(toolbarInsertBefore, action)
+            self._add_dock_toolbar_action(dock, iconName, caption, tooltip)
 
         # The two actions that come from the .ui: give the toggle a tooltip
         # that says what it does rather than repeating its object name.
@@ -879,6 +874,43 @@ class MetalGUI(QMainWindowBaseHandler):
         self.ui.actionToggleDocks.setToolTip("Show or hide all side panels at once")
         self.ui.actionToggleDocks.setStatusTip(self.ui.actionToggleDocks.toolTip())
         self.ui.actionScreenshot.setText("Snap")
+
+    def _add_dock_toolbar_action(
+        self, dock, icon_name: str, caption: str, tooltip: str
+    ):
+        """Add one dock-raising button to the left toolbar.
+
+        Split out of ``_add_additional_qactions_tool_bar_view`` so docks
+        created later in startup -- which that method cannot see, since it
+        runs inside ``_ui_adjustments`` during ``super().__init__()`` -- can
+        get the same treatment.
+
+        Args:
+            dock (QDockWidget): Dock the button raises.
+            icon_name (str): Qt resource path for the icon.
+            caption (str): Short label shown under the icon. Keep it to about
+                four characters: on a vertical toolbar the caption sets the
+                bar's width.
+            tooltip (str): Description of the panel. Must be set explicitly --
+                an action with empty text inherits the toolbar's own tooltip,
+                which is how every one of these once read "View Toolbar".
+        """
+        toolbar = self.ui.toolBarView
+        toolbar_insert_before = self.ui.actionToggleDocks
+
+        icon = QIcon()
+        icon.addPixmap(QPixmap(icon_name), QIcon.Normal, QIcon.Off)
+
+        # Function call & monkey patch class instance ala Monkey Patch
+        dock.doShow = doShowHighlighWidget.__get__(dock, type(dock))
+
+        action = QAction(caption, dock, triggered=dock.doShow)
+        action.setIcon(icon)
+        action.setToolTip(tooltip)
+        action.setStatusTip(tooltip)
+        dock.actionShow = action  # save action
+
+        toolbar.insertAction(toolbar_insert_before, action)
 
     def _set_element_tab(self, yesno: bool):
         """Set the elements tabl to Elements or View.
@@ -899,6 +931,43 @@ class MetalGUI(QMainWindowBaseHandler):
     def _setup_variables_widget(self):
         """Setup the variables widget."""
         self.ui.dockVariables.setWidget(self.variables_window)
+
+    def _setup_chip_widget(self):
+        """Create the chip-stack editor dock.
+
+        Components, variables and pins each had a dock; the chip stack --
+        die size, material, layer bounds -- had none, so changing it meant
+        dropping to a notebook. ``design.chips`` is a nested ``Dict`` of the
+        same shape the component-options tree already edits, so this reuses
+        that model rather than introducing another editor.
+
+        Built in code rather than the .ui because ``main_window_ui.py`` is
+        pyside6-uic output; it is tabified alongside the other left docks.
+        """
+        self.ui.dockChips = QDockWidget("Chip", self.main_window)
+        self.ui.dockChips.setObjectName("dockChips")
+
+        view = QTreeView(self.ui.dockChips)
+        view.setAlternatingRowColors(True)
+        self.chips_model = QTreeModel_Chips(self.ui.dockChips, gui=self, view=view)
+        view.setModel(self.chips_model)
+        self.ui.dockChips.setWidget(view)
+        self.chips_window = view
+
+        self.main_window.tabifyDockWidget(self.ui.dockVariables, self.ui.dockChips)
+        # Tabified, so the tab bar names it; a title bar would repeat that.
+        self.ui.dockChips.setTitleBarWidget(QWidget(self.ui.dockChips))
+
+        # Give it a left-rail button like the other docks. Done here rather
+        # than in the DOCKS table of _add_additional_qactions_tool_bar_view:
+        # that runs inside _ui_adjustments during super().__init__(), well
+        # before this dock exists.
+        self._add_dock_toolbar_action(
+            self.ui.dockChips,
+            r":/variables",
+            "Chip",
+            "Chip stack — die size, material and layer bounds",
+        )
         # hookup to delete action
         self.ui.btn_comp_del.clicked.connect(
             self.ui.tableComponents.delete_selected_rows
