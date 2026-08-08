@@ -601,8 +601,77 @@ class PlotCanvas(FigureCanvas):
         """Style a figure."""
         # self.figure.tight_layout()
 
-    def auto_scale(self):
-        """Automaticlaly scale."""
+    def _component_bounds(self, component_names=None):
+        """Union of the qgeometry bounds of the named components.
+
+        Args:
+            component_names (List[str]): Components to include. Defaults to
+                every component in the design.
+
+        Returns:
+            tuple: ``(xmin, ymin, xmax, ymax)``, or None when nothing has
+            usable bounds (an empty design, or components that failed to
+            build).
+        """
+        if component_names is None:
+            component_names = list(self.design.components.keys())
+
+        xmins, ymins, xmaxs, ymaxs = [], [], [], []
+        for name in component_names:
+            if name not in self.design.components:
+                continue
+            try:
+                xmin, ymin, xmax, ymax = self.design.components[name].qgeometry_bounds()
+            except Exception:  # pragma: no cover — defensive
+                continue
+            xmins.append(xmin)
+            ymins.append(ymin)
+            xmaxs.append(xmax)
+            ymaxs.append(ymax)
+
+        if not xmins:
+            return None
+        return min(xmins), min(ymins), max(xmaxs), max(ymaxs)
+
+    def _set_limits(self, bounds, pad_fraction=0.1):
+        """Frame the given bounds with padding.
+
+        Args:
+            bounds (tuple): ``(xmin, ymin, xmax, ymax)``.
+            pad_fraction (float): Margin as a fraction of each extent.
+        """
+        xmin, ymin, xmax, ymax = bounds
+        dx = (xmax - xmin) * pad_fraction or 0.1
+        dy = (ymax - ymin) * pad_fraction or 0.1
+        for ax in self.figure.axes:
+            ax.set_xlim(xmin - dx, xmax + dx)
+            ax.set_ylim(ymin - dy, ymax + dy)
+
+    def auto_scale(self, include_chip: bool = False):
+        """Frame the design.
+
+        Args:
+            include_chip (bool): Frame the whole chip rather than just the
+                components. Defaults to False.
+
+        Notes:
+            The default deliberately ignores the chip. ``QMplRenderer`` draws
+            the die outline, so a plain ``ax.autoscale()`` frames the full
+            chip -- a default 9x6mm die around a 0.65mm transmon leaves the
+            component an unreadable speck. The tutorials were all written
+            assuming the chip is ignored.
+
+            Falls back to framing everything when no component has usable
+            bounds, so an empty design still shows the chip rather than an
+            arbitrary window.
+        """
+        if not include_chip:
+            bounds = self._component_bounds()
+            if bounds is not None:
+                self._set_limits(bounds)
+                self.refresh()
+                return
+
         for ax in self.figure.axes:
             ax.autoscale()
         self.refresh()
@@ -620,27 +689,10 @@ class PlotCanvas(FigureCanvas):
             ``MetalGUIHeadless`` viewer always had it; the Qt canvas
             didn't). 10 % padding is added around the combined bbox.
         """
-        xmins, ymins, xmaxs, ymaxs = [], [], [], []
-        for name in component_names:
-            if name not in self.design.components:
-                continue
-            try:
-                xmin, ymin, xmax, ymax = self.design.components[name].qgeometry_bounds()
-                xmins.append(xmin)
-                ymins.append(ymin)
-                xmaxs.append(xmax)
-                ymaxs.append(ymax)
-            except Exception:  # pragma: no cover — defensive
-                continue
-        if not xmins:
+        bounds = self._component_bounds(component_names)
+        if bounds is None:
             return
-        xmin, ymin = min(xmins), min(ymins)
-        xmax, ymax = max(xmaxs), max(ymaxs)
-        dx = (xmax - xmin) * 0.1 or 0.1
-        dy = (ymax - ymin) * 0.1 or 0.1
-        for ax in self.figure.axes:
-            ax.set_xlim(xmin - dx, xmax + dx)
-            ax.set_ylim(ymin - dy, ymax + dy)
+        self._set_limits(bounds)
         self.refresh()
 
     def welcome_message(self):

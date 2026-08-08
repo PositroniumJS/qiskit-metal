@@ -1173,9 +1173,16 @@ class MetalGUI(QMainWindowBaseHandler):
         if self.plot_win is not None:
             self.plot_win.replot()
 
-    def autoscale(self):
-        """Shortcut to autoscale all views."""
-        self.plot_win.auto_scale()
+    def autoscale(self, include_chip: bool = False):
+        """Frame the design in the plot window.
+
+        Args:
+            include_chip (bool): Frame the whole chip rather than just the
+                components. Defaults to False -- a default 9x6mm die around a
+                sub-millimetre component leaves it unreadably small, and the
+                tutorials assume the chip is ignored.
+        """
+        self.plot_win.auto_scale(include_chip=include_chip)
 
     #########################################################
     # COMPONENT FUNCTIONS

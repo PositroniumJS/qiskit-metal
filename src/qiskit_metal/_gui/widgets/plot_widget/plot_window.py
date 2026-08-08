@@ -143,6 +143,17 @@ class QMainWindowPlot(QMainWindow):
         )
         toolbar.addAction(self.action_label_components)
 
+        self.action_fit_chip = QAction("Fit chip", self)
+        self.action_fit_chip.setShortcut("Shift+A")
+        self.action_fit_chip.setShortcutContext(Qt.WindowShortcut)
+        self.action_fit_chip.setStatusTip(
+            "Frame the whole chip including the die outline (Shift+A). "
+            "Plain autoscale (A) frames the components only."
+        )
+        self.action_fit_chip.setToolTip(self.action_fit_chip.statusTip())
+        self.action_fit_chip.triggered.connect(self.auto_scale_chip)
+        toolbar.addAction(self.action_fit_chip)
+
         self.action_clear_labels = QAction("Clear labels", self)
         self.action_clear_labels.setShortcut("Shift+C")
         self.action_clear_labels.setShortcutContext(Qt.WindowShortcut)
@@ -181,10 +192,19 @@ class QMainWindowPlot(QMainWindow):
         # self.logger.debug("Force replot")
         self.canvas.plot()
 
-    def auto_scale(self):
-        """Tells the canvas to perform an automatic scale."""
-        self.logger.debug("Autoscale")
-        self.canvas.auto_scale()
+    def auto_scale(self, include_chip: bool = False):
+        """Tells the canvas to perform an automatic scale.
+
+        Args:
+            include_chip (bool): Frame the whole chip rather than just the
+                components. Defaults to False.
+        """
+        self.logger.debug("Autoscale (include_chip=%s)", include_chip)
+        self.canvas.auto_scale(include_chip=include_chip)
+
+    def auto_scale_chip(self):
+        """Frame the whole chip, including the die outline."""
+        self.auto_scale(include_chip=True)
 
     def _navigation_help(self, title: str):
         """Show the shared navigation cheat-sheet.
