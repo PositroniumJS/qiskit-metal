@@ -13,7 +13,7 @@
 Delegate for Param Entry Window's MVD
 """
 
-from PySide6.QtCore import QAbstractItemModel, QModelIndex, Qt
+from PySide6.QtCore import QAbstractItemModel, QModelIndex, QTimer, Qt
 from PySide6.QtWidgets import (
     QCompleter,
     QItemDelegate,
@@ -71,10 +71,14 @@ class ParamDelegate(QItemDelegate):
     def _make_completing_editor(parent: QWidget, completions: list) -> QLineEdit:
         """Return a line edit with a browsable completion popup.
 
-        ``UnfilteredPopupCompletion`` shows the whole list as soon as the
-        editor opens, so the field can be browsed with the arrow keys without
-        knowing what to type first -- the point of the feature. Filtering
-        still happens as you type.
+        ``UnfilteredPopupCompletion`` is meant to show the whole list as soon
+        as the editor opens, so the field can be browsed with the arrow keys
+        without knowing what to type first -- but Qt only actually raises
+        the popup in response to the editor's ``textEdited`` signal, so
+        without the explicit ``complete()`` call below the list stayed
+        hidden until the first keystroke, silently defeating the "browse
+        without typing" point of the mode. Filtering still happens as you
+        type.
 
         Args:
             parent (QWidget): Parent widget for the editor.
@@ -89,6 +93,11 @@ class ParamDelegate(QItemDelegate):
         completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
         completer.setFilterMode(Qt.MatchContains)
         editor.setCompleter(completer)
+        # Deferred to the next event-loop tick: the view hasn't finished
+        # positioning/showing the editor yet at createEditor() time, and
+        # QCompleter.complete() needs that geometry to place the popup
+        # correctly.
+        QTimer.singleShot(0, completer.complete)
         return editor
 
     def _completions_for(self, index: QModelIndex) -> list:
