@@ -73,8 +73,11 @@ class QTableView_AllComponents(QTableView, QWidget_PlaceholderText):
 
     def style2(self):
         """Style the widget."""
-        # Do in the ui file
-        self.horizontalHeader().hide()
+        # The .ui already sets horizontalHeader().setVisible(True); hiding
+        # it here left the "Name / QComponent class / ..." column labels
+        # invisible until QTableModel_AllComponents.refresh_auto() happened
+        # to show() it again on the next row-count change (see that
+        # method's "for some reason" comment -- this hide() is the reason).
         self.verticalHeader().show()
 
         self.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)

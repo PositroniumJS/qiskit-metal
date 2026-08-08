@@ -1093,6 +1093,20 @@ class MetalGUI(QMainWindowBaseHandler):
         self.ui.btn_comp_rename.clicked.connect(self.ui.tableComponents.rename_row)
         self.ui.btn_comp_zoom.clicked.connect(self.btn_comp_zoom_fx)
 
+        # btn_comp_rename has no icon in the .ui, unlike its two neighbours,
+        # and no explicit tool-button style -- with the default IconOnly
+        # style and nothing to show as an icon, it rendered as a blank,
+        # unlabeled button. TextOnly makes its "Rename" text actually
+        # visible; the other two keep their icon-only default.
+        self.ui.btn_comp_rename.setToolButtonStyle(Qt.ToolButtonTextOnly)
+        rename_tip = "Rename the selected component"
+        self.ui.btn_comp_rename.setToolTip(rename_tip)
+        self.ui.btn_comp_rename.setStatusTip(rename_tip)
+
+        filter_tip = "Filter the component list by name, class, or module"
+        self.ui.filter_text_design.setToolTip(filter_tip)
+        self.ui.filter_text_design.setStatusTip(filter_tip)
+
     def _setup_plot_widget(self):
         """Create main Window Widget Plot."""
         self.plot_win = QMainWindowPlot(self, self.main_window)
