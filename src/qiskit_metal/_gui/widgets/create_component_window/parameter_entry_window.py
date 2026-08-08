@@ -507,6 +507,13 @@ def dockify(main_window, docked_title, gui):
     # Dockify
     main_window.dock_widget = QDockWidget(docked_title, gui.main_window)
     dock = main_window.dock_widget
+    # QMainWindow.saveState() (triggered on every close()) warns for any
+    # QDockWidget with no objectName -- harmless, but noisy every time a
+    # create-component window is opened and closed. Sanitized from the
+    # title since it's the one thing guaranteed to exist here and be
+    # reasonably descriptive; uniqueness doesn't matter, this dock is never
+    # looked up by name.
+    dock.setObjectName("dockCreateComponent_" + "".join(docked_title.split()))
     dock.setWidget(main_window)
 
     dock.setAllowedAreas(Qt.RightDockWidgetArea)
