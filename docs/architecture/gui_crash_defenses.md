@@ -48,6 +48,19 @@ Then it sets the cookie and `sync()`s **before** `restoreGeometry`/
 `_display_fingerprint()` is `name:x,y,w,h@dpr` per screen. It returns `""` on
 error, and an empty value on either side short-circuits to a plain restore.
 
+The `metal_version` check compares **parsed versions**, not strings. It was a
+string compare until 2026-08-07 — correct only while every component stays
+single-digit, since `'0.10.0' > '0.9.0'` is `False`. From v0.10.0 the guard
+would have stopped firing with no error and no symptom: a defense quietly
+switched off, and pre-0.10 layouts restored into a newer GUI. Any doubt now
+resolves to "newer", because discarding state that might have been fine is the
+cheap failure and restoring state that is not is the expensive one.
+
+This guard doubles as the mechanism that gives users **new layout defaults on
+upgrade**. Changing a dock's default visibility needs no migration code: the
+saved layout is discarded on the version bump anyway. Worth knowing before
+writing one.
+
 ### The crash cookie — the ordering constraint that matters most
 
 `restore_in_progress` is set before the risky sequence and cleared **only by
