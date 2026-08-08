@@ -126,7 +126,12 @@ class QMainWindowExtensionBase(QMainWindow):
         super().__init__()
         # Set manually
         self.handler: QMainWindowBaseHandler = None
-        self.force_close = False
+        # QISKIT_METAL_GUI_FORCE_CLOSE=1 skips the "save unsaved changes?"
+        # modal on close() -- for automated/headless callers (tests, the
+        # notebook screenshot regen script) where there is no user to click
+        # it and it would otherwise hang forever. Interactive sessions
+        # should never set this; the modal is the correct behavior there.
+        self.force_close = bool(os.environ.get("QISKIT_METAL_GUI_FORCE_CLOSE"))
 
     @property
     def logger(self) -> logging.Logger:

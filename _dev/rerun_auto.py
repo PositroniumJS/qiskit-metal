@@ -110,6 +110,13 @@ def run_one(
         # window. QT_QPA_PLATFORM is left to the caller's environment (e.g.
         # ``xvfb-run``, or a real display), not overridden here.
         env["QISKIT_METAL_HEADLESS_QUIET"] = "1"
+        # Some frozen-Qt notebooks end with gui.main_window.close() as a
+        # "how to close the GUI" demo cell. Interactively that pops a
+        # "save unsaved changes?" modal, which is correct there -- but
+        # under an automated/offscreen run there is no user to click it,
+        # so it hangs until ExecutePreprocessor.timeout fires. See
+        # docs/architecture/gui_crash_defenses.md before changing this.
+        env["QISKIT_METAL_GUI_FORCE_CLOSE"] = "1"
     else:
         env["QISKIT_METAL_HEADLESS"] = "1"
         env["QISKIT_METAL_HEADLESS_QUIET"] = "1"

@@ -101,6 +101,7 @@ them working:
 | `QISKIT_METAL_GUI_NO_PLOT=1` | Skip the matplotlib canvas embed. |
 | `QISKIT_METAL_RESET_UI_SETTINGS=1` | Start from clean persisted state. |
 | `QISKIT_METAL_QT_HARDWARE_GL=1` | Undo the Windows software-GL default. |
+| `QISKIT_METAL_GUI_FORCE_CLOSE=1` | Sets `main_window.force_close = True` at construction, so any `gui.main_window.close()` call skips `ok_to_close()`'s modal instead of hanging headless (see Teardown, above). Some frozen-Qt tutorial notebooks call `close()` as their last cell to demo the API; `_dev/rerun_auto.py` sets this for its `--write-frozen` Qt-display runs. Never set it for an interactive session — the modal is correct there. |
 
 ---
 
