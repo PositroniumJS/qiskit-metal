@@ -728,6 +728,9 @@ class MetalGUI(QMainWindowBaseHandler):
         # ``set_design`` can be called on a partially built GUI.
         if getattr(self, "chips_model", None) is not None:
             self.chips_model.load()
+            if getattr(self, "chips_window", None) is not None:
+                self.chips_window.expandAll()
+                self.chips_window.autoresize_columns()
         if getattr(self, "layers_window", None) is not None:
             self.layers_window.refresh()
 
@@ -1035,6 +1038,13 @@ class MetalGUI(QMainWindowBaseHandler):
         view.setModel(self.chips_model)
         self.ui.dockChips.setWidget(view)
         self.chips_window = view
+
+        # Chips is a shallow tree (one or two chips, a handful of
+        # properties each) -- collapsed-by-default just adds a click for
+        # something you almost always want to see immediately, unlike the
+        # component/pin trees where collapsed is the useful default.
+        view.expandAll()
+        view.autoresize_columns()
 
         self.main_window.tabifyDockWidget(self.ui.dockVariables, self.ui.dockChips)
         # Tabified, so the tab bar names it; a title bar would repeat that.
