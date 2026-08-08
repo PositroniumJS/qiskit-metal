@@ -174,3 +174,21 @@ class TestClearing:
 
         canvas.highlight_all_components(show_pins=False)
         assert len(canvas._annotations["text"]) == first
+
+    def test_clearing_redraws(self, canvas, monkeypatch):
+        """Detaching the artists is not enough -- the canvas must redraw.
+
+        ``highlight_components`` refreshes at the end of its own run, so
+        without a refresh here the labels stayed painted on screen and the
+        Clear-labels button looked like it did nothing.
+        """
+        canvas.highlight_all_components()
+
+        draws = []
+        monkeypatch.setattr(canvas, "draw", lambda *a, **k: draws.append(1))
+        monkeypatch.setattr(canvas, "draw_idle", lambda *a, **k: draws.append(1))
+
+        canvas.clear_annotation()
+        canvas.refresh()
+
+        assert draws, "clearing labels must trigger a redraw"

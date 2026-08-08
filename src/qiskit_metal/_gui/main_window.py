@@ -1234,8 +1234,15 @@ class MetalGUI(QMainWindowBaseHandler):
         return count
 
     def clear_highlight(self):
-        """Remove any component labels/highlights from the canvas."""
+        """Remove any component labels/highlights from the canvas.
+
+        ``clear_annotation`` detaches the artists but does not redraw --
+        ``highlight_components`` refreshes at the end of its own run, so the
+        clear path has to do it too or the labels stay on screen until
+        something else happens to trigger a draw.
+        """
         self.canvas.clear_annotation()
+        self.canvas.refresh()
 
     def zoom_on_components(self, components: list[str]):
         """Zoom the canvas to fit the given components.
