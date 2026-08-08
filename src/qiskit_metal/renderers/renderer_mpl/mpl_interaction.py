@@ -693,10 +693,35 @@ class PanAndZoom(ZoomOnWheel):
         Args:
             event (event): The event
         """
+        self._report_hover_position(event)
+
         if self._pressed_button == 1:  # pan
             self._pan(event)
         elif self._pressed_button == 3:  # zoom area
             self._zoom_area(event)
+
+    def _report_hover_position(self, event):
+        """Show the cursor's design coordinates in the status bar.
+
+        Cheap enough to run on every motion event: it only sets a QLabel's
+        text, which does not touch the canvas or trigger a redraw. Before
+        this the status bar sat empty unless you enabled the Coords toggle
+        and then *clicked*, so it showed nothing during normal use.
+
+        Args:
+            event (event): The event
+        """
+        if not self._statusbar_label:
+            return
+
+        # Outside the axes there is no data coordinate to report.
+        if event.xdata is None or event.ydata is None:
+            self._statusbar_label.setText("")
+            return
+
+        self._statusbar_label.setText(
+            f"x = {event.xdata:.4f} mm    y = {event.ydata:.4f} mm"
+        )
 
     def _report_point_position(self, event):
         """Report point position.
