@@ -22,7 +22,6 @@ from PySide6.QtCore import Qt, QTimer, QSize
 from PySide6.QtGui import QIcon, QPixmap, QAction, QActionGroup
 from PySide6.QtWidgets import (
     QApplication,
-    QTreeView,
     QWidget,
     QDialog,
     QDockWidget,
@@ -69,6 +68,7 @@ from qiskit_metal._gui.widgets.create_component_window import (
 )
 from qiskit_metal._gui.widgets.edit_component.component_widget import ComponentWidget
 from qiskit_metal._gui.widgets.plot_widget.plot_window import QMainWindowPlot
+from qiskit_metal._gui.tree_view_base import QTreeView_Base
 from qiskit_metal._gui.widgets.edit_chip import QTreeModel_Chips
 from qiskit_metal._gui.widgets.view_control import LayerVisibilityWidget
 from qiskit_metal._gui.widgets.variable_table import PropertyTableWidget
@@ -1015,7 +1015,7 @@ class MetalGUI(QMainWindowBaseHandler):
         self.ui.dockChips = QDockWidget("Chip", self.main_window)
         self.ui.dockChips.setObjectName("dockChips")
 
-        view = QTreeView(self.ui.dockChips)
+        view = QTreeView_Base(self.ui.dockChips)
         view.setAlternatingRowColors(True)
         self.chips_model = QTreeModel_Chips(self.ui.dockChips, gui=self, view=view)
         view.setModel(self.chips_model)
