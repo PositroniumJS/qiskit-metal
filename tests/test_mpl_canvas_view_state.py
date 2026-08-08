@@ -79,6 +79,9 @@ class CanvasStub:
     def _force_clear_annotations(self):
         """No-op: annotation bookkeeping."""
 
+    def _invalidate_pick_index(self):
+        """No-op: click-to-select drops its cached hit-test index here."""
+
     def get_axis(self):
         """Return the single axis under test."""
         return self.ax

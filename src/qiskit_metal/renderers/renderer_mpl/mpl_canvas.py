@@ -355,6 +355,13 @@ class PlotCanvas(FigureCanvas):
             canvas=self, design=self.design, logger=logger
         )
 
+        # Click-to-select. Rebuilt lazily; invalidated by every plot().
+        self._pick_tree = None
+        self._pick_names = []
+        self._press_xy = None
+        self.figure.canvas.mpl_connect("button_press_event", self._on_pick_press)
+        self.figure.canvas.mpl_connect("button_release_event", self._on_pick_release)
+
         # self.plot()
         # self.welcome_message()
 
@@ -473,6 +480,10 @@ class PlotCanvas(FigureCanvas):
                 ax.set_ylim(self._state["ylim"])
             self.draw()
             self.show()
+
+        # The drawn geometry is about to change, so any cached hit-test index
+        # is stale. Rebuilt lazily on the next click.
+        self._invalidate_pick_index()
 
         # ``prep`` must run on both paths: ``final`` restores from
         # ``self._state``, so skipping it would replay a previous plot's view.
@@ -600,6 +611,156 @@ class PlotCanvas(FigureCanvas):
     def style_figure(self):
         """Style a figure."""
         # self.figure.tight_layout()
+
+    # ------------------------------------------------------------------
+    # Click-to-select
+    # ------------------------------------------------------------------
+
+    #: A press and release within this many pixels counts as a click rather
+    #: than a drag. Matches the threshold ``_zoom_area`` uses to ignore
+    #: accidental rubber-band drags, so pan and select agree on the boundary.
+    CLICK_PIXEL_TOLERANCE = 3
+
+    #: Click tolerance in pixels, converted to data units at query time.
+    #: Routes are zero-width paths, so an exact point-in-polygon test would
+    #: make them practically unclickable.
+    PICK_PIXEL_TOLERANCE = 5
+
+    def _invalidate_pick_index(self):
+        """Drop the cached hit-test index.
+
+        Called whenever the drawn geometry may have changed. Rebuilding is
+        deferred to the next click, so a rebuild-heavy session does not pay
+        for an index nobody queries.
+        """
+        self._pick_tree = None
+        self._pick_names = []
+
+    def _build_pick_index(self):
+        """Build an R-tree over every component's geometry.
+
+        Hit-testing every polygon linearly would make a click cost O(n) on a
+        design with hundreds of components. ``STRtree`` gives a spatial index
+        instead, built once per rebuild and queried per click.
+        """
+        from shapely import STRtree  # local: keeps import cost off startup
+
+        geometries = []
+        names = []
+        for name in self.design.components:
+            try:
+                shapes = self.design.components[name].qgeometry_list()
+            except Exception:  # pragma: no cover — defensive
+                continue
+            for shape in shapes:
+                if shape is None or shape.is_empty:
+                    continue
+                geometries.append(shape)
+                names.append(name)
+
+        self._pick_names = names
+        self._pick_tree = STRtree(geometries) if geometries else None
+
+    def component_at_point(self, x: float, y: float, tolerance: float = None):
+        """Return the name of the component under a data-space point.
+
+        Args:
+            x (float): X in data (mm) coordinates.
+            y (float): Y in data (mm) coordinates.
+            tolerance (float): Search radius in data units. Defaults to
+                :attr:`PICK_PIXEL_TOLERANCE` pixels converted to data units.
+
+        Returns:
+            str: Component name, or None if the point hits nothing.
+        """
+        if self._pick_tree is None:
+            self._build_pick_index()
+        if self._pick_tree is None:  # still nothing to hit
+            return None
+
+        from shapely.geometry import Point
+
+        if tolerance is None:
+            tolerance = self._pixels_to_data(self.PICK_PIXEL_TOLERANCE)
+
+        probe = Point(x, y).buffer(tolerance)
+        hits = self._pick_tree.query(probe)
+        if len(hits) == 0:
+            return None
+
+        # query() is bounding-box based, so confirm a real intersection and
+        # prefer the closest match when several overlap.
+        best_name, best_distance = None, None
+        point = Point(x, y)
+        for index in hits:
+            geometry = self._pick_tree.geometries.take(index)
+            distance = geometry.distance(point)
+            if distance > tolerance:
+                continue
+            if best_distance is None or distance < best_distance:
+                best_distance = distance
+                best_name = self._pick_names[index]
+        return best_name
+
+    def _pixels_to_data(self, pixels: float) -> float:
+        """Convert a pixel distance to data units at the current zoom.
+
+        Args:
+            pixels (float): Distance in display pixels.
+
+        Returns:
+            float: The same distance in data units.
+        """
+        ax = self.get_axis()
+        try:
+            origin = ax.transData.inverted().transform((0, 0))
+            offset = ax.transData.inverted().transform((pixels, 0))
+            return abs(offset[0] - origin[0])
+        except Exception:  # pragma: no cover — defensive
+            return 0.0
+
+    def _on_pick_press(self, event):
+        """Record where a press started, to tell a click from a drag.
+
+        Args:
+            event: Matplotlib mouse event.
+        """
+        if event.button == 1:
+            self._press_xy = (event.x, event.y)
+
+    def _on_pick_release(self, event):
+        """Select the component under the cursor, if this was a click.
+
+        Left-drag pans, so a release is only treated as a selection when the
+        pointer barely moved. Without that check every pan would also
+        re-select whatever happened to be under the release point.
+
+        Args:
+            event: Matplotlib mouse event.
+        """
+        press_xy, self._press_xy = self._press_xy, None
+
+        if event.button != 1 or press_xy is None:
+            return
+        if event.xdata is None or event.ydata is None:
+            return
+        if (
+            abs(event.x - press_xy[0]) > self.CLICK_PIXEL_TOLERANCE
+            or abs(event.y - press_xy[1]) > self.CLICK_PIXEL_TOLERANCE
+        ):
+            return  # a drag (pan), not a click
+
+        name = self.component_at_point(event.xdata, event.ydata)
+        if name is None:
+            return
+
+        # ``logger`` is an optional constructor argument, so it can be None.
+        if self.logger is not None:
+            self.logger.info(f"Selected component: {name}")
+        gui = getattr(self, "gui", None)
+        if gui is not None and hasattr(gui, "edit_component"):
+            gui.edit_component(name)
+        self.highlight_components([name])
 
     def _component_bounds(self, component_names=None):
         """Union of the qgeometry bounds of the named components.
