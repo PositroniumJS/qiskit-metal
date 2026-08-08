@@ -1416,6 +1416,13 @@ class MetalGUI(QMainWindowBaseHandler):
         # Table models
         self.ui.tableComponents.model().sourceModel().refresh()
 
+        # Layer list -- unlike the chip/component trees this widget has no
+        # polling timer of its own, so without this call it stays empty
+        # (or stale) after the first build until set_design() is called
+        # again, which usually never happens in a normal session.
+        if getattr(self, "layers_window", None) is not None:
+            self.layers_window.refresh()
+
         # Redraw plots
         self.refresh_plot()
 
