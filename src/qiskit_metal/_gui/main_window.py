@@ -56,7 +56,10 @@ from qiskit_metal._gui.renderer_hfss_gui import RendererHFSSWidget
 from qiskit_metal._gui.renderer_q3d_gui import RendererQ3DWidget
 from qiskit_metal._gui.utility._handle_qt_messages import slot_catch_error
 from qiskit_metal._gui.utility._nudge import offset_length
-from qiskit_metal._gui.utility._toolbox_qt import doShowHighlighWidget
+from qiskit_metal._gui.utility._toolbox_qt import (
+    doShowHighlighWidget,
+    doToggleDockWidget,
+)
 from qiskit_metal._gui.widgets.all_components.table_model_all_components import (
     QTableModel_AllComponents,
 )
@@ -882,10 +885,14 @@ class MetalGUI(QMainWindowBaseHandler):
                 self.ui.dockLog,
                 r":/log",
                 "Log",
-                "Log messages (hidden by default)",
+                "Log messages (hidden by default) — click again to close",
             ),
             (None, "-----", None, None),
         ]
+
+        # The log dock is standalone (not tabified with the others), so
+        # toggling it is unambiguous: click to open, click again to close.
+        TOGGLE_DOCKS = {self.ui.dockLog}
 
         # Show the caption under each icon; icon-only left users guessing.
         toolbar.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
@@ -895,7 +902,9 @@ class MetalGUI(QMainWindowBaseHandler):
             if iconName == "-----":
                 toolbar.insertSeparator(toolbarInsertBefore)
                 continue
-            self._add_dock_toolbar_action(dock, iconName, caption, tooltip)
+            self._add_dock_toolbar_action(
+                dock, iconName, caption, tooltip, toggle=dock in TOGGLE_DOCKS
+            )
 
         # The two actions that come from the .ui: give the toggle a tooltip
         # that says what it does rather than repeating its object name.
@@ -944,7 +953,7 @@ class MetalGUI(QMainWindowBaseHandler):
         tab_widget.tabBar().hide()
 
     def _add_dock_toolbar_action(
-        self, dock, icon_name: str, caption: str, tooltip: str
+        self, dock, icon_name: str, caption: str, tooltip: str, toggle: bool = False
     ):
         """Add one dock-raising button to the left toolbar.
 
@@ -962,6 +971,10 @@ class MetalGUI(QMainWindowBaseHandler):
             tooltip (str): Description of the panel. Must be set explicitly --
                 an action with empty text inherits the toolbar's own tooltip,
                 which is how every one of these once read "View Toolbar".
+            toggle (bool): If True, clicking the button hides the dock when
+                it is already shown instead of just re-raising it. Only
+                correct for docks that are not tabified with others -- see
+                ``doToggleDockWidget``'s docstring.
         """
         toolbar = self.ui.toolBarView
         toolbar_insert_before = self.ui.actionToggleDocks
@@ -970,7 +983,8 @@ class MetalGUI(QMainWindowBaseHandler):
         icon.addPixmap(QPixmap(icon_name), QIcon.Normal, QIcon.Off)
 
         # Function call & monkey patch class instance ala Monkey Patch
-        dock.doShow = doShowHighlighWidget.__get__(dock, type(dock))
+        show_fn = doToggleDockWidget if toggle else doShowHighlighWidget
+        dock.doShow = show_fn.__get__(dock, type(dock))
 
         action = QAction(caption, dock, triggered=dock.doShow)
         action.setIcon(icon)

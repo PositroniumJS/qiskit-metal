@@ -85,6 +85,21 @@ def doShowHighlighWidget(self: QDockWidget, timeout=1500, style_highlight=None):
     QTimer.singleShot(timeout, self.doResetStyle)
 
 
+def doToggleDockWidget(self: QDockWidget, timeout=1500, style_highlight=None):
+    """Toggle a standalone (non-tabified) dock: hide it if currently
+    shown, otherwise show/raise/highlight it like ``doShowHighlighWidget``.
+
+    Only appropriate for docks that are not tabified with others --
+    ``isVisible()`` on a tabified ``QDockWidget`` reflects whether its tab
+    group is shown, not whether that particular tab is the active one, so
+    toggling on it would hide the whole group instead of switching tabs.
+    """
+    if self.isVisible():
+        self.hide()
+        return
+    doShowHighlighWidget(self, timeout=timeout, style_highlight=style_highlight)
+
+
 ### Alternative to doShowHighlighWidget:
 
 # from PySide6.QtWidgets import QFrame, QWidget
