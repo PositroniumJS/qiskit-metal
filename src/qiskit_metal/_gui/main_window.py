@@ -1642,10 +1642,16 @@ class MetalGUI(QMainWindowBaseHandler):
         return count
 
     #: Themes the toolbar toggle flips between. ``load_stylesheet`` also
-    #: accepts "qdarkstyle" and an arbitrary .qss path; those stay on the
-    #: View > Color theme menu, which remains the full picker.
+    #: accepts "qdarkstyle", "default" and an arbitrary .qss path; those stay
+    #: on the View > Color theme menu, which remains the full picker.
+    #:
+    #: THEME_LIGHT is deliberately "metal_light_gray", not "default":
+    #: "default" means *no* stylesheet, which follows the OS/Qt native
+    #: theme -- on a system with OS-level dark mode that renders dark too,
+    #: so toggling into it from metal_dark looked like nothing happened.
+    #: metal_light_gray is an actual designed light theme.
     THEME_DARK = "metal_dark"
-    THEME_LIGHT = "default"
+    THEME_LIGHT = "metal_light_gray"
 
     def toggle_theme(self, _=None):
         """Flip between the dark and light stylesheet.

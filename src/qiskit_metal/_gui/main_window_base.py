@@ -757,8 +757,10 @@ class QMainWindowBaseHandler:
 
         Args:
             path (str) : Path to stylesheet or its name.
-                Can be: 'default', 'qdarkstyle' or None.
-                `qdarkstyle` requires
+                Can be: 'default' (no stylesheet -- follows the OS/Qt native
+                theme, which is dark on a dark-mode OS despite the name),
+                'metal_dark', 'metal_light_gray', 'qdarkstyle', or an
+                arbitrary .qss file path. `qdarkstyle` requires
                 >>> pip install qdarkstyle
 
         Returns:
@@ -790,6 +792,10 @@ class QMainWindowBaseHandler:
         elif path == "metal_dark":
             path_full = self.path_stylesheets / "metal_dark" / "style.qss"
             # print(f'path_full = {path_full}')
+            self._load_stylesheet_from_file(path_full)
+
+        elif path == "metal_light_gray":
+            path_full = self.path_stylesheets / "metal_light_gray" / "style.qss"
             self._load_stylesheet_from_file(path_full)
 
         else:
