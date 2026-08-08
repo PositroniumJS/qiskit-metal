@@ -158,7 +158,7 @@ class TestMissingRenderer:
 class TestAnsysPlatformNote:
     """Registering the Python side says nothing about AEDT being installed."""
 
-    def test_warns_off_windows(self, monkeypatch):
+    def test_warns_off_windows(self, monkeypatch, captured_dialogs):
         """AEDT is Windows-only; the window opens but cannot connect."""
         monkeypatch.setattr("qiskit_metal._gui.main_window.os.name", "posix")
         window = FakeWindow(["hfss"])
@@ -168,7 +168,7 @@ class TestAnsysPlatformNote:
         assert window.logger.warnings
         assert "AEDT" in window.logger.warnings[0]
 
-    def test_silent_on_windows(self, monkeypatch):
+    def test_silent_on_windows(self, monkeypatch, captured_dialogs):
         """Where AEDT can actually run, say nothing."""
         monkeypatch.setattr("qiskit_metal._gui.main_window.os.name", "nt")
         window = FakeWindow(["hfss"])
@@ -176,6 +176,44 @@ class TestAnsysPlatformNote:
         window._warn_if_ansys_unlikely("HFSS")
 
         assert not window.logger.warnings
+        assert not captured_dialogs
+
+    def test_pops_a_dialog_too(self, monkeypatch, captured_dialogs):
+        """The log dock is hidden by default; a passive log line alone was
+        easy to miss until AEDT connection failed later with no obvious
+        cause."""
+        monkeypatch.setattr("qiskit_metal._gui.main_window.os.name", "posix")
+        window = FakeWindow(["hfss"])
+
+        window._warn_if_ansys_unlikely("HFSS")
+
+        assert len(captured_dialogs) == 1
+        title, text = captured_dialogs[0]
+        assert "HFSS" in title
+        assert "AEDT" in text
+
+    def test_dialog_shown_once_per_label(self, monkeypatch, captured_dialogs):
+        """Repeat clicks (opening/closing the same renderer window) must
+        not repeat the same modal every time -- only the first is useful."""
+        monkeypatch.setattr("qiskit_metal._gui.main_window.os.name", "posix")
+        window = FakeWindow(["hfss", "q3d"])
+
+        window._warn_if_ansys_unlikely("HFSS")
+        window._warn_if_ansys_unlikely("HFSS")
+        window._warn_if_ansys_unlikely("HFSS")
+
+        assert len(captured_dialogs) == 1
+
+    def test_dialog_shown_once_per_distinct_label(self, monkeypatch, captured_dialogs):
+        """HFSS and Q3D are independent renderers -- each earns its own
+        first warning."""
+        monkeypatch.setattr("qiskit_metal._gui.main_window.os.name", "posix")
+        window = FakeWindow(["hfss", "q3d"])
+
+        window._warn_if_ansys_unlikely("HFSS")
+        window._warn_if_ansys_unlikely("Q3D")
+
+        assert len(captured_dialogs) == 2
 
 
 class TestExtrasMapping:

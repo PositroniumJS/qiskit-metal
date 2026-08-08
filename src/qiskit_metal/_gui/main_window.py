@@ -233,11 +233,27 @@ class QMainWindowExtension(QMainWindowExtensionBase):
         """
         if os.name == "nt":
             return
-        self.logger.warning(
+        message = (
             f"{label} needs Ansys AEDT, which is Windows-only. The window will "
             "open, but connecting to AEDT will fail on this platform. For an "
             "Ansys-free path see the open FEM stack (gmsh + Elmer / Palace)."
         )
+        self.logger.warning(message)
+        # The log dock is hidden by default (see the Log toolbar button),
+        # so this-platform-can't-reach-AEDT was easy to miss entirely and
+        # only surfaced later as a confusing connection failure. A popup is
+        # appropriate here specifically because it's low-frequency -- once
+        # per renderer window opened, not per rebuild -- unlike geometry
+        # warnings (e.g. check_lengths' short-segment/fillet notices) which
+        # can fire many times per edit and would make a popup a nuisance;
+        # those stay log-only. Shown once per label per session -- the
+        # message doesn't change on repeat clicks, only the annoyance would.
+        already_warned = getattr(self, "_ansys_unlikely_warned", None)
+        if already_warned is None:
+            already_warned = self._ansys_unlikely_warned = set()
+        if label not in already_warned:
+            already_warned.add(label)
+            QMessageBox.warning(self, f"{label} renderer", message)
 
     def show_renderer_gds(self):
         """Handles click on GDS Renderer action."""
