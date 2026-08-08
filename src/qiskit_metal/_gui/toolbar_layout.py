@@ -70,6 +70,13 @@ TOOLBAR_LAYOUT = {
         "actionSave",
         "actionLoad",
         SEP,
+        # Which panel fills the main area. Was a 32px tab strip above the
+        # canvas; as an exclusive group here it costs no extra height.
+        # Created in code; see MetalGUI._setup_view_switch_actions.
+        "actionViewTab0",
+        "actionViewTab1",
+        "actionViewTab2",
+        SEP,
         # Created in code rather than the .ui; see MetalGUI.toggle_theme.
         "actionThemeToggle",
     ],

@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, List
 
 from PySide6.QtCore import Qt, QTimer, QSize
-from PySide6.QtGui import QIcon, QPixmap, QAction
+from PySide6.QtGui import QIcon, QPixmap, QAction, QActionGroup
 from PySide6.QtWidgets import (
     QApplication,
     QTreeView,
@@ -798,6 +798,8 @@ class MetalGUI(QMainWindowBaseHandler):
         self.ui.actionThemeToggle.setStatusTip(self.ui.actionThemeToggle.toolTip())
         self.ui.actionThemeToggle.triggered.connect(self.toggle_theme)
 
+        self._setup_view_switch_actions()
+
         # Compose the top toolbars from the declarative spec in
         # ``toolbar_layout``: ordering by how often each control is actually
         # used, one shared icon size, and a check that no action is dropped
@@ -880,6 +882,45 @@ class MetalGUI(QMainWindowBaseHandler):
         self.ui.actionToggleDocks.setToolTip("Show or hide all side panels at once")
         self.ui.actionToggleDocks.setStatusTip(self.ui.actionToggleDocks.toolTip())
         self.ui.actionScreenshot.setText("Snap")
+
+    def _setup_view_switch_actions(self):
+        """Move the Main View / QGeometry / Net List switch into the toolbar.
+
+        Those three lived in a tab strip above the canvas, costing a full
+        32px row to show three words. As an exclusive action group on the top
+        toolbar they cost no extra height and sit with the other view
+        controls.
+
+        The tab widget stays -- it holds the pages -- but its tab bar is
+        hidden. ``currentChanged`` keeps the buttons in sync, so anything
+        that switches pages in code (``_set_element_tab``, for instance)
+        still leaves the right button checked.
+        """
+        tab_widget = self.ui.tabWidget
+        group = QActionGroup(self.main_window)
+        group.setExclusive(True)
+
+        self._view_switch_actions = []
+        for index in range(tab_widget.count()):
+            action = QAction(tab_widget.tabText(index), self.main_window)
+            action.setCheckable(True)
+            action.setChecked(index == tab_widget.currentIndex())
+            action.setToolTip(f"Show the {tab_widget.tabText(index)} panel")
+            action.setStatusTip(action.toolTip())
+            action.triggered.connect(
+                lambda _checked, i=index: tab_widget.setCurrentIndex(i)
+            )
+            group.addAction(action)
+            self._view_switch_actions.append(action)
+            setattr(self.ui, f"actionViewTab{index}", action)
+
+        def _sync(current):
+            """Keep the buttons matching the page actually shown."""
+            for i, act in enumerate(self._view_switch_actions):
+                act.setChecked(i == current)
+
+        tab_widget.currentChanged.connect(_sync)
+        tab_widget.tabBar().hide()
 
     def _add_dock_toolbar_action(
         self, dock, icon_name: str, caption: str, tooltip: str
