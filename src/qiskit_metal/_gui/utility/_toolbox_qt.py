@@ -86,15 +86,22 @@ def doShowHighlighWidget(self: QDockWidget, timeout=1500, style_highlight=None):
 
 
 def doToggleDockWidget(self: QDockWidget, timeout=1500, style_highlight=None):
-    """Toggle a standalone (non-tabified) dock: hide it if currently
-    shown, otherwise show/raise/highlight it like ``doShowHighlighWidget``.
+    """Toggle-aware dock-raise: hide the dock if its icon is clicked while
+    it is the one actually on screen, otherwise show/raise/highlight it
+    like ``doShowHighlighWidget``.
 
-    Only appropriate for docks that are not tabified with others --
-    ``isVisible()`` on a tabified ``QDockWidget`` reflects whether its tab
-    group is shown, not whether that particular tab is the active one, so
-    toggling on it would hide the whole group instead of switching tabs.
+    Works for tabified docks too, unlike a plain ``isVisible()`` check:
+    every dock in a tabified group reports ``isVisible() == True`` once the
+    group itself is shown, regardless of which tab is on top, because
+    ``isVisible()`` doesn't know about the obscuring siblings. A dock that
+    is tabified-but-not-the-active-tab has an *empty* ``visibleRegion()``
+    (fully covered by whichever sibling is showing) even though
+    ``isVisible()`` is True -- that combination is what distinguishes
+    "raise/switch to this tab" from "this tab is already the one showing,
+    so hide it."
     """
-    if self.isVisible():
+    currently_on_top = self.isVisible() and not self.visibleRegion().isEmpty()
+    if currently_on_top:
         self.hide()
         return
     doShowHighlighWidget(self, timeout=timeout, style_highlight=style_highlight)

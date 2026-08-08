@@ -896,10 +896,6 @@ class MetalGUI(QMainWindowBaseHandler):
             (None, "-----", None, None),
         ]
 
-        # The log dock is standalone (not tabified with the others), so
-        # toggling it is unambiguous: click to open, click again to close.
-        TOGGLE_DOCKS = {self.ui.dockLog}
-
         # Show the caption under each icon; icon-only left users guessing.
         toolbar.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
         toolbar.setIconSize(QSize(TOOLBAR_ICON_PX, TOOLBAR_ICON_PX))
@@ -908,9 +904,7 @@ class MetalGUI(QMainWindowBaseHandler):
             if iconName == "-----":
                 toolbar.insertSeparator(toolbarInsertBefore)
                 continue
-            self._add_dock_toolbar_action(
-                dock, iconName, caption, tooltip, toggle=dock in TOGGLE_DOCKS
-            )
+            self._add_dock_toolbar_action(dock, iconName, caption, tooltip, toggle=True)
 
         # The two actions that come from the .ui: give the toggle a tooltip
         # that says what it does rather than repeating its object name.
@@ -978,9 +972,10 @@ class MetalGUI(QMainWindowBaseHandler):
                 an action with empty text inherits the toolbar's own tooltip,
                 which is how every one of these once read "View Toolbar".
             toggle (bool): If True, clicking the button hides the dock when
-                it is already shown instead of just re-raising it. Only
-                correct for docks that are not tabified with others -- see
-                ``doToggleDockWidget``'s docstring.
+                it is the one currently on screen, instead of just
+                re-raising it; clicking a tabified sibling still switches to
+                it as before. See ``doToggleDockWidget``'s docstring for how
+                that distinction is made.
         """
         toolbar = self.ui.toolBarView
         toolbar_insert_before = self.ui.actionToggleDocks
@@ -1062,6 +1057,7 @@ class MetalGUI(QMainWindowBaseHandler):
             r":/variables",
             "Chip",
             "Chip stack — die size, material and layer bounds",
+            toggle=True,
         )
 
     def _setup_view_control_widget(self):
@@ -1085,6 +1081,7 @@ class MetalGUI(QMainWindowBaseHandler):
             r":/design",
             "Layer",
             "Show or hide layers, like a GDS editor's layer palette",
+            toggle=True,
         )
         # hookup to delete action
         self.ui.btn_comp_del.clicked.connect(
