@@ -63,6 +63,7 @@ from qiskit_metal._gui.utility._toolbox_qt import (
 from qiskit_metal._gui.widgets.all_components.table_model_all_components import (
     QTableModel_AllComponents,
 )
+from qiskit_metal._gui.widgets.pins import QTableModel_Pins
 from qiskit_metal._gui.widgets.build_history.build_history_scroll_area import (
     BuildHistoryScrollArea,
 )
@@ -607,6 +608,8 @@ class MetalGUI(QMainWindowBaseHandler):
             self._setup_plot_widget()
         _trace_init("_setup_design_components_widget")
         self._setup_design_components_widget()
+        _trace_init("_setup_pins_widget")
+        self._setup_pins_widget()
         _trace_init("_setup_elements_widget")
         self._setup_elements_widget()
         _trace_init("_setup_variables_widget")
@@ -1215,6 +1218,27 @@ class MetalGUI(QMainWindowBaseHandler):
         """
         self.ui.proxyModel.setFilterWildcard(text)
 
+    def _setup_pins_widget(self):
+        """Pins dock: every (component, pin) in the design, flattened into
+        one table. ``tableConnectors``/``text_filter_connectors`` exist in
+        the .ui but nothing ever set a model on the view or connected the
+        filter box -- the dock has shown as permanently empty since it was
+        added, on every design, not just ones with unusual pins.
+        """
+        model = QTableModel_Pins(
+            self, logger=self.logger, tableView=self.ui.tableConnectors
+        )
+        self.ui.pinsProxyModel = QSortFilterProxyModel()
+        self.ui.pinsProxyModel.setSourceModel(model)
+        self.ui.pinsProxyModel.setFilterKeyColumn(-1)  # search all columns
+
+        self.ui.tableConnectors.setSortingEnabled(True)
+        self.ui.tableConnectors.setModel(self.ui.pinsProxyModel)
+
+        self.ui.text_filter_connectors.textChanged.connect(
+            self.ui.pinsProxyModel.setFilterWildcard
+        )
+
     def _create_new_component_object_from_qlibrary(self, full_path: str):
         """
         Must be defined outside of _setup_library_widget to ensure
@@ -1425,6 +1449,7 @@ class MetalGUI(QMainWindowBaseHandler):
 
         # Table models
         self.ui.tableComponents.model().sourceModel().refresh()
+        self.ui.tableConnectors.model().sourceModel().refresh()
 
         # Layer list -- unlike the chip/component trees this widget has no
         # polling timer of its own, so without this call it stays empty
