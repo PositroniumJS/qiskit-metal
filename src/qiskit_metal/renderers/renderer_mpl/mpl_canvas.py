@@ -25,7 +25,7 @@ from matplotlib.axes import Axes
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.transforms import Bbox
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QTimer, Qt
 from PySide6.QtWidgets import QSizePolicy
 from qiskit_metal import Dict
 from qiskit_metal.designs import QDesign
@@ -341,6 +341,13 @@ class PlotCanvas(FigureCanvas):
         super().__init__(fig)
 
         self.setParent(parent)
+
+        # Explicit rather than trusting the backend default: a click-select
+        # (_on_pick_release, below) needs the canvas to actually be
+        # focusable, or the arrow-key nudge it enables silently goes
+        # nowhere -- keys keep going to whatever dock (e.g. the component
+        # list) had focus before the click.
+        self.setFocusPolicy(Qt.StrongFocus)
 
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
@@ -761,6 +768,13 @@ class PlotCanvas(FigureCanvas):
         if gui is not None and hasattr(gui, "edit_component"):
             gui.edit_component(name)
         self.highlight_components([name])
+
+        # gui.edit_component() above populates the component list / options
+        # tree, which steals keyboard focus if either already had it. Take
+        # it back explicitly so the arrow-key nudge the selection hint
+        # promises actually goes to the canvas, not to whichever dock last
+        # held focus.
+        self.setFocus(Qt.MouseFocusReason)
 
     def _component_bounds(self, component_names=None):
         """Union of the qgeometry bounds of the named components.
