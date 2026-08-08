@@ -136,8 +136,10 @@ class QMplRenderer:
         Args:
             name (str): Component name
         """
-        comp_id = self.design.components[name].id  # noqa: F841
-        self._hidden_components.discard(name)
+        # ``hide_component`` stores the component id, so discard the id too --
+        # discarding the name never matched, leaving the component hidden.
+        comp_id = self.design.components[name].id
+        self._hidden_components.discard(comp_id)
 
     def hide_layer(self, name):
         """Hide the layer with the given name.

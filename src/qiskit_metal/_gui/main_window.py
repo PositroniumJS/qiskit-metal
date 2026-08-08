@@ -69,6 +69,7 @@ from qiskit_metal._gui.widgets.create_component_window import (
 from qiskit_metal._gui.widgets.edit_component.component_widget import ComponentWidget
 from qiskit_metal._gui.widgets.plot_widget.plot_window import QMainWindowPlot
 from qiskit_metal._gui.widgets.edit_chip import QTreeModel_Chips
+from qiskit_metal._gui.widgets.view_control import LayerVisibilityWidget
 from qiskit_metal._gui.widgets.variable_table import PropertyTableWidget
 
 if not config.is_building_docs():
@@ -603,6 +604,8 @@ class MetalGUI(QMainWindowBaseHandler):
         self._setup_variables_widget()
         _trace_init("_setup_chip_widget")
         self._setup_chip_widget()
+        _trace_init("_setup_view_control_widget")
+        self._setup_view_control_widget()
         _trace_init("_ui_adjustments_final")
         self._ui_adjustments_final()
         _trace_init("_setup_library_widget")
@@ -716,6 +719,8 @@ class MetalGUI(QMainWindowBaseHandler):
         # ``set_design`` can be called on a partially built GUI.
         if getattr(self, "chips_model", None) is not None:
             self.chips_model.load()
+        if getattr(self, "layers_window", None) is not None:
+            self.layers_window.refresh()
 
         # Refresh
         self.refresh()
@@ -967,6 +972,29 @@ class MetalGUI(QMainWindowBaseHandler):
             r":/variables",
             "Chip",
             "Chip stack — die size, material and layer bounds",
+        )
+
+    def _setup_view_control_widget(self):
+        """Create the layer-visibility dock.
+
+        ``QMplRenderer`` already tracked ``hidden_layers`` and filtered on it;
+        nothing in the GUI could reach that, and there was no way to see which
+        layers a design contains.
+        """
+        self.ui.dockLayers = QDockWidget("Layers", self.main_window)
+        self.ui.dockLayers.setObjectName("dockLayers")
+
+        self.layers_window = LayerVisibilityWidget(self, self.ui.dockLayers)
+        self.ui.dockLayers.setWidget(self.layers_window)
+
+        self.main_window.tabifyDockWidget(self.ui.dockChips, self.ui.dockLayers)
+        self.ui.dockLayers.setTitleBarWidget(QWidget(self.ui.dockLayers))
+
+        self._add_dock_toolbar_action(
+            self.ui.dockLayers,
+            r":/design",
+            "Layer",
+            "Show or hide layers, like a GDS editor's layer palette",
         )
         # hookup to delete action
         self.ui.btn_comp_del.clicked.connect(
