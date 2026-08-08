@@ -25,15 +25,12 @@ the behaviour and the no-redraw property.
 Skips when PySide6 is absent (lite install).
 """
 
-import os
 from types import SimpleNamespace
 
 import matplotlib
 import pytest
 
 matplotlib.use("Agg")
-
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 pytest.importorskip("PySide6")
 
@@ -52,8 +49,15 @@ def motion_event(xdata, ydata):
 
 @pytest.fixture(name="qapp", scope="module")
 def qapp_fixture():
-    """A QApplication; Qt requires one before any QWidget."""
-    return QApplication.instance() or QApplication([])
+    """A QApplication; Qt requires one before any QWidget.
+
+    The platform is passed as an argument rather than set through
+    ``QT_QPA_PLATFORM``: an env var set at import time leaks into the
+    subprocesses ``test_gui_init`` spawns.
+    """
+    return QApplication.instance() or QApplication(
+        ["qiskit-metal-tests", "-platform", "offscreen"]
+    )
 
 
 @pytest.fixture(name="panzoom")

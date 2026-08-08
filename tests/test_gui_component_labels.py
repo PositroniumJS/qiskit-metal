@@ -28,16 +28,10 @@ constructed ``MetalGUI``, so no display or main window is needed. Skips when
 PySide6 is absent (lite install) -- the canvas module imports Qt at top level.
 """
 
-import os
-
 import matplotlib
 import pytest
 
 matplotlib.use("Agg")
-
-# No display in CI or a plain local run; the canvas is a real QWidget so Qt
-# still needs a platform plugin. Harmless when one is already chosen.
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 pytest.importorskip("PySide6")
 
@@ -87,8 +81,17 @@ class _ParentStub(QWidget):
 
 @pytest.fixture(name="qapp", scope="module")
 def qapp_fixture():
-    """A QApplication for the module; Qt requires one before any QWidget."""
-    return QApplication.instance() or QApplication([])
+    """A QApplication for the module; Qt requires one before any QWidget.
+
+    The platform is passed as an argument rather than set through
+    ``QT_QPA_PLATFORM``. An environment variable set at import time leaks to
+    every later test in the run -- including the subprocesses spawned by
+    ``test_gui_init``, which then launch under a different platform plugin
+    than they intend.
+    """
+    return QApplication.instance() or QApplication(
+        ["qiskit-metal-tests", "-platform", "offscreen"]
+    )
 
 
 @pytest.fixture(name="canvas")
