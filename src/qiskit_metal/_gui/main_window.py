@@ -684,6 +684,19 @@ class MetalGUI(QMainWindowBaseHandler):
         self.ui.dockLibrary.raise_()
         self.main_window.resizeDocks([self.ui.dockDesign], [350], Qt.Horizontal)
 
+        # These four are tabified together, so the tab bar already names each
+        # one -- the per-dock title bar underneath repeated that name and cost
+        # 17px of height apiece. Replace it with an empty widget. Undocking
+        # still works by dragging the tab out; show/hide is on the left
+        # toolbar and the Docks toggle.
+        for _dock in (
+            self.ui.dockDesign,
+            self.ui.dockLibrary,
+            self.ui.dockConnectors,
+            self.ui.dockVariables,
+        ):
+            _dock.setTitleBarWidget(QWidget(_dock))
+
         # Log
         self.ui.dockLog.parent().resizeDocks([self.ui.dockLog], [120], Qt.Vertical)
 
