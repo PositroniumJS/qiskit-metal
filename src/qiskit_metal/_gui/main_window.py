@@ -75,6 +75,18 @@ if not config.is_building_docs():
 if TYPE_CHECKING:
     from ..renderers.renderer_mpl.mpl_canvas import PlotCanvas
 
+#: Renderer key -> the pip extra that provides it, for the
+#: "this renderer is not installed" message. Mirrors the install matrix in
+#: docs/installation.rst.
+RENDERER_EXTRAS = {
+    "hfss": "ansys",
+    "q3d": "ansys",
+    "aedt_hfss": "ansys",
+    "aedt_q3d": "ansys",
+    "gmsh": "mesh",
+    "elmer": "mesh",
+}
+
 # Issues #1048 / #1109: opt-in init-tracing for reporters whose MetalGUI
 # silently aborts mid-init on Windows. When QISKIT_METAL_DEBUG_INIT is
 # set, each init step prints to stderr with an explicit flush -- the
@@ -157,18 +169,83 @@ class QMainWindowExtension(QMainWindowExtensionBase):
             self.ui.tabWidget.setCurrentWidget(self.ui.mainViewTab)
             self.ui.actionElements.setText("QGeometry")
 
+    def _renderer_available(self, renderer_key: str, label: str) -> bool:
+        """Check a renderer registered, and explain it if not.
+
+        ``QDesign._start_renderers`` skips any renderer whose module or
+        transitive dependency is missing -- that is what makes a lite install
+        work. The renderer then simply is not in ``design.renderers``, and
+        opening its window would fail somewhere deeper with a message that
+        does not mention the actual problem.
+
+        This is a dictionary lookup, not an import: the import was already
+        attempted (or skipped) when the design was created, so checking here
+        costs nothing and cannot undo the lazy-import work.
+
+        Args:
+            renderer_key (str): Key in ``design.renderers``.
+            label (str): Human name for the message.
+
+        Returns:
+            bool: True if the renderer is registered and its window can open.
+        """
+        if renderer_key in self.design.renderers:
+            return True
+
+        message = (
+            f"The {label} renderer is not available in this install.\n\n"
+            "Its Python dependencies are not present, so it was skipped when "
+            "the design was created.\n\n"
+            "Install the extra that provides it:\n"
+            f'    pip install "quantum-metal[{RENDERER_EXTRAS.get(renderer_key, "full")}]"\n\n'
+            "See docs/installation.rst for the full matrix."
+        )
+        self.logger.warning(
+            f"{label} renderer unavailable: '{renderer_key}' is not registered "
+            "in design.renderers."
+        )
+        QMessageBox.warning(self, f"{label} renderer unavailable", message)
+        return False
+
+    def _warn_if_ansys_unlikely(self, label: str) -> None:
+        """Note that Ansys AEDT itself is a separate, non-Python requirement.
+
+        The Python side registering says nothing about whether AEDT is
+        installed and reachable -- that only surfaces when the renderer tries
+        to connect. Deliberately does not probe for a running AEDT: that is
+        slow and can block the UI.
+
+        Args:
+            label (str): Human name for the message.
+        """
+        if os.name == "nt":
+            return
+        self.logger.warning(
+            f"{label} needs Ansys AEDT, which is Windows-only. The window will "
+            "open, but connecting to AEDT will fail on this platform. For an "
+            "Ansys-free path see the open FEM stack (gmsh + Elmer / Palace)."
+        )
+
     def show_renderer_gds(self):
         """Handles click on GDS Renderer action."""
+        if not self._renderer_available("gds", "GDS"):
+            return
         self.gds_gui = RendererGDSWidget(self, self.gui)
         self.gds_gui.show()
 
     def show_renderer_hfss(self):
         """Handles click on HFSS Renderer action."""
+        if not self._renderer_available("hfss", "HFSS"):
+            return
+        self._warn_if_ansys_unlikely("HFSS")
         self.hfss_gui = RendererHFSSWidget(self, self.gui)
         self.hfss_gui.show()
 
     def show_renderer_q3d(self):
         """Handles click on Q3D Renderer action."""
+        if not self._renderer_available("q3d", "Q3D"):
+            return
+        self._warn_if_ansys_unlikely("Q3D")
         self.q3d_gui = RendererQ3DWidget(self, self.gui)
         self.q3d_gui.show()
 
