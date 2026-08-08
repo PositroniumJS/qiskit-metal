@@ -36,6 +36,42 @@ from qiskit_metal._gui.utility._handle_qt_messages import slot_catch_error
 from qiskit_metal._gui.widgets.log_widget.log_metal import LogHandler_for_QTextLog
 
 
+def _is_newer_version(current: str, saved: str) -> bool:
+    """Is ``current`` a newer Metal release than ``saved``?
+
+    This gates one of the issue-#1048 defenses: persisted window state
+    written by an older Metal is discarded rather than restored. It also
+    happens to be what gives users new layout defaults on upgrade instead of
+    a stale saved arrangement.
+
+    It used to be a plain string comparison, which is correct only while
+    every component stays single-digit. ``'0.10.0' > '0.9.0'`` is False, so
+    at v0.10.0 the guard would have silently stopped firing -- a crash
+    defense degrading with no symptom until someone hit the crash.
+
+    Falls back to the old string comparison for unparseable values (a
+    hand-edited registry, a dev build) and treats *any* doubt as "newer", so
+    the failure mode is discarding state that might have been fine rather
+    than restoring state that is not.
+
+    Args:
+        current (str): The running Metal version.
+        saved (str): The version recorded in the persisted settings.
+
+    Returns:
+        bool: True when the settings should be discarded.
+    """
+    try:
+        from packaging.version import InvalidVersion, Version
+
+        try:
+            return Version(current) > Version(saved)
+        except InvalidVersion:
+            return str(current) != str(saved)
+    except Exception:  # pragma: no cover - packaging should always be present
+        return str(current) > str(saved)
+
+
 def _display_fingerprint() -> str:
     """Return a stable string describing the current display configuration.
 
@@ -225,7 +261,7 @@ class QMainWindowExtensionBase(QMainWindow):
             return
 
         version_settings = self.settings.value("metal_version", defaultValue="0")
-        if __version__ > version_settings:
+        if _is_newer_version(__version__, version_settings):
             self.logger.debug(f"Clearing window settings [{version_settings}]...")
             self.settings.clear()
             return
