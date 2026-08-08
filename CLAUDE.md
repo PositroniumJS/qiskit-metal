@@ -93,7 +93,12 @@ that satisfies both. Drift is the failure mode; CI prevents it. Do not
 2. **`renderers/renderer_ansys_pyaedt/`** — same constraint for the
    pyaedt-based replacement.
 3. **`_gui/` and everything inside it** — requires interactive Qt
-   session to verify behavior.
+   session to verify behavior. **Startup, teardown, stylesheet handling
+   and persisted window state additionally require reading
+   `docs/architecture/gui_crash_defenses.md` first.** Those paths carry
+   defenses from a five-release segfault hunt (issue #1048) that look
+   removable and are not; CI passing is not sufficient evidence there,
+   because the reported crashes never reproduced on CI runners.
 4. **The pyEPR integration bridge** (`renderer_ansys/parse.py`,
    `solution_types.py` interaction with `pyEPR.solution_types`).
    Cross-repo coordination required.
@@ -139,6 +144,7 @@ Don't reach for `_dev/` as a halfway house — it's still public.
 | `.claude/context/architecture.md` | When you need to make structural changes — class hierarchy, option flow, renderer dispatch, lazy-Qt design. |
 | `.claude/context/ecosystem.md` | When making roadmap / API / version decisions — who the users are, the pyEPR/pyaedt/AWS-Palace relationships, the v0.7.0 lite-by-default plan. |
 | `docs/architecture/renderer_protocol.md` | When adding or modifying a renderer. The full inheritance map and override matrix. |
+| `docs/architecture/gui_crash_defenses.md` | **Before touching GUI startup, teardown, stylesheet handling, or persisted window state.** The four distinct failure modes behind issue #1048, every defense and what it guards, the ordering constraints (notably: the crash cookie must stay set across `show()`), and the changes that look safe but reintroduce segfaults. |
 | `docs/headless-usage.rst` | When working on the Qt-free path or onboarding flow. |
 
 ## Adding a new QComponent

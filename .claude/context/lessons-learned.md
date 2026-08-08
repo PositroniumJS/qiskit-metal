@@ -711,6 +711,34 @@ flips 180°.
 HFSS results. Then use `test_pin_normals_point_outward` to gate
 in CI.
 
+## MetalGUI segfaults — the whole story lives in one document
+
+Issue #1048 and its descendants (#1103, #1109) produced four distinct
+crash bugs, five releases of fixes, and a set of defenses in
+`_gui/` that look like removable defensive noise and are not.
+
+That history is written up in
+**`docs/architecture/gui_crash_defenses.md`** — read it before
+touching GUI startup, teardown, stylesheet handling, or persisted
+window state.
+
+The two lessons that generalize beyond the GUI:
+
+**CI passing is not evidence there.** The Windows `show()` crash never
+reproduced under Xvfb or on GitHub runners, because runners start with
+an empty registry — which is exactly the state that works. Reporter
+confirmation on the affected hardware was the only real signal.
+
+**A defense can be load-bearing by accident.** The stylesheet was
+loaded at the end of `restore_window_settings`, after five guards that
+`clear()` and return early. That looked like a bug — and is one, the
+theme is genuinely skipped on a fresh profile. But moving the load out
+so it always runs turned `test_gui_init.py` and `test_gui_teardown.py`
+from 5 passed to 5 failed with `SIGBUS` (attempted 2026-08-07,
+reverted). The early returns were accidentally protecting a known
+crash trigger. Before "fixing" something that looks vestigial in a
+crash-hardened path, check what it is standing in front of.
+
 ## What this list doesn't include
 
 Stuff that's NOT a "lesson learned" — those go in
