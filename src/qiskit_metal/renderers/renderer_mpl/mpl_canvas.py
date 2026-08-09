@@ -349,6 +349,16 @@ class PlotCanvas(FigureCanvas):
         # list) had focus before the click.
         self.setFocusPolicy(Qt.StrongFocus)
 
+        # Without this, Qt only sends mouseMoveEvent (and so matplotlib's
+        # motion_notify_event) while a button is held down -- pure hover
+        # motion never reaches the canvas at all. The status-bar hover
+        # readout (PanAndZoom._report_hover_position) depends on exactly
+        # that, and silently never fires without it: it looked "frozen"
+        # under real mouse movement despite working under QTest's
+        # synthetic mouseMove, which injects the event directly and
+        # doesn't depend on this setting.
+        self.setMouseTracking(True)
+
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
