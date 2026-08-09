@@ -79,6 +79,10 @@ TOOLBAR_LAYOUT = {
         SEP,
         # Created in code rather than the .ui; see MetalGUI.toggle_theme.
         "actionThemeToggle",
+        SEP,
+        # Kept on the toolbar (not demoted like Build History / Delete-all)
+        # -- relabeled "Docs" in _ui_adjustments; see MetalGUI.open_web_help.
+        "actionWebHelp",
     ],
     # Renderers stay their own group so they read as "export/simulate"
     # rather than blending into the build controls.
@@ -96,7 +100,6 @@ DEMOTED_ACTIONS = {
     "actionBuildHistory": "Diagnostic; rarely consulted. Menu only.",
     "actionDelete_All": "Destructive and rare; menu only, where the "
     "confirmation dialog reads as deliberate.",
-    "actionWebHelp": "One-off, not part of any working loop. Menu only.",
 }
 
 

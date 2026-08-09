@@ -928,6 +928,10 @@ class MetalGUI(QMainWindowBaseHandler):
         self.ui.actionToggleDocks.setToolTip("Show or hide all side panels at once")
         self.ui.actionToggleDocks.setStatusTip(self.ui.actionToggleDocks.toolTip())
         self.ui.actionScreenshot.setText("Snap")
+        # "Web Help" was long enough to widen the toolbar; kept on it
+        # (unlike Build History / Delete-all) rather than demoted, so
+        # shortened to match the other one-word toolbar labels.
+        self.ui.actionWebHelp.setText("Docs")
 
     def _setup_view_switch_actions(self):
         """Move the Main View / QGeometry / Net List switch into the toolbar.
