@@ -803,8 +803,23 @@ class PlotCanvas(FigureCanvas):
         Qt.Key_Up: (0, 1),
     }
 
+    #: Rotation step for one bracket-key press, in degrees. 90 is the
+    #: common case (most qlibrary layouts are built on a 90-degree grid);
+    #: Shift gives finer control for anything off-grid.
+    ROTATE_STEP_DEG = 90.0
+    ROTATE_FINE_DEG = 15.0
+
+    #: Key -> rotation direction. ``]`` turns clockwise, ``[`` counter-
+    #: clockwise -- the same visual sense the characters read in on a
+    #: standard keyboard layout (no established qiskit-metal convention
+    #: existed to match).
+    _ROTATE_DIRECTIONS = {
+        Qt.Key_BracketRight: -1,
+        Qt.Key_BracketLeft: +1,
+    }
+
     def keyPressEvent(self, event):
-        """Nudge the selected component with the arrow keys.
+        """Nudge or rotate the selected component with the keyboard.
 
         Lives here, not on the ``QMainWindowPlot`` container that used to
         own this logic, because this canvas -- not its parent -- is the
@@ -823,19 +838,29 @@ class PlotCanvas(FigureCanvas):
         Args:
             event (QKeyEvent): The key event.
         """
+        modifiers = event.modifiers()
+
         direction = self._NUDGE_DIRECTIONS.get(event.key())
-        if direction is None:
-            super().keyPressEvent(event)
+        if direction is not None:
+            step = self.NUDGE_STEP_MM
+            if modifiers & Qt.ShiftModifier:
+                step *= self.NUDGE_COARSE_FACTOR
+            elif modifiers & Qt.AltModifier:
+                step *= self.NUDGE_FINE_FACTOR
+            self.gui.nudge_selected(direction[0] * step, direction[1] * step)
             return
 
-        modifiers = event.modifiers()
-        step = self.NUDGE_STEP_MM
-        if modifiers & Qt.ShiftModifier:
-            step *= self.NUDGE_COARSE_FACTOR
-        elif modifiers & Qt.AltModifier:
-            step *= self.NUDGE_FINE_FACTOR
+        rotate_dir = self._ROTATE_DIRECTIONS.get(event.key())
+        if rotate_dir is not None:
+            step = (
+                self.ROTATE_FINE_DEG
+                if modifiers & Qt.ShiftModifier
+                else self.ROTATE_STEP_DEG
+            )
+            self.gui.rotate_selected(rotate_dir * step)
+            return
 
-        self.gui.nudge_selected(direction[0] * step, direction[1] * step)
+        super().keyPressEvent(event)
 
     def _component_bounds(self, component_names=None):
         """Union of the qgeometry bounds of the named components.

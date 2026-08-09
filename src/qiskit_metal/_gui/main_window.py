@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, List
 
 from PySide6.QtCore import Qt, QTimer, QSize
-from PySide6.QtGui import QIcon, QPixmap, QAction, QActionGroup
+from PySide6.QtGui import QIcon, QPixmap, QAction, QActionGroup, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
@@ -933,6 +933,16 @@ class MetalGUI(QMainWindowBaseHandler):
         # shortened to match the other one-word toolbar labels.
         self.ui.actionWebHelp.setText("Docs")
 
+        # Ctrl+D (from the .ui) is easy to miss; "R" is the one-key
+        # convention every drawing tool uses for rebuild/refresh, and
+        # matches the plot toolbar's own single-letter shortcuts (A, L)
+        # which already coexist safely with text-entry widgets elsewhere
+        # in the window via WindowShortcut context. Added, not replacing
+        # Ctrl+D, so existing muscle memory keeps working too.
+        self.ui.actionRebuild.setShortcuts(
+            [self.ui.actionRebuild.shortcut(), QKeySequence("R")]
+        )
+
     def _setup_view_switch_actions(self):
         """Move the Main View / QGeometry / Net List switch into the toolbar.
 
@@ -1619,6 +1629,68 @@ class MetalGUI(QMainWindowBaseHandler):
         self.highlight_components([name], show_pins=False)
         self.logger.info(f"Nudged {name} to ({new_x}, {new_y})")
         return True
+
+    def rotate_component(self, name: str, delta_deg: float) -> bool:
+        """Rotate a component in place by a change in orientation, in degrees.
+
+        Only components exposing ``orientation`` can be rotated. Unlike
+        ``pos_x``/``pos_y``, ``orientation`` is stored as a bare number (no
+        unit suffix), so the arithmetic here doesn't need offset_length's
+        unit-preserving parsing.
+
+        Args:
+            name (str): Component to rotate.
+            delta_deg (float): Change in orientation, in degrees. Positive
+                is counter-clockwise, matching the option's own convention.
+
+        Returns:
+            bool: True if the component rotated.
+        """
+        if self.design is None or name not in self.design.components:
+            return False
+
+        component = self.design.components[name]
+        options = component.options
+        if "orientation" not in options:
+            self.logger.info(f"{name} has no orientation to rotate — it is fixed.")
+            return False
+
+        try:
+            current_deg = float(options["orientation"])
+        except (TypeError, ValueError):
+            self.logger.warning(
+                f"Could not rotate {name}: orientation is not a plain number "
+                f"({options['orientation']!r})."
+            )
+            return False
+
+        new_deg = (current_deg + delta_deg) % 360.0
+        # Whole-degree values print as e.g. "90", not "90.0" -- matches how
+        # a hand-authored design usually writes this option.
+        options["orientation"] = (
+            str(int(new_deg)) if new_deg.is_integer() else str(new_deg)
+        )
+
+        component.rebuild()
+        self.refresh()
+        self.highlight_components([name], show_pins=False)
+        self.logger.info(f"Rotated {name} to {options['orientation']}°")
+        return True
+
+    def rotate_selected(self, delta_deg: float) -> bool:
+        """Rotate the currently selected component.
+
+        Args:
+            delta_deg (float): Change in orientation, in degrees.
+
+        Returns:
+            bool: True if a component rotated.
+        """
+        name = self.selected_component
+        if name is None:
+            self.logger.info("Nothing selected — click a component first.")
+            return False
+        return self.rotate_component(name, delta_deg)
 
     def nudge_selected(self, dx_mm: float, dy_mm: float) -> bool:
         """Nudge the currently selected component.
