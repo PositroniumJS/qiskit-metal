@@ -29,6 +29,7 @@ from PySide6.QtWidgets import QDockWidget, QTextEdit
 
 from qiskit_metal import Dict, __version__, config
 from qiskit_metal._gui.utility._handle_qt_messages import slot_catch_error
+from qiskit_metal._gui.utility._toolbox_qt import mark_dock_has_error
 
 if not config.is_building_docs():
     from ....toolbox_python.utility_functions import clean_name, monkey_patch
@@ -317,6 +318,19 @@ class QTextEditLogger(QTextEdit):
         self.logged_lines.append((name, record))
         if name in self.get_all_checked():
             self.log_message(record, name != "Errors")
+
+        # `record` here is the pre-formatted HTML string built in
+        # LogHandler_for_QTextLog.emit() -- 'class="%(levelname)s"' embeds
+        # the level, which is the only signal available at this layer.
+        # Only ERROR/CRITICAL badge: the log dock is hidden by default, so
+        # an error scrolling past unseen is a real problem worth flagging,
+        # but WARNING fires often enough (e.g. check_lengths) that badging
+        # on it would make the flag meaningless noise.
+        if isinstance(record, str) and (
+            'class="ERROR"' in record or 'class="CRITICAL"' in record
+        ):
+            if self.dock_window is not None and not self.dock_window.isVisible():
+                mark_dock_has_error(self.dock_window)
 
     def log_message(self, message, format_as_html=True):
         """Do the actual logging.

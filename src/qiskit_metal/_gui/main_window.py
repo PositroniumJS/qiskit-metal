@@ -57,6 +57,7 @@ from qiskit_metal._gui.renderer_q3d_gui import RendererQ3DWidget
 from qiskit_metal._gui.utility._handle_qt_messages import slot_catch_error
 from qiskit_metal._gui.utility._nudge import offset_length
 from qiskit_metal._gui.utility._toolbox_qt import (
+    clear_dock_error_badge,
     doShowHighlighWidget,
     doToggleDockWidget,
 )
@@ -922,6 +923,15 @@ class MetalGUI(QMainWindowBaseHandler):
                 continue
             self._add_dock_toolbar_action(dock, iconName, caption, tooltip, toggle=True)
 
+        # Errors logged while the (hidden-by-default) log dock isn't on
+        # screen are otherwise silent -- clear the badge the moment the
+        # dock actually becomes visible, regardless of how (toolbar click,
+        # View menu, programmatically), rather than duplicating that logic
+        # into every path that can show it.
+        self.ui.dockLog.visibilityChanged.connect(
+            lambda visible: clear_dock_error_badge(self.ui.dockLog) if visible else None
+        )
+
         # The two actions that come from the .ui: give the toggle a tooltip
         # that says what it does rather than repeating its object name.
         self.ui.actionToggleDocks.setText("Dock")
@@ -1022,6 +1032,7 @@ class MetalGUI(QMainWindowBaseHandler):
         action.setToolTip(tooltip)
         action.setStatusTip(tooltip)
         dock.actionShow = action  # save action
+        dock._icon_normal = icon  # restore point for mark_log_error's badge
 
         toolbar.insertAction(toolbar_insert_before, action)
 

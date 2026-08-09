@@ -14,8 +14,8 @@
 from types import MethodType
 
 # from PySide6 import QtCore, QtWidgets
-from PySide6.QtCore import QTimer
-from PySide6.QtGui import QColor
+from PySide6.QtCore import QTimer, Qt
+from PySide6.QtGui import QColor, QIcon, QPainter
 from PySide6.QtWidgets import QDockWidget
 
 __all__ = ["blend_colors"]
@@ -105,6 +105,77 @@ def doToggleDockWidget(self: QDockWidget, timeout=1500, style_highlight=None):
         self.hide()
         return
     doShowHighlighWidget(self, timeout=timeout, style_highlight=style_highlight)
+
+
+def badge_icon_with_dot(icon: QIcon, size: int = 20, color=None) -> QIcon:
+    """Return a copy of ``icon`` with a small filled circle in the corner.
+
+    Used to flag the Log dock's toolbar button when an error was logged
+    while the dock wasn't visible to see it -- an error that scrolled past
+    in a hidden-by-default panel is easy to miss entirely. Composited onto
+    a fresh pixmap rather than mutating the original ``QIcon``, so the
+    un-badged icon stays available to restore later.
+
+    Args:
+        icon (QIcon): Base icon to badge.
+        size (int): Icon edge length to render at, in pixels. Should match
+            the toolbar's actual icon size or the dot will be mis-scaled.
+        color (QColor): Dot color. Defaults to a red matching the rest of
+            the app's error/warning styling.
+
+    Returns:
+        QIcon: A new icon with the dot composited in the bottom-right.
+    """
+    if color is None:
+        color = QColor("#E53935")
+
+    pixmap = icon.pixmap(size, size)
+    painter = QPainter(pixmap)
+    try:
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setBrush(color)
+        painter.setPen(Qt.NoPen)
+        dot_diameter = max(4, size // 3)
+        painter.drawEllipse(
+            size - dot_diameter, size - dot_diameter, dot_diameter, dot_diameter
+        )
+    finally:
+        painter.end()
+    return QIcon(pixmap)
+
+
+def mark_dock_has_error(dock: QDockWidget) -> None:
+    """Badge a dock's toolbar icon to flag an unread error.
+
+    Operates purely on the dock -- no reference to the GUI or logger
+    needed -- so it can be called from anywhere holding just a dock
+    reference (the log widget already keeps one as ``self.dock_window``,
+    the same reference it already uses for ``setWindowTitle``; this adds
+    no new cross-widget reference, unlike a full popup mechanism would).
+    A no-op if the dock was never set up with ``_add_dock_toolbar_action``
+    (no ``actionShow``/``_icon_normal`` to badge).
+
+    Args:
+        dock (QDockWidget): The dock whose toolbar icon to badge.
+    """
+    action = getattr(dock, "actionShow", None)
+    normal_icon = getattr(dock, "_icon_normal", None)
+    if action is None or normal_icon is None:
+        return
+    action.setIcon(badge_icon_with_dot(normal_icon))
+
+
+def clear_dock_error_badge(dock: QDockWidget) -> None:
+    """Undo :func:`mark_dock_has_error` -- restore the plain icon.
+
+    Args:
+        dock (QDockWidget): The dock whose toolbar icon to restore.
+    """
+    action = getattr(dock, "actionShow", None)
+    normal_icon = getattr(dock, "_icon_normal", None)
+    if action is None or normal_icon is None:
+        return
+    action.setIcon(normal_icon)
 
 
 ### Alternative to doShowHighlighWidget:
