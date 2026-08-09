@@ -37,6 +37,7 @@ if not config.is_building_docs():
     from qiskit_metal.renderers.renderer_mpl.mpl_canvas import PlotCanvas
 
 from qiskit_metal._gui.plot_window_ui import Ui_MainWindowPlot
+from qiskit_metal._gui.utility._toolbox_qt import make_help_icon
 
 if TYPE_CHECKING:
     # https://stackoverflow.com/questions/39740632/python-type-hinting-without-cyclic-imports
@@ -169,6 +170,28 @@ class QMainWindowPlot(QMainWindow):
         self.action_clear_labels.setToolTip(self.action_clear_labels.statusTip())
         self.action_clear_labels.triggered.connect(self.clear_labels)
         toolbar.addAction(self.action_clear_labels)
+
+        toolbar.addSeparator()
+
+        # The .ui's own Pan/Zoom menu items (Plot menu) already call this
+        # same dialog -- wired via an old-style QtCore.SIGNAL(...) connect
+        # baked into plot_window_ui.py's generated setupUi(), which a grep
+        # for the modern `.connect(` syntax misses entirely. They're not
+        # dead; they're just badly named for what they actually do (open
+        # a help dialog, not toggle a pan or zoom mode) and easy to miss
+        # in a menu. This button is the fix: a real, clearly-labeled,
+        # toolbar-visible Help entry point to the same dialog.
+        self.action_help = QAction(make_help_icon(), "Help", self)
+        self.action_help.setShortcut("?")
+        self.action_help.setShortcutContext(Qt.WindowShortcut)
+        self.action_help.setStatusTip(
+            "Navigation, rebuild, move, and rotate keyboard shortcuts (?)."
+        )
+        self.action_help.setToolTip(self.action_help.statusTip())
+        self.action_help.triggered.connect(
+            lambda: self._navigation_help("Navigation & Shortcuts")
+        )
+        toolbar.addAction(self.action_help)
 
     def label_all_components(self):
         """Label every component, including its pins."""

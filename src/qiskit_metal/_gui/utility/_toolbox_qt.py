@@ -154,6 +154,49 @@ def badge_icon_alert(icon: QIcon, size: int = 20, color=None) -> QIcon:
     return QIcon(pixmap)
 
 
+def make_help_icon(size: int = 20, color=None) -> QIcon:
+    """Draw a red circle with a bold white "?" -- a Help icon that reads
+    as Help at a glance, rather than the generic ``:/help`` resource icon
+    it replaced (a user found it too unclear to register as "click here
+    for shortcuts").
+
+    Drawn programmatically rather than shipping a new icon asset, for the
+    same reason :func:`badge_icon_alert` is: one function, easy to retint
+    or resize later without touching a binary resource file.
+
+    Args:
+        size (int): Icon edge length to render at, in pixels.
+        color (QColor): Circle fill color. Defaults to
+            :data:`ERROR_ALERT_COLOR` -- red reads as "important/click
+            me," which is exactly the point for a help button that was
+            previously going unnoticed.
+
+    Returns:
+        QIcon: The composited icon.
+    """
+    if color is None:
+        color = QColor(ERROR_ALERT_COLOR)
+
+    pixmap = QPixmap(size, size)
+    pixmap.fill(Qt.transparent)
+    painter = QPainter(pixmap)
+    try:
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setBrush(color)
+        painter.setPen(Qt.NoPen)
+        painter.drawEllipse(0, 0, size, size)
+
+        painter.setPen(QColor("white"))
+        font = painter.font()
+        font.setBold(True)
+        font.setPixelSize(int(size * 0.68))
+        painter.setFont(font)
+        painter.drawText(pixmap.rect(), Qt.AlignCenter, "?")
+    finally:
+        painter.end()
+    return QIcon(pixmap)
+
+
 def mark_dock_has_error(dock: QDockWidget) -> None:
     """Flag a dock's toolbar icon (blinking) and status bar to signal an
     unread error.
