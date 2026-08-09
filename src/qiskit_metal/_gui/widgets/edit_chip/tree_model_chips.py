@@ -73,3 +73,20 @@ class QTreeModel_Chips(QTreeModel_Base):
         if design is None:
             return {}
         return design.chips
+
+    def _after_reset(self):
+        """Re-expand and autofit after every reset, not just the first load.
+
+        The chip stack is a shallow tree (one or two chips, a handful of
+        properties each) meant to come up expanded -- but a *every* full
+        reset (``beginResetModel``/``endResetModel``) collapses all rows,
+        with no general way to preserve expand state across an arbitrary
+        tree shape. The base class's polling timer causes exactly one such
+        reset ~500ms after construction (its ``_row_count`` sentinel of -1
+        always counts as "changed" on the first tick), which silently
+        undid a one-time ``expandAll()`` call in ``main_window.py`` shortly
+        after the GUI appeared to expand correctly.
+        """
+        if self._view:
+            self._view.expandAll()
+            self._view.autoresize_columns()
