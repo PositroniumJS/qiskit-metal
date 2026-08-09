@@ -29,6 +29,7 @@ from PySide6.QtCore import QTimer, Qt
 from PySide6.QtWidgets import QSizePolicy
 from qiskit_metal import Dict
 from qiskit_metal.designs import QDesign
+from qiskit_metal._gui.utility._toolbox_qt import doShowHighlighWidget
 from qiskit_metal.renderers.renderer_mpl.mpl_interaction import PanAndZoom
 from qiskit_metal.renderers.renderer_mpl.mpl_renderer import QMplRenderer
 from qiskit_metal.renderers.renderer_mpl.mpl_toolbox import (
@@ -775,9 +776,29 @@ class PlotCanvas(FigureCanvas):
         if self.logger is not None:
             self.logger.info(f"Selected component: {name}")
         gui = getattr(self, "gui", None)
+        already_selected = (
+            gui is not None and getattr(gui, "selected_component", None) == name
+        )
         if gui is not None and hasattr(gui, "edit_component"):
             gui.edit_component(name)
         self.highlight_components([name])
+
+        # A real double-click (event.dblclick, matplotlib's own flag) or a
+        # second click on the component already selected -- either reads
+        # as "I want to work on this one" -- brings the Edit dock to the
+        # front. edit_component() above already populates it regardless;
+        # this only handles whether the user can actually *see* that
+        # without hunting through tabs for it.
+        if getattr(event, "dblclick", False) or already_selected:
+            main_window = getattr(gui, "main_window", None)
+            dock_design = getattr(getattr(main_window, "ui", None), "dockDesign", None)
+            if dock_design is not None:
+                # Not dock_design.doShow() -- that's the toggle-aware
+                # version (this dock is tabified, so toggle=True; see
+                # #48). Calling it while Edit is already the active tab
+                # would hide it instead of doing nothing, the opposite of
+                # what "bring it to the front" means here.
+                doShowHighlighWidget(dock_design)
 
         # gui.edit_component() above populates the component list / options
         # tree, which steals keyboard focus if either already had it. Take
@@ -816,9 +837,21 @@ class PlotCanvas(FigureCanvas):
     #: the more discoverable, keyboard-layout-independent alternative --
     #: added after a user found ] and [ hard to remember and reached for
     #: different keys entirely on first try.
+    #:
+    #: Key_BraceLeft/Key_BraceRight (curly braces) are included alongside
+    #: the bracket keys deliberately, not redundantly: on most keyboards
+    #: Shift+[ produces "{", which Qt reports as Key_BraceLeft -- a
+    #: different key code entirely, not Key_BracketLeft with a Shift
+    #: modifier flag. Without this, holding Shift for the fine rotation
+    #: step silently missed the lookup and did nothing at all (confirmed:
+    #: a user found plain [/] rotated fine, but Shift+[/Shift+] did
+    #: nothing, while Shift+Q/Shift+E -- letters, whose Key_* value
+    #: doesn't change when shifted -- worked correctly).
     _ROTATE_DIRECTIONS = {
         Qt.Key_BracketRight: -1,
         Qt.Key_BracketLeft: +1,
+        Qt.Key_BraceRight: -1,
+        Qt.Key_BraceLeft: +1,
         Qt.Key_E: -1,
         Qt.Key_Q: +1,
     }
