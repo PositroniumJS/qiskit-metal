@@ -65,8 +65,8 @@ NAVIGATION_HELP_HTML = """
       <td>Click to select, then the <b>arrow keys</b>. Shift coarsens,
           Alt refines.</td></tr>
   <tr><td><b>Rotate selected component</b></td>
-      <td><b>[</b> / <b>]</b> for 90° counter-clockwise / clockwise.
-          Shift for a 15° step.</td></tr>
+      <td><b>Q</b> / <b>E</b> (also <b>[</b> / <b>]</b>) for 90°
+          counter-clockwise / clockwise. Shift for a 15° step.</td></tr>
 </table>
 <p>Editing a component's options replots without moving the camera, so your
 current zoom and pan are preserved.</p>

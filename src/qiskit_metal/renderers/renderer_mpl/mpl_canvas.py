@@ -809,13 +809,18 @@ class PlotCanvas(FigureCanvas):
     ROTATE_STEP_DEG = 90.0
     ROTATE_FINE_DEG = 15.0
 
-    #: Key -> rotation direction. ``]`` turns clockwise, ``[`` counter-
+    #: Key -> rotation direction. ``]``/``[`` turn clockwise/counter-
     #: clockwise -- the same visual sense the characters read in on a
-    #: standard keyboard layout (no established qiskit-metal convention
-    #: existed to match).
+    #: standard keyboard layout. Also bound to Q/E (the widely-recognized
+    #: rotate-CCW/CW convention from games and other creative tools) as
+    #: the more discoverable, keyboard-layout-independent alternative --
+    #: added after a user found ] and [ hard to remember and reached for
+    #: different keys entirely on first try.
     _ROTATE_DIRECTIONS = {
         Qt.Key_BracketRight: -1,
         Qt.Key_BracketLeft: +1,
+        Qt.Key_E: -1,
+        Qt.Key_Q: +1,
     }
 
     def keyPressEvent(self, event):

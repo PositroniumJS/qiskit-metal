@@ -236,8 +236,27 @@ class QRoute(QComponent):
 
         Return:
             The actual pin object.
+
+        Raises:
+            ValueError: ``pin_data.component`` no longer exists in the
+                design (e.g. it was deleted, but this route's
+                ``pin_inputs`` still names it).
         """
-        return self.design.components[pin_data.component].pins[pin_data.pin]
+        component = self.design.components[pin_data.component]
+        if component is None:
+            # ``Components.__getitem__`` returns None rather than raising
+            # for an unknown name (already logged there), which otherwise
+            # surfaces here as an opaque "'NoneType' object has no
+            # attribute 'pins'" -- correct, but it doesn't say what's
+            # actually wrong or which route has the stale reference.
+            raise ValueError(
+                f"{self.name}'s pin_inputs references component "
+                f'"{pin_data.component}", which no longer exists in this '
+                f"design (deleted, or never existed). Update or remove "
+                f"{self.name}'s pin_inputs, or delete {self.name} along "
+                f"with the component it was connected to."
+            )
+        return component.pins[pin_data.pin]
 
     def set_pin(self, name: str) -> QRoutePoint:
         """Defines the CPW pins and returns the pin coordinates and normal
