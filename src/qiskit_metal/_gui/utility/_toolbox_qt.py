@@ -15,7 +15,7 @@ from types import MethodType
 
 # from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import QTimer, Qt
-from PySide6.QtGui import QColor, QIcon, QPainter
+from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
 from PySide6.QtWidgets import QDockWidget
 
 __all__ = ["blend_colors"]
@@ -107,75 +107,124 @@ def doToggleDockWidget(self: QDockWidget, timeout=1500, style_highlight=None):
     doShowHighlighWidget(self, timeout=timeout, style_highlight=style_highlight)
 
 
-def badge_icon_with_dot(icon: QIcon, size: int = 20, color=None) -> QIcon:
-    """Return a copy of ``icon`` with a small filled circle in the corner.
+#: Red used for every "you have an unread error" cue -- icon fill, status
+#: bar text. One constant so they read as the same signal.
+ERROR_ALERT_COLOR = "#E53935"
 
-    Used to flag the Log dock's toolbar button when an error was logged
-    while the dock wasn't visible to see it -- an error that scrolled past
-    in a hidden-by-default panel is easy to miss entirely. Composited onto
-    a fresh pixmap rather than mutating the original ``QIcon``, so the
-    un-badged icon stays available to restore later.
+#: Blink period, in ms, for the badged Log icon. Fast enough to actually
+#: catch the eye (a first attempt used a small static corner dot -- too
+#: subtle to notice without already looking for it), slow enough not to
+#: be annoying while it's up.
+_ERROR_BLINK_MS = 600
+
+
+def badge_icon_alert(icon: QIcon, size: int = 20, color=None) -> QIcon:
+    """Return a copy of ``icon`` on a filled, rounded red background.
+
+    A full-background fill, not a small corner dot (tried first and found
+    too subtle to notice without already looking for it) -- used with
+    :func:`mark_dock_has_error`'s blink so the flagged icon alternates with
+    the plain one rather than sitting there as a permanent, easy-to-tune-out
+    fixture.
 
     Args:
         icon (QIcon): Base icon to badge.
         size (int): Icon edge length to render at, in pixels. Should match
-            the toolbar's actual icon size or the dot will be mis-scaled.
-        color (QColor): Dot color. Defaults to a red matching the rest of
-            the app's error/warning styling.
+            the toolbar's actual icon size or the fill will be mis-scaled.
+        color (QColor): Fill color. Defaults to :data:`ERROR_ALERT_COLOR`.
 
     Returns:
-        QIcon: A new icon with the dot composited in the bottom-right.
+        QIcon: A new icon composited onto the fill; the original ``icon``
+        is left untouched.
     """
     if color is None:
-        color = QColor("#E53935")
+        color = QColor(ERROR_ALERT_COLOR)
 
-    pixmap = icon.pixmap(size, size)
+    pixmap = QPixmap(size, size)
+    pixmap.fill(Qt.transparent)
     painter = QPainter(pixmap)
     try:
         painter.setRenderHint(QPainter.Antialiasing)
         painter.setBrush(color)
         painter.setPen(Qt.NoPen)
-        dot_diameter = max(4, size // 3)
-        painter.drawEllipse(
-            size - dot_diameter, size - dot_diameter, dot_diameter, dot_diameter
-        )
+        painter.drawRoundedRect(0, 0, size, size, 4, 4)
+        painter.drawPixmap(0, 0, icon.pixmap(size, size))
     finally:
         painter.end()
     return QIcon(pixmap)
 
 
 def mark_dock_has_error(dock: QDockWidget) -> None:
-    """Badge a dock's toolbar icon to flag an unread error.
+    """Flag a dock's toolbar icon (blinking) and status bar to signal an
+    unread error.
 
     Operates purely on the dock -- no reference to the GUI or logger
     needed -- so it can be called from anywhere holding just a dock
     reference (the log widget already keeps one as ``self.dock_window``,
     the same reference it already uses for ``setWindowTitle``; this adds
     no new cross-widget reference, unlike a full popup mechanism would).
-    A no-op if the dock was never set up with ``_add_dock_toolbar_action``
-    (no ``actionShow``/``_icon_normal`` to badge).
+    The status bar is reached the same way, via ``dock._status_bar`` set
+    alongside ``_icon_normal`` -- optional, so this degrades gracefully on
+    a dock that was never wired up with one. A no-op if the dock was never
+    set up with ``_add_dock_toolbar_action`` (no ``actionShow``/
+    ``_icon_normal`` to badge) -- calling it repeatedly for further errors
+    while already flagged is intentionally cheap (idempotent restart of
+    the same blink), not additive.
 
     Args:
-        dock (QDockWidget): The dock whose toolbar icon to badge.
+        dock (QDockWidget): The dock whose toolbar icon (and status bar,
+            if wired) to flag.
     """
     action = getattr(dock, "actionShow", None)
     normal_icon = getattr(dock, "_icon_normal", None)
     if action is None or normal_icon is None:
         return
-    action.setIcon(badge_icon_with_dot(normal_icon))
+
+    alert_icon = badge_icon_alert(normal_icon)
+    state = {"on": True}
+    action.setIcon(alert_icon)
+
+    timer = getattr(dock, "_error_blink_timer", None)
+    if timer is None:
+        timer = QTimer(dock)
+        dock._error_blink_timer = timer
+
+        def _toggle():
+            state["on"] = not state["on"]
+            action.setIcon(alert_icon if state["on"] else normal_icon)
+
+        timer.timeout.connect(_toggle)
+    timer.start(_ERROR_BLINK_MS)
+
+    status_bar = getattr(dock, "_status_bar", None)
+    if status_bar is not None:
+        status_bar.setStyleSheet(f"QStatusBar{{color: {ERROR_ALERT_COLOR};}}")
+        status_bar.showMessage(
+            "⚠ Error logged — open the Log panel (left toolbar) to see it", 0
+        )
 
 
 def clear_dock_error_badge(dock: QDockWidget) -> None:
-    """Undo :func:`mark_dock_has_error` -- restore the plain icon.
+    """Undo :func:`mark_dock_has_error` -- stop the blink, restore the
+    plain icon, and clear the status bar alert.
 
     Args:
-        dock (QDockWidget): The dock whose toolbar icon to restore.
+        dock (QDockWidget): The dock whose toolbar icon/status bar to
+            restore.
     """
+    timer = getattr(dock, "_error_blink_timer", None)
+    if timer is not None:
+        timer.stop()
+
     action = getattr(dock, "actionShow", None)
     normal_icon = getattr(dock, "_icon_normal", None)
-    if action is None or normal_icon is None:
-        return
-    action.setIcon(normal_icon)
+    if action is not None and normal_icon is not None:
+        action.setIcon(normal_icon)
+
+    status_bar = getattr(dock, "_status_bar", None)
+    if status_bar is not None:
+        status_bar.clearMessage()
+        status_bar.setStyleSheet("")
 
 
 ### Alternative to doShowHighlighWidget:

@@ -923,6 +923,13 @@ class MetalGUI(QMainWindowBaseHandler):
                 continue
             self._add_dock_toolbar_action(dock, iconName, caption, tooltip, toggle=True)
 
+        # Lets mark_dock_has_error() reach the *real* status bar. dockLog's
+        # own parent QMainWindow is plot_win (a sub-window it was moved
+        # into), whose statusBar() is explicitly hidden -- self.main_window
+        # is the actual outer window whose status bar carries the hover/
+        # selection-hint label.
+        self.ui.dockLog._status_bar = self.main_window.statusBar()
+
         # Errors logged while the (hidden-by-default) log dock isn't on
         # screen are otherwise silent -- clear the badge the moment the
         # dock actually becomes visible, regardless of how (toolbar click,
