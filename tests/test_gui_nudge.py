@@ -131,5 +131,75 @@ class TestOffsetLength:
             value = offset_length(value, 0.05, parse_value)
         for _ in range(10):
             value = offset_length(value, -0.05, parse_value)
-
         assert value == "0.5mm"
+
+
+class TestRealClickAndKeyDelivery:
+    """A click then an arrow key, injected as genuine Qt events end to end.
+
+    Everything above tests the pure arithmetic helpers; TestClickVersusDrag
+    in test_gui_click_select.py calls _on_pick_release() directly with a
+    fake event, bypassing Qt's own dispatch entirely. Neither would have
+    caught the actual bug: FigureCanvas (PlotCanvas's base class) owns
+    keyPressEvent and never propagates an unhandled key to its parent, so
+    a handler that lived on the parent QMainWindowPlot was simply
+    unreachable -- selection and focus both worked, but the arrow key
+    silently did nothing. Real QTest-injected events go through the same
+    Qt dispatch a live user's input does and are the only way to see that.
+    """
+
+    def test_click_then_arrow_moves_the_component(self):
+        """The exact sequence a user performs: click to select, then an
+        arrow key. Both must be genuine Qt events for this to mean
+        anything -- see the class docstring."""
+        from PySide6.QtWidgets import QApplication
+        from PySide6.QtTest import QTest
+        from PySide6.QtCore import Qt as QtNS, QPoint
+        from qiskit_metal._gui.main_window import MetalGUI
+        from qiskit_metal.qlibrary.qubits.transmon_pocket import TransmonPocket
+
+        # MetalGUI directly, not qm.gui(design): the latter branches on
+        # QISKIT_METAL_HEADLESS (set for this whole suite run) and returns
+        # the headless matplotlib viewer instead, which has no QApplication
+        # and no real focus/keyboard dispatch to test.
+        design = DesignPlanar()
+        gui = MetalGUI(design)
+        try:
+            gui.main_window.show()
+            app = QApplication.instance()
+            TransmonPocket(design, "Q1")
+            gui.rebuild()
+            gui.autoscale()
+            for _ in range(20):
+                app.processEvents()
+
+            canvas = gui.canvas
+            # Start focus somewhere else, matching the real bug report:
+            # focus stays on whatever dock last had it until proven
+            # otherwise.
+            gui.main_window.ui.tableComponents.setFocus()
+            for _ in range(10):
+                app.processEvents()
+
+            ax = canvas.figure.axes[0]
+            disp_x, disp_y = ax.transData.transform((0, 0))
+            pos = QPoint(int(disp_x), int(canvas.figure.bbox.height - disp_y))
+            QTest.mousePress(canvas, QtNS.LeftButton, QtNS.NoModifier, pos)
+            for _ in range(10):
+                app.processEvents()
+            QTest.mouseRelease(canvas, QtNS.LeftButton, QtNS.NoModifier, pos)
+            for _ in range(20):
+                app.processEvents()
+
+            assert gui._selected_component == "Q1"
+
+            before = design.components["Q1"].options.pos_x
+            QTest.keyClick(app.focusWidget(), QtNS.Key_Right)
+            for _ in range(20):
+                app.processEvents()
+            after = design.components["Q1"].options.pos_x
+
+            assert after != before
+        finally:
+            gui.main_window.force_close = True
+            gui.main_window.close()

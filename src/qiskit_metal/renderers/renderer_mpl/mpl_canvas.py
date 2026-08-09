@@ -776,6 +776,57 @@ class PlotCanvas(FigureCanvas):
         # held focus.
         self.setFocus(Qt.MouseFocusReason)
 
+    #: Grid step for one arrow-key press, in millimetres.
+    NUDGE_STEP_MM = 0.05
+
+    #: Multipliers for the modifier keys. Shift coarsens, Alt refines --
+    #: the convention every drawing tool uses.
+    NUDGE_COARSE_FACTOR = 10.0
+    NUDGE_FINE_FACTOR = 0.1
+
+    #: Arrow key -> unit displacement (x, y). Y is positive upward, matching
+    #: the data coordinates rather than screen coordinates.
+    _NUDGE_DIRECTIONS = {
+        Qt.Key_Left: (-1, 0),
+        Qt.Key_Right: (1, 0),
+        Qt.Key_Down: (0, -1),
+        Qt.Key_Up: (0, 1),
+    }
+
+    def keyPressEvent(self, event):
+        """Nudge the selected component with the arrow keys.
+
+        Lives here, not on the ``QMainWindowPlot`` container that used to
+        own this logic, because this canvas -- not its parent -- is the
+        widget that actually holds keyboard focus after a click-select
+        (see ``_on_pick_release``'s ``setFocus`` above). ``FigureCanvas``
+        (the base class) has its own ``keyPressEvent`` for matplotlib's
+        built-in shortcuts and does not propagate unhandled keys to the
+        parent, so a handler on the container was simply never reached --
+        confirmed by sending a real ``QTest``-injected key both ways: to
+        this canvas (silently swallowed) and directly to
+        ``QMainWindowPlot`` (moved the component correctly). Deliberately
+        keyboard-only: dragging would have to share the left mouse button
+        with panning and needs a live preview, and a rebuild per
+        mouse-move is far too slow.
+
+        Args:
+            event (QKeyEvent): The key event.
+        """
+        direction = self._NUDGE_DIRECTIONS.get(event.key())
+        if direction is None:
+            super().keyPressEvent(event)
+            return
+
+        modifiers = event.modifiers()
+        step = self.NUDGE_STEP_MM
+        if modifiers & Qt.ShiftModifier:
+            step *= self.NUDGE_COARSE_FACTOR
+        elif modifiers & Qt.AltModifier:
+            step *= self.NUDGE_FINE_FACTOR
+
+        self.gui.nudge_selected(direction[0] * step, direction[1] * step)
+
     def _component_bounds(self, component_names=None):
         """Union of the qgeometry bounds of the named components.
 

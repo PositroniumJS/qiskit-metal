@@ -188,3 +188,18 @@ CI: `tests-gui-display` (Linux Xvfb) and `tests-gui-display-windows`
 - Failure mode (4), the GC teardown segfault, on all versions.
 - Whether the macOS `show()` → `QLayout::activate()` crash reported against a
   0.7.3 fork is resolved on 0.8.0 — the reporter never confirmed.
+- **New, minor:** `tests/test_gui_nudge.py::TestRealClickAndKeyDelivery` --
+  the one test that drives a real MetalGUI through several genuine Qt
+  click/key/rebuild cycles (`QTest`-injected, not `_on_pick_release()`
+  called directly) -- occasionally leaves `QTreeModel_Base.auto_refresh()`'s
+  polling `QTimer` alive past `close()`, and it fires during **pytest's own
+  process exit**, well after the whole suite already reported passing:
+  `RuntimeError: Internal C++ object (PySide6.QtWidgets.QCompleter) already
+  deleted`. Exit code stays 0 either way (confirmed reproducible on/off by
+  including/excluding just that one test, several repeats). Explicitly did
+  **not** attempt a real fix here -- an attempted test-side workaround
+  (pumping `app.processEvents()` after `close()` to flush queued
+  `deleteLater()` teardown before the test function returns) made it
+  *worse*, occasionally turning the exit code non-zero, so it was reverted.
+  Left as class-(4)-adjacent noise for a future, more careful pass rather
+  than guessed at under time pressure.
