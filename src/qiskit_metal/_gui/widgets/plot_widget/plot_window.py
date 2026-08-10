@@ -236,14 +236,15 @@ class QMainWindowPlot(QMainWindow):
 
         toolbar.addSeparator()
 
-        # The .ui's own Pan/Zoom menu items (Plot menu) already call this
-        # same dialog -- wired via an old-style QtCore.SIGNAL(...) connect
-        # baked into plot_window_ui.py's generated setupUi(), which a grep
-        # for the modern `.connect(` syntax misses entirely. They're not
-        # dead; they're just badly named for what they actually do (open
-        # a help dialog, not toggle a pan or zoom mode) and easy to miss
-        # in a menu. This button is the fix: a real, clearly-labeled,
-        # toolbar-visible Help entry point to the same dialog.
+        # A clearly-labeled, toolbar-visible Help entry point to the
+        # navigation cheat-sheet. Replaces a legacy toolbar button
+        # (plot_window_ui.ui's old ``actionPan``) that opened this same
+        # dialog under a pan icon with its text overridden to "Help" --
+        # found via an old-style QtCore.SIGNAL(...) connect baked into
+        # plot_window_ui.py's generated setupUi(), which a grep for the
+        # modern `.connect(` syntax misses entirely. Removed rather than
+        # relabeled, since a second Help-labeled button next to this one
+        # would just be confusing.
         self.action_help = QAction(make_help_icon(), "Help", self)
         self.action_help.setShortcut("?")
         self.action_help.setShortcutContext(Qt.WindowShortcut)
@@ -365,10 +366,6 @@ class QMainWindowPlot(QMainWindow):
         dialog.show()
         dialog.raise_()
         dialog.activateWindow()
-
-    def pan(self):
-        """Displays a message about how to navigate the plot."""
-        self._navigation_help("Pan")
 
     def zoom(self):
         """Displays a message about how to navigate the plot."""

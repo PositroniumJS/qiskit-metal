@@ -53,10 +53,19 @@ class _GuiStub:
 
     def __init__(self):
         self.selected = []
+        self.selected_component = None
+        # dockComponent (titled "Edit component") is the real editor;
+        # dockDesign (titled "QComponents") is the component list. The
+        # names are the opposite of what they hold -- see the comment in
+        # PlotCanvas._on_pick_release.
+        self.main_window = SimpleNamespace(
+            ui=SimpleNamespace(dockComponent=object(), dockDesign=object())
+        )
 
     def edit_component(self, name):
         """Mirror MetalGUI.edit_component."""
         self.selected.append(name)
+        self.selected_component = name
 
 
 class _ParentStub(QWidget):
@@ -164,6 +173,52 @@ class TestClickVersusDrag:
         canvas._on_pick_release(mouse_event(100, 100, *EMPTY_POINT))
 
         assert canvas.gui.selected == []
+
+
+class TestEditDockOnReSelect:
+    """Re-clicking (or double-clicking) an already-selected component
+    brings the real editor to the front.
+
+    ``dockComponent`` (titled "Edit component") is the editor;
+    ``dockDesign`` (titled "QComponents") is only the list. A prior
+    version of this code raised ``dockDesign`` by mistake -- both docks
+    exist as distinct objects here specifically so a regression back to
+    the wrong one fails this test rather than passing silently (a stub
+    with only one dock attribute would not catch that class of bug).
+    """
+
+    def test_second_click_on_the_same_component_raises_the_editor(
+        self, canvas, monkeypatch
+    ):
+        import qiskit_metal.renderers.renderer_mpl.mpl_canvas as mpl_canvas_module
+
+        raised = []
+        monkeypatch.setattr(mpl_canvas_module, "doShowHighlighWidget", raised.append)
+
+        canvas._on_pick_press(mouse_event(100, 100, *Q1_CENTRE))
+        canvas._on_pick_release(mouse_event(101, 100, *Q1_CENTRE))
+        assert raised == []  # first click: selects, does not raise anything
+
+        canvas._on_pick_press(mouse_event(100, 100, *Q1_CENTRE))
+        canvas._on_pick_release(mouse_event(101, 100, *Q1_CENTRE))
+        assert raised == [canvas.gui.main_window.ui.dockComponent]
+
+    def test_a_real_double_click_raises_the_editor_on_the_first_click(
+        self, canvas, monkeypatch
+    ):
+        """``event.dblclick`` (matplotlib's own flag) is enough on its
+        own -- no prior selection required."""
+        import qiskit_metal.renderers.renderer_mpl.mpl_canvas as mpl_canvas_module
+
+        raised = []
+        monkeypatch.setattr(mpl_canvas_module, "doShowHighlighWidget", raised.append)
+
+        canvas._on_pick_press(mouse_event(100, 100, *Q1_CENTRE))
+        event = mouse_event(101, 100, *Q1_CENTRE)
+        event.dblclick = True
+        canvas._on_pick_release(event)
+
+        assert raised == [canvas.gui.main_window.ui.dockComponent]
 
 
 class TestIndexLifecycle:

@@ -789,16 +789,25 @@ class PlotCanvas(FigureCanvas):
         # front. edit_component() above already populates it regardless;
         # this only handles whether the user can actually *see* that
         # without hunting through tabs for it.
+        #
+        # This is ``dockComponent``, titled "Edit component" -- not
+        # ``dockDesign`` (titled "QComponents", the component *list*).
+        # The two are named the opposite of what they hold; an earlier
+        # version of this code raised ``dockDesign`` by mistake, which
+        # brought the list to the front instead of the actual editor.
         if getattr(event, "dblclick", False) or already_selected:
             main_window = getattr(gui, "main_window", None)
-            dock_design = getattr(getattr(main_window, "ui", None), "dockDesign", None)
-            if dock_design is not None:
-                # Not dock_design.doShow() -- that's the toggle-aware
-                # version (this dock is tabified, so toggle=True; see
-                # #48). Calling it while Edit is already the active tab
-                # would hide it instead of doing nothing, the opposite of
-                # what "bring it to the front" means here.
-                doShowHighlighWidget(dock_design)
+            dock_component = getattr(
+                getattr(main_window, "ui", None), "dockComponent", None
+            )
+            if dock_component is not None:
+                # Not dock_component.doShow() -- that's the toggle-aware
+                # version (see #48). dockComponent isn't tabified with
+                # anything, so there's no "already the active tab" case to
+                # avoid, but doShowHighlighWidget also gives the nicer
+                # highlight-flash feedback than the plain show()+raise_()
+                # that QTableView_AllComponents.viewClicked uses.
+                doShowHighlighWidget(dock_component)
 
         # gui.edit_component() above populates the component list / options
         # tree, which steals keyboard focus if either already had it. Take

@@ -1551,6 +1551,14 @@ class MetalGUI(QMainWindowBaseHandler):
         self._show_selection_hint(name)
         if self.component_window:
             self.component_window.set_component(name)
+        table = getattr(self.ui, "tableComponents", None)
+        if table is not None:
+            # Keeps the QComponents list dock's row selection in sync with
+            # whatever's loaded in the editor, regardless of which of the
+            # two triggered this (canvas click, list click, ...). A no-op
+            # when called from the list's own click handler, since the row
+            # is already selected there.
+            table.select_component(name)
 
     def _show_selection_hint(self, name):
         """Say what is selected and that the arrow keys will move it.
