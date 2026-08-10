@@ -17,6 +17,7 @@ decided to use a QMainWindow, so that we can have inner docking and
 toolbars available.
 """
 
+import webbrowser
 from typing import TYPE_CHECKING
 
 from PySide6 import QtWidgets
@@ -24,10 +25,13 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
     QApplication,
+    QDialog,
+    QDialogButtonBox,
     QFileDialog,
     QLabel,
     QMainWindow,
-    QMessageBox,
+    QPushButton,
+    QVBoxLayout,
 )
 
 from qiskit_metal import config
@@ -47,30 +51,89 @@ if TYPE_CHECKING:
 # Bindings come from ``renderers.renderer_mpl.mpl_interaction.PanAndZoom``:
 # left drag pans, right drag rubber-band zooms, the wheel zooms about the
 # cursor, and the autoscale QAction is bound to "A".
-NAVIGATION_HELP_HTML = """
-<h3>Navigating the plot</h3>
-<table cellpadding="4">
-  <tr><td><b>Pan</b></td>
-      <td>Drag with the <b>left</b> mouse button.</td></tr>
-  <tr><td><b>Zoom</b></td>
-      <td>Scroll the mouse wheel. Zoom centres on the pointer, so put it
-          over the region you care about.</td></tr>
-  <tr><td><b>Zoom to region</b></td>
-      <td>Drag with the <b>right</b> mouse button to rubber-band a
-          rectangle. Drags shorter than a few pixels are ignored.</td></tr>
-  <tr><td><b>Fit to design</b></td>
-      <td>Press <b>A</b>, or use the autoscale button on the toolbar.</td></tr>
-  <tr><td><b>Rebuild</b></td>
-      <td>Press <b>R</b> (also <b>Ctrl+D</b>), or use the Rebuild button.</td></tr>
-  <tr><td><b>Move selected component</b></td>
-      <td>Click to select, then the <b>arrow keys</b>. Shift coarsens,
-          Alt refines.</td></tr>
-  <tr><td><b>Rotate selected component</b></td>
-      <td><b>Q</b> / <b>E</b> (also <b>[</b> / <b>]</b>) for 90°
-          counter-clockwise / clockwise. Shift for a 15° step.</td></tr>
+
+
+def _kbd(*keys: str) -> str:
+    """Render one or more key names as keycap-styled HTML chips.
+
+    Qt's rich-text engine (used by ``QTextBrowser``) only understands a
+    small CSS subset -- no ``box-shadow``, no flex layout -- so this
+    leans on plain ``background``/``border``/``padding`` to read as a
+    keycap without anything fancier. Multiple keys are joined with a
+    plain "/" (e.g. bracket + brace variants of the same shortcut) rather
+    than each getting its own visual weight.
+    """
+    chip = (
+        '<span style="background:#2f2f2f;color:#f2f2f2;border:1px solid '
+        "#666;border-radius:4px;padding:1px 7px;margin:0 1px;"
+        'font-family:monospace;font-weight:bold;">{}</span>'
+    )
+    return " / ".join(chip.format(k) for k in keys)
+
+
+def _row(action: str, keys: str, detail: str) -> str:
+    return (
+        f'<tr><td style="padding:4px 12px 4px 0;white-space:nowrap;">'
+        f"<b>{action}</b></td>"
+        f'<td style="padding:4px 12px 4px 0;white-space:nowrap;">{keys}</td>'
+        f'<td style="padding:4px 0;color:#bbb;">{detail}</td></tr>'
+    )
+
+
+NAVIGATION_HELP_HTML = f"""
+<h2 style="margin-bottom:2px;">Navigation &amp; shortcuts</h2>
+<p style="color:#bbb;margin-top:0;">Mouse and keyboard reference for the
+design canvas.</p>
+
+<h3>Mouse</h3>
+<table cellspacing="0">
+{_row("Pan", _kbd("left drag"), "")}
+{_row("Zoom", _kbd("scroll wheel"), "Centres on the pointer.")}
+{
+    _row(
+        "Zoom to region",
+        _kbd("right drag"),
+        "Rubber-band a rectangle; drags shorter than a few pixels are ignored.",
+    )
+}
+{_row("Select a component", _kbd("click"), "")}
+{
+    _row(
+        "Edit a component",
+        _kbd("double-click"),
+        "Also: click a component that's already selected.",
+    )
+}
 </table>
-<p>Editing a component's options replots without moving the camera, so your
-current zoom and pan are preserved.</p>
+
+<h3>View</h3>
+<table cellspacing="0">
+{_row("Fit to design", _kbd("A"), "Frames the components only.")}
+{
+    _row(
+        "Fit to chip",
+        _kbd("Shift", "A"),
+        "Frames the whole chip including the die outline.",
+    )
+}
+{_row("Rebuild", _kbd("R", "Ctrl+D"), "")}
+</table>
+
+<h3>Selected component</h3>
+<table cellspacing="0">
+{_row("Move", _kbd("←", "↑", "→", "↓"), "Shift coarsens the step, Alt refines it.")}
+{
+    _row(
+        "Rotate",
+        _kbd("Q", "E") + " (also " + _kbd("[", "]") + ")",
+        "Counter-clockwise / clockwise, 90&deg; per press. Shift steps 15&deg; "
+        "instead.",
+    )
+}
+</table>
+
+<p style="color:#bbb;">Editing a component's options replots without moving
+the camera, so your current zoom and pan are preserved.</p>
 """
 
 
@@ -258,11 +321,50 @@ class QMainWindowPlot(QMainWindow):
     def _navigation_help(self, title: str):
         """Show the shared navigation cheat-sheet.
 
+        A plain ``QDialog`` rather than ``QMessageBox.about`` -- the
+        message box clips long content, can't be resized, and is
+        awkward to read side-by-side with the canvas it's explaining.
+        Non-modal and reused (one instance, raised on repeat calls)
+        so it can stay open as a reference while the user tries the
+        shortcuts, and so mashing the Help button doesn't stack up
+        duplicate windows.
+
         Args:
             title (str): Dialog title, so the Pan and Zoom toolbar buttons
                 can each open it under their own name.
         """
-        QMessageBox.about(self, title, NAVIGATION_HELP_HTML)
+        dialog = getattr(self, "_help_dialog", None)
+        if dialog is None:
+            dialog = QDialog(self)
+            dialog.setWindowModality(Qt.NonModal)
+            dialog.setMinimumWidth(480)
+
+            layout = QVBoxLayout()
+            dialog.setLayout(layout)
+
+            label = QLabel(NAVIGATION_HELP_HTML)
+            label.setTextFormat(Qt.RichText)
+            label.setWordWrap(True)
+            layout.addWidget(label)
+
+            buttons = QDialogButtonBox()
+            docs_button = QPushButton("Open full docs online")
+            docs_button.clicked.connect(
+                lambda: webbrowser.open(
+                    "https://qiskit-community.github.io/qiskit-metal/", new=1
+                )
+            )
+            buttons.addButton(docs_button, QDialogButtonBox.ActionRole)
+            buttons.addButton(QDialogButtonBox.Close)
+            buttons.rejected.connect(dialog.close)
+            layout.addWidget(buttons)
+
+            self._help_dialog = dialog
+
+        dialog.setWindowTitle(title)
+        dialog.show()
+        dialog.raise_()
+        dialog.activateWindow()
 
     def pan(self):
         """Displays a message about how to navigate the plot."""
