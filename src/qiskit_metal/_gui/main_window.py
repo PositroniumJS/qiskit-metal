@@ -914,6 +914,11 @@ class MetalGUI(QMainWindowBaseHandler):
         # to deserve one click. Created here and attached to ``self.ui`` so
         # the toolbar spec can resolve it by name like any .ui action.
         self.ui.actionThemeToggle = QAction("Theme", self.main_window)
+        # Name it like a .ui action: Qt's saveState() warns about unnamed
+        # objects, and the toolbar/menu reachability audits key off
+        # objectName -- an unnamed action reads as "missing from the UI"
+        # (see DEMOTED_ACTIONS in toolbar_layout.py for why that matters).
+        self.ui.actionThemeToggle.setObjectName("actionThemeToggle")
         self.ui.actionThemeToggle.setToolTip("Switch between the dark and light theme")
         self.ui.actionThemeToggle.setStatusTip(self.ui.actionThemeToggle.toolTip())
         self.ui.actionThemeToggle.triggered.connect(self.toggle_theme)
@@ -1060,6 +1065,7 @@ class MetalGUI(QMainWindowBaseHandler):
             action.triggered.connect(
                 lambda _checked, i=index: tab_widget.setCurrentIndex(i)
             )
+            action.setObjectName(f"actionViewTab{index}")
             group.addAction(action)
             self._view_switch_actions.append(action)
             setattr(self.ui, f"actionViewTab{index}", action)
