@@ -23,16 +23,20 @@ The MARKER_INIT_OK assertion catches the silent-abandonment case;
 non-zero return code catches the segfault case. Combined, they fail
 loudly on either failure mode.
 
-``restore_window_settings`` (issue #1048, PR #1122 / #1128) has four
-layered defenses against persisted-state corruption, checked in this
-order:
+Persisted-state defenses (issue #1048), in the order they fire:
 
+    0. Startup journal file left behind by a crashed launch -> clear all
+       persisted state before Qt is even touched (``startup_journal.py``;
+       checked in ``MetalGUI.__init__``, not ``restore_window_settings``)
     1. ``QISKIT_METAL_RESET_UI_SETTINGS=1`` escape hatch
     2. ``metal_version`` mismatch  -> clear
     3. ``qt_version`` mismatch     -> clear
     4. ``display_fingerprint`` mismatch -> clear
-    5. ``restore_in_progress`` cookie left set -> clear (crashed restore)
-    6. otherwise: attempt the real restore, clearing on exception
+    5. legacy ``restore_in_progress`` cookie left set -> clear
+    6. otherwise: layout restore runs ONLY when
+       ``QISKIT_METAL_RESTORE_LAYOUT=1`` (opt-in as of this iteration --
+       replaying a stale geometry blob is the root trigger of the
+       on-screen crash class), clearing on exception
 
 Tests 3-5 below each tamper with exactly ONE field via direct QSettings
 access (bypassing Qt) while leaving the earlier-checked fields matching
@@ -49,6 +53,7 @@ available (a desktop session on Windows/macOS, ``$DISPLAY`` or
 """
 
 import os
+import pathlib
 import subprocess
 import sys
 import unittest
@@ -85,6 +90,7 @@ def _clear_persisted_settings() -> None:
     s = _settings()
     s.clear()
     s.sync()
+    _clear_journal()
 
 
 def _read_persisted_settings() -> dict:
@@ -94,9 +100,22 @@ def _read_persisted_settings() -> dict:
         "metal_version": s.value("metal_version", ""),
         "qt_version": s.value("qt_version", ""),
         "display_fingerprint": s.value("display_fingerprint", ""),
-        "restore_in_progress": s.value("restore_in_progress", False, type=bool),
         "geometry": s.value("geometry", b"", type=bytes),
     }
+
+
+# The startup journal is a plain file; same path logic as
+# ``qiskit_metal._gui.startup_journal`` (kept import-free here so reading
+# it can't itself touch Qt).
+_JOURNAL = pathlib.Path.home() / ".quantum-metal" / "gui_startup.journal"
+
+
+def _journal_exists() -> bool:
+    return _JOURNAL.exists()
+
+
+def _clear_journal() -> None:
+    _JOURNAL.unlink(missing_ok=True)
 
 
 # Minimal init reproducer from the issue.  Prints MARKER_INIT_OK only if
@@ -106,8 +125,10 @@ def _read_persisted_settings() -> dict:
 # poisoned by state left behind by an interactive dev run on the same
 # account.
 _SNIPPET = (
-    "import faulthandler, sys\n"
+    "import faulthandler, sys, pathlib\n"
     "faulthandler.enable()\n"
+    "pathlib.Path.home().joinpath('.quantum-metal', 'gui_startup.journal')"
+    ".unlink(missing_ok=True)\n"
     "from PySide6.QtCore import QSettings\n"
     "QSettings('QiskitMetal', 'MainWindow').clear()\n"
     "from qiskit_metal import designs, MetalGUI\n"
@@ -138,8 +159,9 @@ _SAVE_STATE_SNIPPET = (
 # setup or teardown of its own. Used as the "restore" half of every
 # two-process test below.
 _RESTORE_ONLY_SNIPPET = (
-    "import faulthandler, sys\n"
+    "import faulthandler, sys, os\n"
     "faulthandler.enable()\n"
+    "os.environ['QISKIT_METAL_RESTORE_LAYOUT'] = '1'\n"
     "from qiskit_metal import designs, MetalGUI\n"
     "design = designs.DesignPlanar()\n"
     "gui = MetalGUI(design)\n"
@@ -251,21 +273,18 @@ class TestGUIInitOnScreen(unittest.TestCase):
             self._run_snippet(
                 _RESTORE_ONLY_SNIPPET, "MARKER_RESTORED_OK", require_success=False
             )
-            after_b = _read_persisted_settings()
-
-            if after_b["restore_in_progress"]:
-                # B crashed mid-restore. Kernel C's cookie check fires
-                # before any native call -- fully deterministic, must
-                # succeed.
+            if _journal_exists():
+                # B crashed mid-startup. Kernel C's journal check fires
+                # before any Qt call -- fully deterministic, must succeed.
                 self._run_snippet(_RESTORE_ONLY_SNIPPET, "MARKER_RESTORED_OK")
                 after_c = _read_persisted_settings()
                 self.assertFalse(
-                    after_c["restore_in_progress"],
-                    "cookie recovery should have cleared the cookie again",
+                    _journal_exists(),
+                    "journal recovery should have closed the journal again",
                 )
                 self.assertFalse(
                     after_c["geometry"],
-                    "cookie recovery should have cleared persisted geometry",
+                    "journal recovery should have cleared persisted geometry",
                 )
             else:
                 # B completed cleanly. C attempts its own independent
@@ -278,13 +297,15 @@ class TestGUIInitOnScreen(unittest.TestCase):
                     "MARKER_RESTORED_OK" in proc_c.stdout and proc_c.returncode == 0
                 )
                 if not c_succeeded:
-                    after_c = _read_persisted_settings()
                     self.assertTrue(
-                        after_c["restore_in_progress"],
-                        "kernel C crashed during restore but did not leave "
-                        "the crash cookie set -- a future launch would "
-                        "repeat the same native crash instead of "
-                        f"self-healing.\nstderr tail:\n{proc_c.stderr[-2000:]}",
+                        _journal_exists(),
+                        "kernel C crashed during startup but did not leave "
+                        "the startup journal behind -- a future launch "
+                        "would repeat the same native crash instead of "
+                        "self-healing. The journal is written before any "
+                        "Qt call, so no crash inside MetalGUI.__init__ "
+                        "can legitimately skip it.\n"
+                        f"stderr tail:\n{proc_c.stderr[-2000:]}",
                     )
         finally:
             _clear_persisted_settings()
@@ -327,11 +348,11 @@ class TestGUIInitOnScreen(unittest.TestCase):
             _clear_persisted_settings()
 
     def test_metalgui_init_recovers_from_crashed_restore(self):
-        """A leftover ``restore_in_progress`` cookie must trigger a
-        clean-slate recovery -- and ONLY the cookie should be what
+        """A startup journal left behind by a crashed launch must trigger
+        a clean-slate recovery -- and ONLY the journal should be what
         triggers the clear (metal_version, qt_version, and
         display_fingerprint are all left matching the real environment,
-        isolating the crash-cookie branch specifically)."""
+        isolating the journal branch specifically)."""
         if not _display_available():
             self.skipTest("no display available (needs desktop session or Xvfb)")
         _clear_persisted_settings()
@@ -344,28 +365,28 @@ class TestGUIInitOnScreen(unittest.TestCase):
                 "non-empty geometry bytes",
             )
             self.assertFalse(
-                before["restore_in_progress"],
-                "sanity check: save_window_settings must not touch the "
-                "restore_in_progress cookie",
+                _journal_exists(),
+                "sanity check: a completed launch must not leave the "
+                "startup journal behind",
             )
 
-            # Simulate a previous launch that died mid-restore: leave
-            # the cookie set. Everything else (version/qt/fingerprint)
-            # is untouched and still matches the real environment.
-            s = _settings()
-            s.setValue("restore_in_progress", True)
-            s.sync()
+            # Simulate a previous launch that died mid-startup: leave the
+            # journal file in place. Everything else (version/qt/
+            # fingerprint) is untouched and still matches the real
+            # environment.
+            _JOURNAL.parent.mkdir(parents=True, exist_ok=True)
+            _JOURNAL.write_text("pid=0\n")
 
             self._run_snippet(_RESTORE_ONLY_SNIPPET, "MARKER_RESTORED_OK")
 
             after = _read_persisted_settings()
             self.assertFalse(
-                after["restore_in_progress"],
-                "crash-cookie recovery should have cleared the cookie",
+                _journal_exists(),
+                "journal recovery should have closed the journal",
             )
             self.assertFalse(
                 after["geometry"],
-                "crash-cookie recovery should have cleared persisted "
+                "journal recovery should have cleared persisted "
                 f"settings entirely (geometry should be empty again); got: {after}",
             )
         finally:

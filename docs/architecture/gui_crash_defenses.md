@@ -34,16 +34,26 @@ registry key. Don't re-derive it.
 
 ### Persisted-state invalidation — `restore_window_settings`
 
-Five checks, **in this order**, each clearing settings and returning:
+Checks, **in this order**, each clearing settings and returning:
 
+0. Startup **journal** file left behind (see next section) — handled in
+   `MetalGUI.__init__` before Qt is touched, not in this method
 1. `QISKIT_METAL_RESET_UI_SETTINGS=1` — user escape hatch
 2. `metal_version` newer than saved — cross-version state
 3. `qt_version` mismatch — Qt has no version tag on its own state blob
 4. `display_fingerprint` mismatch — monitor hot-swap, DPI change, undock
-5. `restore_in_progress` cookie found set — the previous launch crashed
+5. legacy `restore_in_progress` cookie found set — written by pre-journal
+   versions; still honoured once on upgrade
 
-Then it sets the cookie and `sync()`s **before** `restoreGeometry`/
-`restoreState`. Any exception clears settings.
+Then — **only if `QISKIT_METAL_RESTORE_LAYOUT=1`** — it runs
+`restoreGeometry`/`restoreState`. Layout restore became opt-in in the
+fourth iteration of this defense: replaying a stale geometry/state blob
+into a changed display environment is the root trigger of the on-screen
+`show()` crash class (failure mode 2), and no invalidation heuristic can
+enumerate every way a display environment differs. Default startup uses
+the default layout and cannot be poisoned by persisted geometry at all.
+The stylesheet (theme) is still restored either way. Any exception during
+the guarded restore clears settings.
 
 `_display_fingerprint()` is `name:x,y,w,h@dpr` per screen. It returns `""` on
 error, and an empty value on either side short-circuits to a plain restore.
@@ -61,18 +71,36 @@ upgrade**. Changing a dock's default visibility needs no migration code: the
 saved layout is discarded on the version bump anyway. Worth knowing before
 writing one.
 
-### The crash cookie — the ordering constraint that matters most
+### The startup journal — the ordering constraint that matters most
 
-`restore_in_progress` is set before the risky sequence and cleared **only by
-`mark_startup_complete()`, after `main_window.show()` returns**.
+A plain flag file (`~/.quantum-metal/gui_startup.journal`,
+`_gui/startup_journal.py`), written **and fsync'd as the first Python
+instruction of `MetalGUI.__init__`**, removed only by
+`mark_startup_complete()` after `main_window.show()` returns. A journal
+found at startup means the previous launch died somewhere inside init:
+persisted UI state is cleared before Qt is touched and the launch
+proceeds with defaults.
 
-The first implementation cleared it right after `restoreState()` returned.
-That was a real bug, caught by CI on macOS (PR #1129, fixed in `a04ab68`):
-the actual crash site is `show()`, well after `restoreState()`, and a native
-abort there leaves no Python exception. Clearing early erases the one on-disk
-signal that lets the next launch self-heal.
+It replaced the `restore_in_progress` QSettings cookie after CI hit both
+of the cookie's structural holes on PR #1180:
 
-**Never narrow the cookie window.**
+- **Opened too late.** The cookie was set inside
+  `restore_window_settings()`; a native crash *before* that point (QPA
+  platform-plugin init, early widget construction) left no cookie, so the
+  next launch replayed the same crash. CI's exact failure signature:
+  "kernel C crashed during restore but did not leave the crash cookie
+  set." The journal opens before any Qt call, so no crash inside init can
+  escape it.
+- **Not crash-durable.** `QSettings.sync()` is not a synchronous disk
+  barrier everywhere — macOS routes writes through the `cfprefsd` daemon,
+  which flushes asynchronously, so a native crash right after `sync()`
+  could lose the write meant to record it. The journal is `flush()` +
+  `os.fsync()`, and "the file exists" is the entire protocol.
+
+The cookie's hard-won ordering lesson carries over unchanged: the
+protected window must stay open **across `show()`** (PR #1129, `a04ab68`
+— the crash site is first paint, not `restoreState()`).
+**Never narrow the journal window.**
 
 ### Windows software OpenGL
 
@@ -87,7 +115,36 @@ observed being silently ignored on the affected driver.
 
 `_teardown_qt_widgets` runs via `atexit`, using `deleteLater()` — never
 `close()`, which triggers the "save unsaved changes?" modal and blocks forever
-headless.
+headless. It **stops every `QTimer` under every top-level widget before
+queueing any deletion**: the single `processEvents()` pass that drains the
+`deleteLater` queue also dispatches any due timers, and a timer callback
+interleaving with the deletions lands on a half-destroyed widget — a native
+use-after-free at interpreter exit (the pristine-subprocess `-11` exits in
+the CI matrix).
+
+### Deferred-callback discipline (failure mode 4's fuel)
+
+Every delayed call in `_gui/` must use `single_shot(parent, ms, callback)`
+from `_gui/utility/_toolbox_qt.py` — a `QTimer` **parented to the object
+the callback touches** — never a naked `QTimer.singleShot(ms,
+bound_method)`. Parenting makes Qt destroy the armed timer with its owner,
+so the callback can never fire on a dead object, in every teardown
+ordering (PySide6's receiver-context auto-cancel covers clean mid-session
+destruction, but not the chaotic at-exit/GC orderings where mode 4 lives).
+Recurring timers likewise: always `QTimer(self)`, and models that poll a
+view must liveness-check it (`shiboken6.isValid`) each tick — see
+`QTreeModel_Base._view_alive`.
+
+`tests/test_gui_lifecycle_stress.py` cycles build → close → pump-past-
+every-timer-deadline and fails on any "already deleted" in the captured
+output. Treat **any** `Internal C++ object ... already deleted` anywhere —
+including "cosmetic" ones after a passing suite — as a live use-after-free
+report, never as noise: one was dismissed as a benign at-exit artifact
+here and CI then demonstrated the same leak class as real segfaults.
+(Honest sensitivity note: the stress test did not fail on the pre-fix
+code — clean mid-session cycles are auto-cancelled by PySide6; the at-exit
+orderings that actually crash are exercised by the subprocess tests in
+`test_gui_init.py`/`test_gui_teardown.py`.)
 
 ### Bisection toggles
 
@@ -100,6 +157,7 @@ them working:
 | `QISKIT_METAL_GUI_NO_STYLESHEET=1` | Skip the stylesheet (it affects every paint). |
 | `QISKIT_METAL_GUI_NO_PLOT=1` | Skip the matplotlib canvas embed. |
 | `QISKIT_METAL_RESET_UI_SETTINGS=1` | Start from clean persisted state. |
+| `QISKIT_METAL_RESTORE_LAYOUT=1` | Opt in to automatic window-layout restore at startup (off by default since the journal iteration). |
 | `QISKIT_METAL_QT_HARDWARE_GL=1` | Undo the Windows software-GL default. |
 | `QISKIT_METAL_GUI_FORCE_CLOSE=1` | Sets `main_window.force_close = True` at construction, so any `gui.main_window.close()` call skips `ok_to_close()`'s modal instead of hanging headless (see Teardown, above). Some frozen-Qt tutorial notebooks call `close()` as their last cell to demo the API; `_dev/rerun_auto.py` sets this for its `--write-frozen` Qt-display runs. Never set it for an interactive session — the modal is correct there. |
 
@@ -188,18 +246,13 @@ CI: `tests-gui-display` (Linux Xvfb) and `tests-gui-display-windows`
 - Failure mode (4), the GC teardown segfault, on all versions.
 - Whether the macOS `show()` → `QLayout::activate()` crash reported against a
   0.7.3 fork is resolved on 0.8.0 — the reporter never confirmed.
-- **New, minor:** `tests/test_gui_nudge.py::TestRealClickAndKeyDelivery` --
-  the one test that drives a real MetalGUI through several genuine Qt
-  click/key/rebuild cycles (`QTest`-injected, not `_on_pick_release()`
-  called directly) -- occasionally leaves `QTreeModel_Base.auto_refresh()`'s
-  polling `QTimer` alive past `close()`, and it fires during **pytest's own
-  process exit**, well after the whole suite already reported passing:
-  `RuntimeError: Internal C++ object (PySide6.QtWidgets.QCompleter) already
-  deleted`. Exit code stays 0 either way (confirmed reproducible on/off by
-  including/excluding just that one test, several repeats). Explicitly did
-  **not** attempt a real fix here -- an attempted test-side workaround
-  (pumping `app.processEvents()` after `close()` to flush queued
-  `deleteLater()` teardown before the test function returns) made it
-  *worse*, occasionally turning the exit code non-zero, so it was reverted.
-  Left as class-(4)-adjacent noise for a future, more careful pass rather
-  than guessed at under time pressure.
+- ~~The at-exit `QCompleter already deleted` artifact~~ — **resolved, and
+  the "benign" classification was wrong.** It was first dismissed as
+  cosmetic noise (exit code stayed 0 locally); CI on PR #1180 then showed
+  the same leak class as real `-11` segfaults on the macOS matrix and
+  self-heal failures on the display jobs. Root causes fixed: the
+  view-polling timers (liveness guard in `QTreeModel_Base`), the naked
+  `QTimer.singleShot` sweep (`single_shot()` helper), and
+  `_teardown_qt_widgets` stopping all timers before deletion. See
+  "Deferred-callback discipline" above. The lasting rule: an "already
+  deleted" anywhere in output is a use-after-free report, never noise.

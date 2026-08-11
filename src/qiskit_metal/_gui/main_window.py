@@ -60,6 +60,7 @@ from qiskit_metal._gui.utility._toolbox_qt import (
     clear_dock_error_badge,
     doShowHighlighWidget,
     doToggleDockWidget,
+    single_shot,
 )
 from qiskit_metal._gui.widgets.all_components.table_model_all_components import (
     QTableModel_AllComponents,
@@ -128,6 +129,18 @@ def _teardown_qt_widgets():
         app = QApplication.instance()
         if app is None:
             return
+        # Stop every timer FIRST, then delete. The deleteLater() queue and
+        # any due timers are drained by the same processEvents() pass below;
+        # without this sweep a timer callback can interleave with the
+        # deletions and land on a widget whose C++ half is already gone --
+        # a native use-after-free at interpreter exit (the pristine-process
+        # exit segfaults in issue #1048 / the macOS CI matrix). QTimer's
+        # stop() is safe to call repeatedly and on never-started timers.
+        from PySide6.QtCore import QTimer
+
+        for widget in list(app.topLevelWidgets()):
+            for timer in widget.findChildren(QTimer):
+                timer.stop()
         for widget in list(app.topLevelWidgets()):
             widget.deleteLater()
         app.processEvents()
@@ -348,7 +361,7 @@ class QMainWindowExtension(QMainWindowExtensionBase):
                 v.addWidget(QLabel("Saving..."))
                 saving_dialog.open()
                 saving_dialog.show()
-                QTimer.singleShot(200, saving_dialog.close)
+                single_shot(saving_dialog, 200, saving_dialog.close)
         else:
             self.logger.info("No design present.")
             QMessageBox.warning(self, "Warning", "No design present! Cant save")
@@ -558,6 +571,31 @@ class MetalGUI(QMainWindowBaseHandler):
 
         _trace_init("MetalGUI.__init__ entered")
 
+        # Startup crash journal (issue #1048) -- FIRST, before any Qt
+        # machinery is touched, so a native crash anywhere in the rest of
+        # this constructor (QPA plugin init, widget construction,
+        # restoreState, show) leaves the journal file behind and the next
+        # launch self-heals. See ``startup_journal.py`` for why this is a
+        # plain fsync'd file rather than the old QSettings cookie.
+        from qiskit_metal._gui.startup_journal import (
+            begin_startup,
+            previous_startup_crashed,
+        )
+
+        if previous_startup_crashed():
+            _trace_init("startup journal found -- clearing persisted UI state")
+            logging.getLogger("metal").warning(
+                "The previous MetalGUI launch did not complete startup "
+                "(crashed or was killed). Clearing persisted window state "
+                "and starting with the default layout."
+            )
+            # QSettings is QtCore-only; safe before QApplication exists.
+            from PySide6.QtCore import QSettings
+
+            QSettings("QiskitMetal", "MainWindow").clear()
+        _trace_init("startup journal: begin")
+        begin_startup()
+
         # Qt backend setup used to run at ``import qiskit_metal`` time;
         # it's now lazy, called the first time MetalGUI is instantiated.
         # Idempotent — second and later calls are no-ops.
@@ -659,7 +697,9 @@ class MetalGUI(QMainWindowBaseHandler):
         # self.qApp.processEvents(QEventLoop.AllEvents, 1)
         # - don't think I need this here, it doesn't help to show and raise
         # - need to call from different thread.
-        QTimer.singleShot(150, self._raise)
+        # Parented to the main window: _raise touches it, so the deferred
+        # call must die with it (short-lived GUIs in tests/scripts).
+        single_shot(self.main_window, 150, self._raise)
 
         if design:
             _trace_init("set_design(design)")

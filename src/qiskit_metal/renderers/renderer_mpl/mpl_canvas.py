@@ -29,7 +29,7 @@ from PySide6.QtCore import QTimer, Qt
 from PySide6.QtWidgets import QSizePolicy
 from qiskit_metal import Dict
 from qiskit_metal.designs import QDesign
-from qiskit_metal._gui.utility._toolbox_qt import doShowHighlighWidget
+from qiskit_metal._gui.utility._toolbox_qt import doShowHighlighWidget, single_shot
 from qiskit_metal.renderers.renderer_mpl.mpl_interaction import PanAndZoom
 from qiskit_metal.renderers.renderer_mpl.mpl_renderer import QMplRenderer
 from qiskit_metal.renderers.renderer_mpl.mpl_toolbox import (
@@ -1015,7 +1015,7 @@ class PlotCanvas(FigureCanvas):
             kw={"fontsize": 20},
         )
 
-        self._welcome_start_timer = QTimer.singleShot(250, self._welcome_message_start)
+        self._welcome_start_timer = single_shot(self, 250, self._welcome_message_start)
 
     def _welcome_message_start(self):
         """Start the welcome message."""

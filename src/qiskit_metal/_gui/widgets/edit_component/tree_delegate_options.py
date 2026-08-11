@@ -24,6 +24,7 @@ completion logic is reimplemented against that API rather than shared.
 
 from PySide6.QtCore import QModelIndex, QTimer, Qt
 from PySide6.QtWidgets import QCompleter, QItemDelegate, QLineEdit, QWidget
+from qiskit_metal._gui.utility._toolbox_qt import single_shot
 
 #: Column holding the editable value, per dict_tree_base's KEY/NODE split.
 _VALUE_COLUMN = 1
@@ -74,7 +75,8 @@ class OptionsCompletingDelegate(QItemDelegate):
         completer.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
         completer.setFilterMode(Qt.MatchContains)
         editor.setCompleter(completer)
-        QTimer.singleShot(0, completer.complete)
+        # Parented to the completer -- see tree_delegate_param_entry.py.
+        single_shot(completer, 0, completer.complete)
         return editor
 
     def _completions_for(self, index: QModelIndex) -> list:

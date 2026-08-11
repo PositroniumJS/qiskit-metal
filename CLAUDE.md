@@ -144,7 +144,7 @@ Don't reach for `_dev/` as a halfway house — it's still public.
 | `.claude/context/architecture.md` | When you need to make structural changes — class hierarchy, option flow, renderer dispatch, lazy-Qt design. |
 | `.claude/context/ecosystem.md` | When making roadmap / API / version decisions — who the users are, the pyEPR/pyaedt/AWS-Palace relationships, the v0.7.0 lite-by-default plan. |
 | `docs/architecture/renderer_protocol.md` | When adding or modifying a renderer. The full inheritance map and override matrix. |
-| `docs/architecture/gui_crash_defenses.md` | **Before touching GUI startup, teardown, stylesheet handling, or persisted window state.** The four distinct failure modes behind issue #1048, every defense and what it guards, the ordering constraints (notably: the crash cookie must stay set across `show()`), and the changes that look safe but reintroduce segfaults. |
+| `docs/architecture/gui_crash_defenses.md` | **Before touching GUI startup, teardown, stylesheet handling, or persisted window state.** The four distinct failure modes behind issue #1048, every defense and what it guards, the ordering constraints (notably: the startup journal must stay open across `show()`, and all deferred callbacks go through `single_shot()` — an "Internal C++ object already deleted" anywhere in output is a use-after-free report, never noise), and the changes that look safe but reintroduce segfaults. |
 | `docs/headless-usage.rst` | When working on the Qt-free path or onboarding flow. |
 
 ## Adding a new QComponent
