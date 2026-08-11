@@ -244,6 +244,17 @@ CI: `tests-gui-display` (Linux Xvfb) and `tests-gui-display-windows`
 ## Still open
 
 - Failure mode (4), the GC teardown segfault, on all versions.
+- **Windows teardown after an opt-in layout restore** (PR #1180 CI, both
+  windows display jobs): a process that sets
+  `QISKIT_METAL_RESTORE_LAYOUT=1`, restores a saved layout, completes
+  startup, and exits can die with `access violation ... <no Python
+  frame>` during interpreter/Qt teardown. Startup itself is fine (the
+  marker prints; the journal is legitimately closed) — this is a
+  teardown-side remnant of mode (1)/(4) specific to the restored-state
+  widget tree. `test_gui_init.py`'s self-heal test attributes it
+  correctly (a stderr NOTE, not a startup-contract failure) — the first
+  cut asserted the journal on *any* nonzero exit and misfiled this
+  teardown crash as a startup one.
 - Whether the macOS `show()` → `QLayout::activate()` crash reported against a
   0.7.3 fork is resolved on 0.8.0 — the reporter never confirmed.
 - ~~The at-exit `QCompleter already deleted` artifact~~ — **resolved, and

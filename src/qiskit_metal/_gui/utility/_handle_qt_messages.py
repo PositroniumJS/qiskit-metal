@@ -90,7 +90,17 @@ def _qt_message_handler(mode, context, message):
                 f"\nPython Traceback (most recent call last):\n{python_traceback}"
             )
 
-        logger.log(getattr(logging, mode, logging.DEBUG), base_message)
+        try:
+            logger.log(getattr(logging, mode, logging.DEBUG), base_message)
+        except (ValueError, OSError):
+            # Interpreter shutdown: logging's streams are already closed,
+            # but Qt keeps emitting messages while its C++ objects wind
+            # down (e.g. QSettings destructors syncing on Windows). A
+            # message handler must never raise -- and each failed emit
+            # would otherwise print its own "--- Logging error ---" block
+            # to a closed-stream handler, spamming the tail of every CI
+            # log (seen on PR #1180's windows jobs).
+            pass
 
 
 #######################################################################################
