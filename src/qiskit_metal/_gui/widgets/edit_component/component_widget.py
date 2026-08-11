@@ -36,6 +36,9 @@ from qiskit_metal._gui.component_widget_ui import Ui_ComponentWidget
 from qiskit_metal._gui.widgets.edit_component.tree_model_options import (
     QTreeModel_Options,
 )
+from qiskit_metal._gui.widgets.edit_component.tree_delegate_options import (
+    OptionsCompletingDelegate,
+)
 
 __all__ = ["create_QTextDocument", "format_docstr"]
 
@@ -97,6 +100,36 @@ body {
     font-family: Arial;
 }*/
 """
+
+
+def inherited_class_docs(cls: type) -> list[tuple]:
+    """Docstrings of ``cls``'s ancestors, each defined on that ancestor
+    directly rather than inherited.
+
+    ``inspect.getdoc(cls)`` only ever returns the *closest* docstring in
+    the MRO -- if the leaf class has its own (even a one-line summary),
+    every ancestor's is invisible, including whichever base actually
+    documents shared options. E.g. RoutePathfinder's own docstring never
+    mentions ``fillet``; that lives on QRoute, two classes up, and
+    ``inspect.getdoc(RoutePathfinder)`` never reaches it.
+
+    Args:
+        cls (type): The component's class (its immediate class, not an
+            ancestor -- this walks the MRO itself).
+
+    Returns:
+        list[tuple]: ``(ancestor_class, docstring)`` pairs, nearest
+        ancestor first, for every ancestor (excluding ``cls`` itself and
+        ``object``) that defines its own non-empty docstring.
+    """
+    docs = []
+    for ancestor in cls.__mro__[1:]:
+        if ancestor is object:
+            break
+        own_doc = ancestor.__dict__.get("__doc__")
+        if own_doc:
+            docs.append((ancestor, inspect.getdoc(ancestor)))
+    return docs
 
 
 def format_docstr(doc: Union[str, None]) -> str:
@@ -188,6 +221,12 @@ class ComponentWidget(QTabWidget):
         self.ui.treeView.setModel(self.model)
         self.ui.treeView.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.ui.treeView.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
+        # Same component/pin/chip-name autocomplete the create-component
+        # window offers -- editing an existing RoutePathfinder's pin_inputs
+        # (say) was otherwise free-text with no hint of what already exists.
+        self.ui.treeView.setItemDelegate(
+            OptionsCompletingDelegate(gui, self.ui.treeView)
+        )
 
         self.ui.textSource.setStyleSheet("""
             color: #000000;
@@ -301,6 +340,17 @@ class ComponentWidget(QTabWidget):
             <div class="h1">Init docstring:</div>
             {doc_init}
         """
+
+        # Options like `fillet` are documented on a base class (QRoute,
+        # for Route* components) rather than repeated on every leaf class,
+        # so without this the leaf's own docstring is all anyone editing
+        # the component ever sees.
+        for ancestor, doc in inherited_class_docs(component.__class__):
+            text += f"""
+            <div class="h1">Inherited from {ancestor.__name__}:</div>
+            {format_docstr(doc)}
+            """
+
         text += "</body>"
 
         self.ui.textHelp.setHtml(text)

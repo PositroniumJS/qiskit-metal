@@ -36,6 +36,42 @@ from qiskit_metal._gui.utility._handle_qt_messages import slot_catch_error
 from qiskit_metal._gui.widgets.log_widget.log_metal import LogHandler_for_QTextLog
 
 
+def _is_newer_version(current: str, saved: str) -> bool:
+    """Is ``current`` a newer Metal release than ``saved``?
+
+    This gates one of the issue-#1048 defenses: persisted window state
+    written by an older Metal is discarded rather than restored. It also
+    happens to be what gives users new layout defaults on upgrade instead of
+    a stale saved arrangement.
+
+    It used to be a plain string comparison, which is correct only while
+    every component stays single-digit. ``'0.10.0' > '0.9.0'`` is False, so
+    at v0.10.0 the guard would have silently stopped firing -- a crash
+    defense degrading with no symptom until someone hit the crash.
+
+    Falls back to the old string comparison for unparseable values (a
+    hand-edited registry, a dev build) and treats *any* doubt as "newer", so
+    the failure mode is discarding state that might have been fine rather
+    than restoring state that is not.
+
+    Args:
+        current (str): The running Metal version.
+        saved (str): The version recorded in the persisted settings.
+
+    Returns:
+        bool: True when the settings should be discarded.
+    """
+    try:
+        from packaging.version import InvalidVersion, Version
+
+        try:
+            return Version(current) > Version(saved)
+        except InvalidVersion:
+            return str(current) != str(saved)
+    except Exception:  # pragma: no cover - packaging should always be present
+        return str(current) > str(saved)
+
+
 def _display_fingerprint() -> str:
     """Return a stable string describing the current display configuration.
 
@@ -90,7 +126,12 @@ class QMainWindowExtensionBase(QMainWindow):
         super().__init__()
         # Set manually
         self.handler: QMainWindowBaseHandler = None
-        self.force_close = False
+        # QISKIT_METAL_GUI_FORCE_CLOSE=1 skips the "save unsaved changes?"
+        # modal on close() -- for automated/headless callers (tests, the
+        # notebook screenshot regen script) where there is no user to click
+        # it and it would otherwise hang forever. Interactive sessions
+        # should never set this; the modal is the correct behavior there.
+        self.force_close = bool(os.environ.get("QISKIT_METAL_GUI_FORCE_CLOSE"))
 
     @property
     def logger(self) -> logging.Logger:
@@ -225,7 +266,7 @@ class QMainWindowExtensionBase(QMainWindow):
             return
 
         version_settings = self.settings.value("metal_version", defaultValue="0")
-        if __version__ > version_settings:
+        if _is_newer_version(__version__, version_settings):
             self.logger.debug(f"Clearing window settings [{version_settings}]...")
             self.settings.clear()
             return
@@ -716,8 +757,10 @@ class QMainWindowBaseHandler:
 
         Args:
             path (str) : Path to stylesheet or its name.
-                Can be: 'default', 'qdarkstyle' or None.
-                `qdarkstyle` requires
+                Can be: 'default' (no stylesheet -- follows the OS/Qt native
+                theme, which is dark on a dark-mode OS despite the name),
+                'metal_dark', 'metal_light_gray', 'qdarkstyle', or an
+                arbitrary .qss file path. `qdarkstyle` requires
                 >>> pip install qdarkstyle
 
         Returns:
@@ -749,6 +792,10 @@ class QMainWindowBaseHandler:
         elif path == "metal_dark":
             path_full = self.path_stylesheets / "metal_dark" / "style.qss"
             # print(f'path_full = {path_full}')
+            self._load_stylesheet_from_file(path_full)
+
+        elif path == "metal_light_gray":
+            path_full = self.path_stylesheets / "metal_light_gray" / "style.qss"
             self._load_stylesheet_from_file(path_full)
 
         else:

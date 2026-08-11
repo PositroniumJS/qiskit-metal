@@ -18,8 +18,8 @@ import webbrowser
 from pathlib import Path
 from typing import TYPE_CHECKING, List
 
-from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui import QIcon, QPixmap, QAction
+from PySide6.QtCore import Qt, QTimer, QSize
+from PySide6.QtGui import QIcon, QPixmap, QAction, QActionGroup, QKeySequence
 from PySide6.QtWidgets import (
     QApplication,
     QWidget,
@@ -50,14 +50,21 @@ from qiskit_metal._gui.main_window_base import (
     kick_start_qApp,
 )
 from qiskit_metal._gui.main_window_ui import Ui_MainWindow
+from qiskit_metal._gui.toolbar_layout import TOOLBAR_ICON_PX, apply_toolbar_layout
 from qiskit_metal._gui.renderer_gds_gui import RendererGDSWidget
 from qiskit_metal._gui.renderer_hfss_gui import RendererHFSSWidget
 from qiskit_metal._gui.renderer_q3d_gui import RendererQ3DWidget
 from qiskit_metal._gui.utility._handle_qt_messages import slot_catch_error
-from qiskit_metal._gui.utility._toolbox_qt import doShowHighlighWidget
+from qiskit_metal._gui.utility._nudge import offset_length
+from qiskit_metal._gui.utility._toolbox_qt import (
+    clear_dock_error_badge,
+    doShowHighlighWidget,
+    doToggleDockWidget,
+)
 from qiskit_metal._gui.widgets.all_components.table_model_all_components import (
     QTableModel_AllComponents,
 )
+from qiskit_metal._gui.widgets.pins import QTableModel_Pins
 from qiskit_metal._gui.widgets.build_history.build_history_scroll_area import (
     BuildHistoryScrollArea,
 )
@@ -66,6 +73,9 @@ from qiskit_metal._gui.widgets.create_component_window import (
 )
 from qiskit_metal._gui.widgets.edit_component.component_widget import ComponentWidget
 from qiskit_metal._gui.widgets.plot_widget.plot_window import QMainWindowPlot
+from qiskit_metal._gui.tree_view_base import QTreeView_Base
+from qiskit_metal._gui.widgets.edit_chip import QTreeModel_Chips
+from qiskit_metal._gui.widgets.view_control import LayerVisibilityWidget
 from qiskit_metal._gui.widgets.variable_table import PropertyTableWidget
 
 if not config.is_building_docs():
@@ -74,6 +84,22 @@ if not config.is_building_docs():
 if TYPE_CHECKING:
     from ..renderers.renderer_mpl.mpl_canvas import PlotCanvas
 
+#: Styling for the selection hint in the status bar. A mid-tone teal reads
+#: against both the dark and light stylesheets, so the hint does not need to
+#: change with the theme. Scoped to the one label by being set on it directly.
+SELECTION_HINT_STYLE = "color: #2a9d8f; font-weight: bold;"
+
+#: Renderer key -> the pip extra that provides it, for the
+#: "this renderer is not installed" message. Mirrors the install matrix in
+#: docs/installation.rst.
+RENDERER_EXTRAS = {
+    "hfss": "ansys",
+    "q3d": "ansys",
+    "aedt_hfss": "ansys",
+    "aedt_q3d": "ansys",
+    "gmsh": "mesh",
+    "elmer": "mesh",
+}
 
 # Issues #1048 / #1109: opt-in init-tracing for reporters whose MetalGUI
 # silently aborts mid-init on Windows. When QISKIT_METAL_DEBUG_INIT is
@@ -157,18 +183,99 @@ class QMainWindowExtension(QMainWindowExtensionBase):
             self.ui.tabWidget.setCurrentWidget(self.ui.mainViewTab)
             self.ui.actionElements.setText("QGeometry")
 
+    def _renderer_available(self, renderer_key: str, label: str) -> bool:
+        """Check a renderer registered, and explain it if not.
+
+        ``QDesign._start_renderers`` skips any renderer whose module or
+        transitive dependency is missing -- that is what makes a lite install
+        work. The renderer then simply is not in ``design.renderers``, and
+        opening its window would fail somewhere deeper with a message that
+        does not mention the actual problem.
+
+        This is a dictionary lookup, not an import: the import was already
+        attempted (or skipped) when the design was created, so checking here
+        costs nothing and cannot undo the lazy-import work.
+
+        Args:
+            renderer_key (str): Key in ``design.renderers``.
+            label (str): Human name for the message.
+
+        Returns:
+            bool: True if the renderer is registered and its window can open.
+        """
+        if renderer_key in self.design.renderers:
+            return True
+
+        message = (
+            f"The {label} renderer is not available in this install.\n\n"
+            "Its Python dependencies are not present, so it was skipped when "
+            "the design was created.\n\n"
+            "Install the extra that provides it:\n"
+            f'    pip install "quantum-metal[{RENDERER_EXTRAS.get(renderer_key, "full")}]"\n\n'
+            "See docs/installation.rst for the full matrix."
+        )
+        self.logger.warning(
+            f"{label} renderer unavailable: '{renderer_key}' is not registered "
+            "in design.renderers."
+        )
+        QMessageBox.warning(self, f"{label} renderer unavailable", message)
+        return False
+
+    def _warn_if_ansys_unlikely(self, label: str) -> None:
+        """Note that Ansys AEDT itself is a separate, non-Python requirement.
+
+        The Python side registering says nothing about whether AEDT is
+        installed and reachable -- that only surfaces when the renderer tries
+        to connect. Deliberately does not probe for a running AEDT: that is
+        slow and can block the UI.
+
+        Args:
+            label (str): Human name for the message.
+        """
+        if os.name == "nt":
+            return
+        message = (
+            f"{label} needs Ansys AEDT, which is Windows-only. The window will "
+            "open, but connecting to AEDT will fail on this platform. For an "
+            "Ansys-free path see the open FEM stack (gmsh + Elmer / Palace)."
+        )
+        self.logger.warning(message)
+        # The log dock is hidden by default (see the Log toolbar button),
+        # so this-platform-can't-reach-AEDT was easy to miss entirely and
+        # only surfaced later as a confusing connection failure. A popup is
+        # appropriate here specifically because it's low-frequency -- once
+        # per renderer window opened, not per rebuild -- unlike geometry
+        # warnings (e.g. check_lengths' short-segment/fillet notices) which
+        # can fire many times per edit and would make a popup a nuisance;
+        # those stay log-only. Shown once per label per session -- the
+        # message doesn't change on repeat clicks, only the annoyance would.
+        already_warned = getattr(self, "_ansys_unlikely_warned", None)
+        if already_warned is None:
+            already_warned = self._ansys_unlikely_warned = set()
+        if label not in already_warned:
+            already_warned.add(label)
+            QMessageBox.warning(self, f"{label} renderer", message)
+
     def show_renderer_gds(self):
         """Handles click on GDS Renderer action."""
+        if not self._renderer_available("gds", "GDS"):
+            return
         self.gds_gui = RendererGDSWidget(self, self.gui)
         self.gds_gui.show()
 
     def show_renderer_hfss(self):
         """Handles click on HFSS Renderer action."""
+        if not self._renderer_available("hfss", "HFSS"):
+            return
+        self._warn_if_ansys_unlikely("HFSS")
         self.hfss_gui = RendererHFSSWidget(self, self.gui)
         self.hfss_gui.show()
 
     def show_renderer_q3d(self):
         """Handles click on Q3D Renderer action."""
+        if not self._renderer_available("q3d", "Q3D"):
+            return
+        self._warn_if_ansys_unlikely("Q3D")
         self.q3d_gui = RendererQ3DWidget(self, self.gui)
         self.q3d_gui.show()
 
@@ -518,10 +625,16 @@ class MetalGUI(QMainWindowBaseHandler):
             self._setup_plot_widget()
         _trace_init("_setup_design_components_widget")
         self._setup_design_components_widget()
+        _trace_init("_setup_pins_widget")
+        self._setup_pins_widget()
         _trace_init("_setup_elements_widget")
         self._setup_elements_widget()
         _trace_init("_setup_variables_widget")
         self._setup_variables_widget()
+        _trace_init("_setup_chip_widget")
+        self._setup_chip_widget()
+        _trace_init("_setup_view_control_widget")
+        self._setup_view_control_widget()
         _trace_init("_ui_adjustments_final")
         self._ui_adjustments_final()
         _trace_init("_setup_library_widget")
@@ -629,6 +742,18 @@ class MetalGUI(QMainWindowBaseHandler):
 
         self.variables_window.set_design(design)
 
+        # The chip model is constructed before any design exists, so its
+        # first load found nothing. Reload now rather than leaving the panel
+        # blank until the refresh timer next fires. Guarded because
+        # ``set_design`` can be called on a partially built GUI.
+        if getattr(self, "chips_model", None) is not None:
+            self.chips_model.load()
+            if getattr(self, "chips_window", None) is not None:
+                self.chips_window.expandAll()
+                self.chips_window.autoresize_columns()
+        if getattr(self, "layers_window", None) is not None:
+            self.layers_window.refresh()
+
         # Refresh
         self.refresh()
 
@@ -659,9 +784,25 @@ class MetalGUI(QMainWindowBaseHandler):
 
         # Add a second label to the status bar
         status_bar = self.main_window.statusBar()
+
+        # ``addPermanentWidget``, not ``addWidget``: the window sets a standing
+        # status message ("Qiskit Metal: Quantum Creator"), and Qt hides every
+        # *normal* status-bar widget for as long as a message is displayed.
+        # Added as normal widgets these labels are constructed, updated, and
+        # never seen. Permanent widgets are exempt, and sit to the right of
+        # the message rather than fighting it for the same space.
         self.statusbar_label = QLabel(status_bar)
         self.statusbar_label.setText("")
-        status_bar.addWidget(self.statusbar_label)
+        status_bar.addPermanentWidget(self.statusbar_label)
+
+        # Second label, for what is selected and what you can do with it.
+        # Separate from the coordinate readout above because that one updates
+        # on every mouse-move; sharing one label would erase the hint the
+        # moment the pointer moved.
+        self.statusbar_selection = QLabel(status_bar)
+        self.statusbar_selection.setText("")
+        self.statusbar_selection.setStyleSheet(SELECTION_HINT_STYLE)
+        status_bar.addPermanentWidget(self.statusbar_selection)
 
         # Docks
         # Left handside
@@ -679,8 +820,39 @@ class MetalGUI(QMainWindowBaseHandler):
         self.ui.dockLibrary.raise_()
         self.main_window.resizeDocks([self.ui.dockDesign], [350], Qt.Horizontal)
 
+        # These four are tabified together, so the tab bar already names each
+        # one -- the per-dock title bar underneath repeated that name and cost
+        # 17px of height apiece. Replace it with an empty widget. Undocking
+        # still works by dragging the tab out; show/hide is on the left
+        # toolbar and the Docks toggle.
+        for _dock in (
+            self.ui.dockDesign,
+            self.ui.dockLibrary,
+            self.ui.dockConnectors,
+            self.ui.dockVariables,
+        ):
+            _dock.setTitleBarWidget(QWidget(_dock))
+
         # Log
         self.ui.dockLog.parent().resizeDocks([self.ui.dockLog], [120], Qt.Vertical)
+
+        # Theme toggle. The stylesheets were only reachable from a
+        # View > Color theme submenu; switching light/dark is frequent enough
+        # to deserve one click. Created here and attached to ``self.ui`` so
+        # the toolbar spec can resolve it by name like any .ui action.
+        self.ui.actionThemeToggle = QAction("Theme", self.main_window)
+        self.ui.actionThemeToggle.setToolTip("Switch between the dark and light theme")
+        self.ui.actionThemeToggle.setStatusTip(self.ui.actionThemeToggle.toolTip())
+        self.ui.actionThemeToggle.triggered.connect(self.toggle_theme)
+
+        self._setup_view_switch_actions()
+
+        # Compose the top toolbars from the declarative spec in
+        # ``toolbar_layout``: ordering by how often each control is actually
+        # used, one shared icon size, and a check that no action is dropped
+        # without a recorded decision. Kept out of the .ui because
+        # ``main_window_ui.py`` is pyside6-uic output.
+        apply_toolbar_layout(self)
 
         # toolBarView additions
         self._add_additional_qactions_tool_bar_view()
@@ -700,37 +872,176 @@ class MetalGUI(QMainWindowBaseHandler):
         toolbar = self.ui.toolBarView
         toolbarInsertBefore = self.ui.actionToggleDocks  # insert before this action
 
+        # (dock, icon, caption, tooltip). The caption is deliberately one
+        # short word -- it sits under the icon on a narrow vertical toolbar.
+        # Without it these buttons were icon-only, and because each QAction
+        # was built with empty text every one of them inherited the
+        # toolbar's own "View Toolbar" tooltip on hover, which said nothing
+        # about what the button does.
         DOCKS = [
-            (self.ui.dockLibrary, r":/design"),
-            (self.ui.dockDesign, r":/component"),
-            (None, "-----"),
-            (self.ui.dockVariables, r":/variables"),
-            (self.ui.dockConnectors, r":/connectors"),
-            (self.ui.dockLog, r":/log"),
-            (None, "-----"),
+            (
+                self.ui.dockLibrary,
+                r":/design",
+                "Lib",
+                "QComponent library — browse and place new components",
+            ),
+            (
+                self.ui.dockDesign,
+                r":/component",
+                "Edit",
+                "QComponents in this design — select one to edit its options",
+            ),
+            (None, "-----", None, None),
+            (
+                self.ui.dockVariables,
+                r":/variables",
+                "Vars",
+                "Design variables — named values reusable in component options",
+            ),
+            (
+                self.ui.dockConnectors,
+                r":/connectors",
+                "Pins",
+                "Pins — connection points exposed by each component",
+            ),
+            (
+                self.ui.dockLog,
+                r":/log",
+                "Log",
+                "Log messages (hidden by default) — click again to close",
+            ),
+            (None, "-----", None, None),
         ]
 
-        for row in DOCKS:
-            dock = row[0]
-            iconName = row[1]
+        # Show the caption under each icon; icon-only left users guessing.
+        toolbar.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        toolbar.setIconSize(QSize(TOOLBAR_ICON_PX, TOOLBAR_ICON_PX))
+
+        for dock, iconName, caption, tooltip in DOCKS:
             if iconName == "-----":
                 toolbar.insertSeparator(toolbarInsertBefore)
                 continue
+            self._add_dock_toolbar_action(dock, iconName, caption, tooltip, toggle=True)
 
-            # Icons
-            icon = QIcon()
-            icon.addPixmap(QPixmap(iconName), QIcon.Normal, QIcon.Off)
+        # Lets mark_dock_has_error() reach the *real* status bar. dockLog's
+        # own parent QMainWindow is plot_win (a sub-window it was moved
+        # into), whose statusBar() is explicitly hidden -- self.main_window
+        # is the actual outer window whose status bar carries the hover/
+        # selection-hint label.
+        self.ui.dockLog._status_bar = self.main_window.statusBar()
 
-            # Function call & monkey patch class instance ala Monkey Patch
-            dock.doShow = doShowHighlighWidget.__get__(dock, type(dock))
+        # Errors logged while the (hidden-by-default) log dock isn't on
+        # screen are otherwise silent -- clear the badge the moment the
+        # dock actually becomes visible, regardless of how (toolbar click,
+        # View menu, programmatically), rather than duplicating that logic
+        # into every path that can show it.
+        self.ui.dockLog.visibilityChanged.connect(
+            lambda visible: clear_dock_error_badge(self.ui.dockLog) if visible else None
+        )
 
-            # QT Action with trigger, embed in toolbar
-            action = QAction("", dock, triggered=dock.doShow)
-            action.setIcon(icon)
-            dock.actionShow = action  # save action
+        # The two actions that come from the .ui: give the toggle a tooltip
+        # that says what it does rather than repeating its object name.
+        self.ui.actionToggleDocks.setText("Dock")
+        self.ui.actionToggleDocks.setToolTip("Show or hide all side panels at once")
+        self.ui.actionToggleDocks.setStatusTip(self.ui.actionToggleDocks.toolTip())
+        self.ui.actionScreenshot.setText("Snap")
+        # "Web Help" was long enough to widen the toolbar; kept on it
+        # (unlike Build History / Delete-all) rather than demoted, so
+        # shortened to match the other one-word toolbar labels.
+        self.ui.actionWebHelp.setText("Docs")
 
-            # insert action in toolbar
-            toolbar.insertAction(toolbarInsertBefore, action)
+        # Ctrl+D (from the .ui) is easy to miss; "R" is the one-key
+        # convention every drawing tool uses for rebuild/refresh, and
+        # matches the plot toolbar's own single-letter shortcuts (A, L)
+        # which already coexist safely with text-entry widgets elsewhere
+        # in the window via WindowShortcut context. Added, not replacing
+        # Ctrl+D, so existing muscle memory keeps working too.
+        self.ui.actionRebuild.setShortcuts(
+            [self.ui.actionRebuild.shortcut(), QKeySequence("R")]
+        )
+
+    def _setup_view_switch_actions(self):
+        """Move the Main View / QGeometry / Net List switch into the toolbar.
+
+        Those three lived in a tab strip above the canvas, costing a full
+        32px row to show three words. As an exclusive action group on the top
+        toolbar they cost no extra height and sit with the other view
+        controls.
+
+        The tab widget stays -- it holds the pages -- but its tab bar is
+        hidden. ``currentChanged`` keeps the buttons in sync, so anything
+        that switches pages in code (``_set_element_tab``, for instance)
+        still leaves the right button checked.
+        """
+        tab_widget = self.ui.tabWidget
+        group = QActionGroup(self.main_window)
+        group.setExclusive(True)
+
+        self._view_switch_actions = []
+        for index in range(tab_widget.count()):
+            action = QAction(tab_widget.tabText(index), self.main_window)
+            action.setCheckable(True)
+            action.setChecked(index == tab_widget.currentIndex())
+            action.setToolTip(f"Show the {tab_widget.tabText(index)} panel")
+            action.setStatusTip(action.toolTip())
+            action.triggered.connect(
+                lambda _checked, i=index: tab_widget.setCurrentIndex(i)
+            )
+            group.addAction(action)
+            self._view_switch_actions.append(action)
+            setattr(self.ui, f"actionViewTab{index}", action)
+
+        def _sync(current):
+            """Keep the buttons matching the page actually shown."""
+            for i, act in enumerate(self._view_switch_actions):
+                act.setChecked(i == current)
+
+        tab_widget.currentChanged.connect(_sync)
+        tab_widget.tabBar().hide()
+
+    def _add_dock_toolbar_action(
+        self, dock, icon_name: str, caption: str, tooltip: str, toggle: bool = False
+    ):
+        """Add one dock-raising button to the left toolbar.
+
+        Split out of ``_add_additional_qactions_tool_bar_view`` so docks
+        created later in startup -- which that method cannot see, since it
+        runs inside ``_ui_adjustments`` during ``super().__init__()`` -- can
+        get the same treatment.
+
+        Args:
+            dock (QDockWidget): Dock the button raises.
+            icon_name (str): Qt resource path for the icon.
+            caption (str): Short label shown under the icon. Keep it to about
+                four characters: on a vertical toolbar the caption sets the
+                bar's width.
+            tooltip (str): Description of the panel. Must be set explicitly --
+                an action with empty text inherits the toolbar's own tooltip,
+                which is how every one of these once read "View Toolbar".
+            toggle (bool): If True, clicking the button hides the dock when
+                it is the one currently on screen, instead of just
+                re-raising it; clicking a tabified sibling still switches to
+                it as before. See ``doToggleDockWidget``'s docstring for how
+                that distinction is made.
+        """
+        toolbar = self.ui.toolBarView
+        toolbar_insert_before = self.ui.actionToggleDocks
+
+        icon = QIcon()
+        icon.addPixmap(QPixmap(icon_name), QIcon.Normal, QIcon.Off)
+
+        # Function call & monkey patch class instance ala Monkey Patch
+        show_fn = doToggleDockWidget if toggle else doShowHighlighWidget
+        dock.doShow = show_fn.__get__(dock, type(dock))
+
+        action = QAction(caption, dock, triggered=dock.doShow)
+        action.setIcon(icon)
+        action.setToolTip(tooltip)
+        action.setStatusTip(tooltip)
+        dock.actionShow = action  # save action
+        dock._icon_normal = icon  # restore point for mark_log_error's badge
+
+        toolbar.insertAction(toolbar_insert_before, action)
 
     def _set_element_tab(self, yesno: bool):
         """Set the elements tabl to Elements or View.
@@ -751,12 +1062,95 @@ class MetalGUI(QMainWindowBaseHandler):
     def _setup_variables_widget(self):
         """Setup the variables widget."""
         self.ui.dockVariables.setWidget(self.variables_window)
+
+    def _setup_chip_widget(self):
+        """Create the chip-stack editor dock.
+
+        Components, variables and pins each had a dock; the chip stack --
+        die size, material, layer bounds -- had none, so changing it meant
+        dropping to a notebook. ``design.chips`` is a nested ``Dict`` of the
+        same shape the component-options tree already edits, so this reuses
+        that model rather than introducing another editor.
+
+        Built in code rather than the .ui because ``main_window_ui.py`` is
+        pyside6-uic output; it is tabified alongside the other left docks.
+        """
+        self.ui.dockChips = QDockWidget("Chip", self.main_window)
+        self.ui.dockChips.setObjectName("dockChips")
+
+        view = QTreeView_Base(self.ui.dockChips)
+        view.setAlternatingRowColors(True)
+        self.chips_model = QTreeModel_Chips(self.ui.dockChips, gui=self, view=view)
+        view.setModel(self.chips_model)
+        self.ui.dockChips.setWidget(view)
+        self.chips_window = view
+
+        # Chips is a shallow tree (one or two chips, a handful of
+        # properties each) -- collapsed-by-default just adds a click for
+        # something you almost always want to see immediately, unlike the
+        # component/pin trees where collapsed is the useful default.
+        view.expandAll()
+        view.autoresize_columns()
+
+        self.main_window.tabifyDockWidget(self.ui.dockVariables, self.ui.dockChips)
+        # Tabified, so the tab bar names it; a title bar would repeat that.
+        self.ui.dockChips.setTitleBarWidget(QWidget(self.ui.dockChips))
+
+        # Give it a left-rail button like the other docks. Done here rather
+        # than in the DOCKS table of _add_additional_qactions_tool_bar_view:
+        # that runs inside _ui_adjustments during super().__init__(), well
+        # before this dock exists.
+        self._add_dock_toolbar_action(
+            self.ui.dockChips,
+            r":/variables",
+            "Chip",
+            "Chip stack — die size, material and layer bounds",
+            toggle=True,
+        )
+
+    def _setup_view_control_widget(self):
+        """Create the layer-visibility dock.
+
+        ``QMplRenderer`` already tracked ``hidden_layers`` and filtered on it;
+        nothing in the GUI could reach that, and there was no way to see which
+        layers a design contains.
+        """
+        self.ui.dockLayers = QDockWidget("Layers", self.main_window)
+        self.ui.dockLayers.setObjectName("dockLayers")
+
+        self.layers_window = LayerVisibilityWidget(self, self.ui.dockLayers)
+        self.ui.dockLayers.setWidget(self.layers_window)
+
+        self.main_window.tabifyDockWidget(self.ui.dockChips, self.ui.dockLayers)
+        self.ui.dockLayers.setTitleBarWidget(QWidget(self.ui.dockLayers))
+
+        self._add_dock_toolbar_action(
+            self.ui.dockLayers,
+            r":/design",
+            "Layer",
+            "Show or hide layers, like a GDS editor's layer palette",
+            toggle=True,
+        )
         # hookup to delete action
         self.ui.btn_comp_del.clicked.connect(
             self.ui.tableComponents.delete_selected_rows
         )
         self.ui.btn_comp_rename.clicked.connect(self.ui.tableComponents.rename_row)
         self.ui.btn_comp_zoom.clicked.connect(self.btn_comp_zoom_fx)
+
+        # btn_comp_rename has no icon in the .ui, unlike its two neighbours,
+        # and no explicit tool-button style -- with the default IconOnly
+        # style and nothing to show as an icon, it rendered as a blank,
+        # unlabeled button. TextOnly makes its "Rename" text actually
+        # visible; the other two keep their icon-only default.
+        self.ui.btn_comp_rename.setToolButtonStyle(Qt.ToolButtonTextOnly)
+        rename_tip = "Rename the selected component"
+        self.ui.btn_comp_rename.setToolTip(rename_tip)
+        self.ui.btn_comp_rename.setStatusTip(rename_tip)
+
+        filter_tip = "Filter the component list by name, class, or module"
+        self.ui.filter_text_design.setToolTip(filter_tip)
+        self.ui.filter_text_design.setStatusTip(filter_tip)
 
     def _setup_plot_widget(self):
         """Create main Window Widget Plot."""
@@ -769,8 +1163,11 @@ class MetalGUI(QMainWindowBaseHandler):
         obj = self.ui.mainViewTab
         obj.doShow = doShowHighlighWidget.__get__(obj, type(obj))
 
-        # Move the dock
-        self._move_dock_to_new_parent(self.ui.dockLog, self.plot_win)
+        # Move the dock. Start hidden: the log competes with the canvas for
+        # vertical space and most sessions never need it. The View toolbar
+        # button and the Docks toggle both bring it back, and messages
+        # logged while it is hidden are still there when it is opened.
+        self._move_dock_to_new_parent(self.ui.dockLog, self.plot_win, visible=False)
         self.ui.dockLog.parent().resizeDocks([self.ui.dockLog], [120], Qt.Vertical)
 
     def _move_dock_to_new_parent(
@@ -778,6 +1175,7 @@ class MetalGUI(QMainWindowBaseHandler):
         dock: QDockWidget,
         new_parent: QMainWindow,
         dock_location=Qt.BottomDockWidgetArea,
+        visible: bool = True,
     ):
         """The the doc to a different parent window.
 
@@ -786,11 +1184,15 @@ class MetalGUI(QMainWindowBaseHandler):
             new_parent (QMainWindow): New parent window
             dock_location (Qt dock location): Location of the dock.
                 Defaults to Qt.BottomDockWidgetArea.
+            visible (bool): Whether the dock is shown after the move.
+                Reparenting happens after ``restore_window_settings``, so
+                whatever is set here is the dock's effective startup state.
+                Defaults to True.
         """
         dock.setParent(new_parent)
         new_parent.addDockWidget(dock_location, dock)
         dock.setFloating(False)
-        dock.show()
+        dock.setVisible(visible)
         dock.setMaximumHeight(99999)
 
     def _setup_elements_widget(self):
@@ -874,6 +1276,27 @@ class MetalGUI(QMainWindowBaseHandler):
             text: Text typed in the filter box.
         """
         self.ui.proxyModel.setFilterWildcard(text)
+
+    def _setup_pins_widget(self):
+        """Pins dock: every (component, pin) in the design, flattened into
+        one table. ``tableConnectors``/``text_filter_connectors`` exist in
+        the .ui but nothing ever set a model on the view or connected the
+        filter box -- the dock has shown as permanently empty since it was
+        added, on every design, not just ones with unusual pins.
+        """
+        model = QTableModel_Pins(
+            self, logger=self.logger, tableView=self.ui.tableConnectors
+        )
+        self.ui.pinsProxyModel = QSortFilterProxyModel()
+        self.ui.pinsProxyModel.setSourceModel(model)
+        self.ui.pinsProxyModel.setFilterKeyColumn(-1)  # search all columns
+
+        self.ui.tableConnectors.setSortingEnabled(True)
+        self.ui.tableConnectors.setModel(self.ui.pinsProxyModel)
+
+        self.ui.text_filter_connectors.textChanged.connect(
+            self.ui.pinsProxyModel.setFilterWildcard
+        )
 
     def _create_new_component_object_from_qlibrary(self, full_path: str):
         """
@@ -1085,6 +1508,14 @@ class MetalGUI(QMainWindowBaseHandler):
 
         # Table models
         self.ui.tableComponents.model().sourceModel().refresh()
+        self.ui.tableConnectors.model().sourceModel().refresh()
+
+        # Layer list -- unlike the chip/component trees this widget has no
+        # polling timer of its own, so without this call it stays empty
+        # (or stale) after the first build until set_design() is called
+        # again, which usually never happens in a normal session.
+        if getattr(self, "layers_window", None) is not None:
+            self.layers_window.refresh()
 
         # Redraw plots
         self.refresh_plot()
@@ -1094,9 +1525,16 @@ class MetalGUI(QMainWindowBaseHandler):
         if self.plot_win is not None:
             self.plot_win.replot()
 
-    def autoscale(self):
-        """Shortcut to autoscale all views."""
-        self.plot_win.auto_scale()
+    def autoscale(self, include_chip: bool = False):
+        """Frame the design in the plot window.
+
+        Args:
+            include_chip (bool): Frame the whole chip rather than just the
+                components. Defaults to False -- a default 9x6mm die around a
+                sub-millimetre component leaves it unreadably small, and the
+                tutorials assume the chip is ignored.
+        """
+        self.plot_win.auto_scale(include_chip=include_chip)
 
     #########################################################
     # COMPONENT FUNCTIONS
@@ -1109,16 +1547,267 @@ class MetalGUI(QMainWindowBaseHandler):
         Note:
             This does not rebuild geometry; use ``rebuild()`` if options are changed.
         """
+        self._selected_component = name
+        self._show_selection_hint(name)
         if self.component_window:
             self.component_window.set_component(name)
+        table = getattr(self.ui, "tableComponents", None)
+        if table is not None:
+            # Keeps the QComponents list dock's row selection in sync with
+            # whatever's loaded in the editor, regardless of which of the
+            # two triggered this (canvas click, list click, ...). A no-op
+            # when called from the list's own click handler, since the row
+            # is already selected there.
+            table.select_component(name)
 
-    def highlight_components(self, component_names: list[str]):
+    def _show_selection_hint(self, name):
+        """Say what is selected and that the arrow keys will move it.
+
+        Nudging is otherwise undiscoverable: nothing on screen suggests the
+        arrow keys do anything. Components positioned by their pins say so
+        instead of advertising a move that would be refused.
+
+        Args:
+            name (str): Selected component, or None to clear the hint.
+        """
+        label = getattr(self, "statusbar_selection", None)
+        if label is None:
+            return
+
+        if not name:
+            label.setText("")
+            return
+
+        movable = False
+        if self.design is not None and name in self.design.components:
+            options = self.design.components[name].options
+            movable = "pos_x" in options and "pos_y" in options
+
+        if movable:
+            label.setText(
+                f"{name} selected  ·  arrow keys move it (Shift = ×10, Alt = ×0.1)"
+            )
+        else:
+            label.setText(f"{name} selected  ·  positioned by its pins")
+
+    def clear_selection(self):
+        """Forget the selected component and clear its hint."""
+        self._selected_component = None
+        self._show_selection_hint(None)
+
+    @property
+    def selected_component(self):
+        """Name of the component last opened in the editor, or None.
+
+        Set by :meth:`edit_component`, which the canvas calls on click, so
+        clicking a component on the canvas is enough to make it the nudge
+        target.
+        """
+        return getattr(self, "_selected_component", None)
+
+    def nudge_component(self, name: str, dx_mm: float, dy_mm: float) -> bool:
+        """Move a component by a displacement in millimetres.
+
+        Positions are unit-bearing strings, so the displacement is converted
+        into whatever unit each option already uses -- a design authored in
+        microns stays in microns rather than being silently rewritten in mm.
+
+        Only components exposing ``pos_x``/``pos_y`` can be moved. Routes are
+        positioned by their pins, so nudging one is meaningless and is
+        refused rather than half-applied.
+
+        Args:
+            name (str): Component to move.
+            dx_mm (float): Displacement along x, in millimetres.
+            dy_mm (float): Displacement along y, in millimetres.
+
+        Returns:
+            bool: True if the component moved.
+        """
+        if self.design is None or name not in self.design.components:
+            return False
+
+        component = self.design.components[name]
+        options = component.options
+        if "pos_x" not in options or "pos_y" not in options:
+            self.logger.info(
+                f"{name} has no pos_x/pos_y to nudge — it is positioned by "
+                "its pins or is fixed."
+            )
+            return False
+
+        new_x = offset_length(options["pos_x"], dx_mm, self.design.parse_value)
+        new_y = offset_length(options["pos_y"], dy_mm, self.design.parse_value)
+        if new_x is None or new_y is None:
+            self.logger.warning(
+                f"Could not nudge {name}: pos_x/pos_y are not simple lengths "
+                f"({options['pos_x']!r}, {options['pos_y']!r})."
+            )
+            return False
+
+        options["pos_x"] = new_x
+        options["pos_y"] = new_y
+
+        component.rebuild()
+        self.refresh()
+        # Re-assert the highlight: the rebuild cleared the annotations, and
+        # losing the outline mid-nudge makes it unclear what is moving.
+        self.highlight_components([name], show_pins=False)
+        self.logger.info(f"Nudged {name} to ({new_x}, {new_y})")
+        return True
+
+    def rotate_component(self, name: str, delta_deg: float) -> bool:
+        """Rotate a component in place by a change in orientation, in degrees.
+
+        Only components exposing ``orientation`` can be rotated. Unlike
+        ``pos_x``/``pos_y``, ``orientation`` is stored as a bare number (no
+        unit suffix), so the arithmetic here doesn't need offset_length's
+        unit-preserving parsing.
+
+        Args:
+            name (str): Component to rotate.
+            delta_deg (float): Change in orientation, in degrees. Positive
+                is counter-clockwise, matching the option's own convention.
+
+        Returns:
+            bool: True if the component rotated.
+        """
+        if self.design is None or name not in self.design.components:
+            return False
+
+        component = self.design.components[name]
+        options = component.options
+        if "orientation" not in options:
+            self.logger.info(f"{name} has no orientation to rotate — it is fixed.")
+            return False
+
+        try:
+            current_deg = float(options["orientation"])
+        except (TypeError, ValueError):
+            self.logger.warning(
+                f"Could not rotate {name}: orientation is not a plain number "
+                f"({options['orientation']!r})."
+            )
+            return False
+
+        new_deg = (current_deg + delta_deg) % 360.0
+        # Whole-degree values print as e.g. "90", not "90.0" -- matches how
+        # a hand-authored design usually writes this option.
+        options["orientation"] = (
+            str(int(new_deg)) if new_deg.is_integer() else str(new_deg)
+        )
+
+        component.rebuild()
+        self.refresh()
+        self.highlight_components([name], show_pins=False)
+        self.logger.info(f"Rotated {name} to {options['orientation']}°")
+        return True
+
+    def rotate_selected(self, delta_deg: float) -> bool:
+        """Rotate the currently selected component.
+
+        Args:
+            delta_deg (float): Change in orientation, in degrees.
+
+        Returns:
+            bool: True if a component rotated.
+        """
+        name = self.selected_component
+        if name is None:
+            self.logger.info("Nothing selected — click a component first.")
+            return False
+        return self.rotate_component(name, delta_deg)
+
+    def nudge_selected(self, dx_mm: float, dy_mm: float) -> bool:
+        """Nudge the currently selected component.
+
+        Args:
+            dx_mm (float): Displacement along x, in millimetres.
+            dy_mm (float): Displacement along y, in millimetres.
+
+        Returns:
+            bool: True if a component moved.
+        """
+        name = self.selected_component
+        if name is None:
+            self.logger.info("Nothing selected — click a component first.")
+            return False
+        return self.nudge_component(name, dx_mm, dy_mm)
+
+    def highlight_components(self, component_names: list[str], show_pins: bool = True):
         """Visually highlight components in the plot canvas.
 
         Args:
             component_names (List[str]): Names to highlight; others remain unhighlighted.
+            show_pins (bool): Also draw pin arrows and pin names.
+                Defaults to True.
         """
-        self.canvas.highlight_components(component_names)
+        self.canvas.highlight_components(component_names, show_pins=show_pins)
+
+    def highlight_all_components(self, show_pins: bool = True):
+        """Label every component in the design on the canvas.
+
+        Draws each component's bounding box and name, and by default its
+        pins. Useful for orienting yourself on a design someone else built,
+        or for a labelled screenshot.
+
+        Bound to the "Label all" button on the plot toolbar (shortcut ``L``);
+        ``Shift+L`` labels components only, without pins.
+
+        Args:
+            show_pins (bool): Also draw pin arrows and pin names. Turn off on
+                dense chips, where per-pin labels swamp the component names.
+                Defaults to True.
+
+        Returns:
+            int: Number of components labelled.
+        """
+        count = self.canvas.highlight_all_components(show_pins=show_pins)
+        self.logger.info(
+            f"Labelled {count} component(s)"
+            f"{' with pins' if show_pins else ''}. "
+            "Any replot or rebuild clears the labels."
+        )
+        return count
+
+    #: Themes the toolbar toggle flips between. ``load_stylesheet`` also
+    #: accepts "qdarkstyle", "default" and an arbitrary .qss path; those stay
+    #: on the View > Color theme menu, which remains the full picker.
+    #:
+    #: THEME_LIGHT is deliberately "metal_light_gray", not "default":
+    #: "default" means *no* stylesheet, which follows the OS/Qt native
+    #: theme -- on a system with OS-level dark mode that renders dark too,
+    #: so toggling into it from metal_dark looked like nothing happened.
+    #: metal_light_gray is an actual designed light theme.
+    THEME_DARK = "metal_dark"
+    THEME_LIGHT = "metal_light_gray"
+
+    def toggle_theme(self, _=None):
+        """Flip between the dark and light stylesheet.
+
+        Reads the currently applied stylesheet rather than tracking a
+        separate flag, so the button stays correct when the theme is changed
+        from the View menu instead.
+
+        Returns:
+            str: The stylesheet now applied.
+        """
+        current = getattr(self, "_stylesheet", self.THEME_DARK)
+        new = self.THEME_LIGHT if current == self.THEME_DARK else self.THEME_DARK
+        self.load_stylesheet(new)
+        self.logger.info(f"Theme: {new}")
+        return new
+
+    def clear_highlight(self):
+        """Remove any component labels/highlights from the canvas.
+
+        ``clear_annotation`` detaches the artists but does not redraw --
+        ``highlight_components`` refreshes at the end of its own run, so the
+        clear path has to do it too or the labels stay on screen until
+        something else happens to trigger a draw.
+        """
+        self.canvas.clear_annotation()
+        self.canvas.refresh()
 
     def zoom_on_components(self, components: list[str]):
         """Zoom the canvas to fit the given components.

@@ -73,8 +73,11 @@ class QTableView_AllComponents(QTableView, QWidget_PlaceholderText):
 
     def style2(self):
         """Style the widget."""
-        # Do in the ui file
-        self.horizontalHeader().hide()
+        # The .ui already sets horizontalHeader().setVisible(True); hiding
+        # it here left the "Name / QComponent class / ..." column labels
+        # invisible until QTableModel_AllComponents.refresh_auto() happened
+        # to show() it again on the next row-count change (see that
+        # method's "for some reason" comment -- this hide() is the reason).
         self.verticalHeader().show()
 
         self.setVerticalScrollMode(QAbstractItemView.ScrollPerPixel)
@@ -245,6 +248,33 @@ class QTableView_AllComponents(QTableView, QWidget_PlaceholderText):
         name = index.sibling(index.row(), 0).data()
         self.gui.canvas.zoom_on_components([name])
         # self.logger.info(f'Double clicked component {name}')
+
+    def select_component(self, name: str) -> None:
+        """Select and scroll to the row for ``name``, without going through
+        ``viewClicked`` -- this is called *from* ``MetalGUI.edit_component``
+        (so the canvas click-select and this list stay in sync), and
+        ``viewClicked`` calls ``edit_component`` itself, so routing back
+        through it here would recurse.
+
+        Args:
+            name (str): Component name. No-op if it isn't in the design
+                (e.g. deleted) or is filtered out of the current view.
+        """
+        if not name:
+            return
+        try:
+            source_row = list(self.design.components.keys()).index(name)
+        except (ValueError, AttributeError):
+            return
+
+        proxy_model = self.model()
+        source_model = proxy_model.sourceModel()
+        proxy_index = proxy_model.mapFromSource(source_model.index(source_row, 0))
+        if not proxy_index.isValid():
+            return  # filtered out by the search box -- nothing to select
+
+        self.selectRow(proxy_index.row())
+        self.scrollTo(proxy_index)
 
     def rows_to_names(self, rows: list[int]) -> list[str]:
         """Based on user highlighting  rows of components in GUI, return the

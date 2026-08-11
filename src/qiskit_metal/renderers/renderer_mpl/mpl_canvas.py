@@ -25,10 +25,11 @@ from matplotlib.axes import Axes
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from matplotlib.transforms import Bbox
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import QTimer, Qt
 from PySide6.QtWidgets import QSizePolicy
 from qiskit_metal import Dict
 from qiskit_metal.designs import QDesign
+from qiskit_metal._gui.utility._toolbox_qt import doShowHighlighWidget
 from qiskit_metal.renderers.renderer_mpl.mpl_interaction import PanAndZoom
 from qiskit_metal.renderers.renderer_mpl.mpl_renderer import QMplRenderer
 from qiskit_metal.renderers.renderer_mpl.mpl_toolbox import (
@@ -342,6 +343,23 @@ class PlotCanvas(FigureCanvas):
 
         self.setParent(parent)
 
+        # Explicit rather than trusting the backend default: a click-select
+        # (_on_pick_release, below) needs the canvas to actually be
+        # focusable, or the arrow-key nudge it enables silently goes
+        # nowhere -- keys keep going to whatever dock (e.g. the component
+        # list) had focus before the click.
+        self.setFocusPolicy(Qt.StrongFocus)
+
+        # Without this, Qt only sends mouseMoveEvent (and so matplotlib's
+        # motion_notify_event) while a button is held down -- pure hover
+        # motion never reaches the canvas at all. The status-bar hover
+        # readout (PanAndZoom._report_hover_position) depends on exactly
+        # that, and silently never fires without it: it looked "frozen"
+        # under real mouse movement despite working under QTest's
+        # synthetic mouseMove, which injects the event directly and
+        # doesn't depend on this setting.
+        self.setMouseTracking(True)
+
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
@@ -354,6 +372,13 @@ class PlotCanvas(FigureCanvas):
         self.metal_renderer = QMplRenderer(
             canvas=self, design=self.design, logger=logger
         )
+
+        # Click-to-select. Rebuilt lazily; invalidated by every plot().
+        self._pick_tree = None
+        self._pick_names = []
+        self._press_xy = None
+        self.figure.canvas.mpl_connect("button_press_event", self._on_pick_press)
+        self.figure.canvas.mpl_connect("button_release_event", self._on_pick_release)
 
         # self.plot()
         # self.welcome_message()
@@ -461,16 +486,30 @@ class PlotCanvas(FigureCanvas):
                 self._watermark_axis(ax)
 
         def final():
+            # Restore the view BEFORE drawing. ``clear_axis`` resets the axes
+            # and ``_plot`` re-autoscales to the new data, so at this point the
+            # axes hold the autoscaled view rather than the user's. ``draw()``
+            # renders the canvas buffer from whatever the limits are *at that
+            # moment*; restoring them afterwards fixes the axes but leaves the
+            # buffer showing the autoscaled view. The user sees the view jump
+            # on edit, then snap back on the next interaction-driven redraw.
+            if "xlim" in self._state:
+                ax.set_xlim(self._state["xlim"])
+                ax.set_ylim(self._state["ylim"])
             self.draw()
-            # Restore the state
-            ax.set_xlim(self._state["xlim"])
-            ax.set_ylim(self._state["ylim"])
             self.show()
+
+        # The drawn geometry is about to change, so any cached hit-test index
+        # is stale. Rebuilt lazily on the next click.
+        self._invalidate_pick_index()
+
+        # ``prep`` must run on both paths: ``final`` restores from
+        # ``self._state``, so skipping it would replay a previous plot's view.
+        prep()
 
         if with_try:
             # speed impact?
             try:
-                prep()
                 main_plot()
 
             except Exception as e:
@@ -591,8 +630,356 @@ class PlotCanvas(FigureCanvas):
         """Style a figure."""
         # self.figure.tight_layout()
 
-    def auto_scale(self):
-        """Automaticlaly scale."""
+    # ------------------------------------------------------------------
+    # Click-to-select
+    # ------------------------------------------------------------------
+
+    #: A press and release within this many pixels counts as a click rather
+    #: than a drag. Matches the threshold ``_zoom_area`` uses to ignore
+    #: accidental rubber-band drags, so pan and select agree on the boundary.
+    CLICK_PIXEL_TOLERANCE = 3
+
+    #: Click tolerance in pixels, converted to data units at query time.
+    #: Routes are zero-width paths, so an exact point-in-polygon test would
+    #: make them practically unclickable.
+    PICK_PIXEL_TOLERANCE = 5
+
+    def _invalidate_pick_index(self):
+        """Drop the cached hit-test index.
+
+        Called whenever the drawn geometry may have changed. Rebuilding is
+        deferred to the next click, so a rebuild-heavy session does not pay
+        for an index nobody queries.
+        """
+        self._pick_tree = None
+        self._pick_names = []
+
+    def _build_pick_index(self):
+        """Build an R-tree over every component's geometry.
+
+        Hit-testing every polygon linearly would make a click cost O(n) on a
+        design with hundreds of components. ``STRtree`` gives a spatial index
+        instead, built once per rebuild and queried per click.
+        """
+        from shapely import STRtree  # local: keeps import cost off startup
+
+        geometries = []
+        names = []
+        for name in self.design.components:
+            try:
+                shapes = self.design.components[name].qgeometry_list()
+            except Exception:  # pragma: no cover — defensive
+                continue
+            for shape in shapes:
+                if shape is None or shape.is_empty:
+                    continue
+                geometries.append(shape)
+                names.append(name)
+
+        self._pick_names = names
+        self._pick_tree = STRtree(geometries) if geometries else None
+
+    def component_at_point(self, x: float, y: float, tolerance: float = None):
+        """Return the name of the component under a data-space point.
+
+        Args:
+            x (float): X in data (mm) coordinates.
+            y (float): Y in data (mm) coordinates.
+            tolerance (float): Search radius in data units. Defaults to
+                :attr:`PICK_PIXEL_TOLERANCE` pixels converted to data units.
+
+        Returns:
+            str: Component name, or None if the point hits nothing.
+        """
+        if self._pick_tree is None:
+            self._build_pick_index()
+        if self._pick_tree is None:  # still nothing to hit
+            return None
+
+        from shapely.geometry import Point
+
+        if tolerance is None:
+            tolerance = self._pixels_to_data(self.PICK_PIXEL_TOLERANCE)
+
+        probe = Point(x, y).buffer(tolerance)
+        hits = self._pick_tree.query(probe)
+        if len(hits) == 0:
+            return None
+
+        # query() is bounding-box based, so confirm a real intersection and
+        # prefer the closest match when several overlap.
+        best_name, best_distance = None, None
+        point = Point(x, y)
+        for index in hits:
+            geometry = self._pick_tree.geometries.take(index)
+            distance = geometry.distance(point)
+            if distance > tolerance:
+                continue
+            if best_distance is None or distance < best_distance:
+                best_distance = distance
+                best_name = self._pick_names[index]
+        return best_name
+
+    def _pixels_to_data(self, pixels: float) -> float:
+        """Convert a pixel distance to data units at the current zoom.
+
+        Args:
+            pixels (float): Distance in display pixels.
+
+        Returns:
+            float: The same distance in data units.
+        """
+        ax = self.get_axis()
+        try:
+            origin = ax.transData.inverted().transform((0, 0))
+            offset = ax.transData.inverted().transform((pixels, 0))
+            return abs(offset[0] - origin[0])
+        except Exception:  # pragma: no cover — defensive
+            return 0.0
+
+    def _on_pick_press(self, event):
+        """Record where a press started, to tell a click from a drag.
+
+        Args:
+            event: Matplotlib mouse event.
+        """
+        if event.button == 1:
+            self._press_xy = (event.x, event.y)
+
+    def _on_pick_release(self, event):
+        """Select the component under the cursor, if this was a click.
+
+        Left-drag pans, so a release is only treated as a selection when the
+        pointer barely moved. Without that check every pan would also
+        re-select whatever happened to be under the release point.
+
+        Args:
+            event: Matplotlib mouse event.
+        """
+        press_xy, self._press_xy = self._press_xy, None
+
+        if event.button != 1 or press_xy is None:
+            return
+        if event.xdata is None or event.ydata is None:
+            return
+        if (
+            abs(event.x - press_xy[0]) > self.CLICK_PIXEL_TOLERANCE
+            or abs(event.y - press_xy[1]) > self.CLICK_PIXEL_TOLERANCE
+        ):
+            return  # a drag (pan), not a click
+
+        name = self.component_at_point(event.xdata, event.ydata)
+        if name is None:
+            return
+
+        # ``logger`` is an optional constructor argument, so it can be None.
+        if self.logger is not None:
+            self.logger.info(f"Selected component: {name}")
+        gui = getattr(self, "gui", None)
+        already_selected = (
+            gui is not None and getattr(gui, "selected_component", None) == name
+        )
+        if gui is not None and hasattr(gui, "edit_component"):
+            gui.edit_component(name)
+        self.highlight_components([name])
+
+        # A real double-click (event.dblclick, matplotlib's own flag) or a
+        # second click on the component already selected -- either reads
+        # as "I want to work on this one" -- brings the Edit dock to the
+        # front. edit_component() above already populates it regardless;
+        # this only handles whether the user can actually *see* that
+        # without hunting through tabs for it.
+        #
+        # This is ``dockComponent``, titled "Edit component" -- not
+        # ``dockDesign`` (titled "QComponents", the component *list*).
+        # The two are named the opposite of what they hold; an earlier
+        # version of this code raised ``dockDesign`` by mistake, which
+        # brought the list to the front instead of the actual editor.
+        if getattr(event, "dblclick", False) or already_selected:
+            main_window = getattr(gui, "main_window", None)
+            dock_component = getattr(
+                getattr(main_window, "ui", None), "dockComponent", None
+            )
+            if dock_component is not None:
+                # Not dock_component.doShow() -- that's the toggle-aware
+                # version (see #48). dockComponent isn't tabified with
+                # anything, so there's no "already the active tab" case to
+                # avoid, but doShowHighlighWidget also gives the nicer
+                # highlight-flash feedback than the plain show()+raise_()
+                # that QTableView_AllComponents.viewClicked uses.
+                doShowHighlighWidget(dock_component)
+
+        # gui.edit_component() above populates the component list / options
+        # tree, which steals keyboard focus if either already had it. Take
+        # it back explicitly so the arrow-key nudge the selection hint
+        # promises actually goes to the canvas, not to whichever dock last
+        # held focus.
+        self.setFocus(Qt.MouseFocusReason)
+
+    #: Grid step for one arrow-key press, in millimetres.
+    NUDGE_STEP_MM = 0.05
+
+    #: Multipliers for the modifier keys. Shift coarsens, Alt refines --
+    #: the convention every drawing tool uses.
+    NUDGE_COARSE_FACTOR = 10.0
+    NUDGE_FINE_FACTOR = 0.1
+
+    #: Arrow key -> unit displacement (x, y). Y is positive upward, matching
+    #: the data coordinates rather than screen coordinates.
+    _NUDGE_DIRECTIONS = {
+        Qt.Key_Left: (-1, 0),
+        Qt.Key_Right: (1, 0),
+        Qt.Key_Down: (0, -1),
+        Qt.Key_Up: (0, 1),
+    }
+
+    #: Rotation step for one bracket-key press, in degrees. 90 is the
+    #: common case (most qlibrary layouts are built on a 90-degree grid);
+    #: Shift gives finer control for anything off-grid.
+    ROTATE_STEP_DEG = 90.0
+    ROTATE_FINE_DEG = 15.0
+
+    #: Key -> rotation direction. ``]``/``[`` turn clockwise/counter-
+    #: clockwise -- the same visual sense the characters read in on a
+    #: standard keyboard layout. Also bound to Q/E (the widely-recognized
+    #: rotate-CCW/CW convention from games and other creative tools) as
+    #: the more discoverable, keyboard-layout-independent alternative --
+    #: added after a user found ] and [ hard to remember and reached for
+    #: different keys entirely on first try.
+    #:
+    #: Key_BraceLeft/Key_BraceRight (curly braces) are included alongside
+    #: the bracket keys deliberately, not redundantly: on most keyboards
+    #: Shift+[ produces "{", which Qt reports as Key_BraceLeft -- a
+    #: different key code entirely, not Key_BracketLeft with a Shift
+    #: modifier flag. Without this, holding Shift for the fine rotation
+    #: step silently missed the lookup and did nothing at all (confirmed:
+    #: a user found plain [/] rotated fine, but Shift+[/Shift+] did
+    #: nothing, while Shift+Q/Shift+E -- letters, whose Key_* value
+    #: doesn't change when shifted -- worked correctly).
+    _ROTATE_DIRECTIONS = {
+        Qt.Key_BracketRight: -1,
+        Qt.Key_BracketLeft: +1,
+        Qt.Key_BraceRight: -1,
+        Qt.Key_BraceLeft: +1,
+        Qt.Key_E: -1,
+        Qt.Key_Q: +1,
+    }
+
+    def keyPressEvent(self, event):
+        """Nudge or rotate the selected component with the keyboard.
+
+        Lives here, not on the ``QMainWindowPlot`` container that used to
+        own this logic, because this canvas -- not its parent -- is the
+        widget that actually holds keyboard focus after a click-select
+        (see ``_on_pick_release``'s ``setFocus`` above). ``FigureCanvas``
+        (the base class) has its own ``keyPressEvent`` for matplotlib's
+        built-in shortcuts and does not propagate unhandled keys to the
+        parent, so a handler on the container was simply never reached --
+        confirmed by sending a real ``QTest``-injected key both ways: to
+        this canvas (silently swallowed) and directly to
+        ``QMainWindowPlot`` (moved the component correctly). Deliberately
+        keyboard-only: dragging would have to share the left mouse button
+        with panning and needs a live preview, and a rebuild per
+        mouse-move is far too slow.
+
+        Args:
+            event (QKeyEvent): The key event.
+        """
+        modifiers = event.modifiers()
+
+        direction = self._NUDGE_DIRECTIONS.get(event.key())
+        if direction is not None:
+            step = self.NUDGE_STEP_MM
+            if modifiers & Qt.ShiftModifier:
+                step *= self.NUDGE_COARSE_FACTOR
+            elif modifiers & Qt.AltModifier:
+                step *= self.NUDGE_FINE_FACTOR
+            self.gui.nudge_selected(direction[0] * step, direction[1] * step)
+            return
+
+        rotate_dir = self._ROTATE_DIRECTIONS.get(event.key())
+        if rotate_dir is not None:
+            step = (
+                self.ROTATE_FINE_DEG
+                if modifiers & Qt.ShiftModifier
+                else self.ROTATE_STEP_DEG
+            )
+            self.gui.rotate_selected(rotate_dir * step)
+            return
+
+        super().keyPressEvent(event)
+
+    def _component_bounds(self, component_names=None):
+        """Union of the qgeometry bounds of the named components.
+
+        Args:
+            component_names (List[str]): Components to include. Defaults to
+                every component in the design.
+
+        Returns:
+            tuple: ``(xmin, ymin, xmax, ymax)``, or None when nothing has
+            usable bounds (an empty design, or components that failed to
+            build).
+        """
+        if component_names is None:
+            component_names = list(self.design.components.keys())
+
+        xmins, ymins, xmaxs, ymaxs = [], [], [], []
+        for name in component_names:
+            if name not in self.design.components:
+                continue
+            try:
+                xmin, ymin, xmax, ymax = self.design.components[name].qgeometry_bounds()
+            except Exception:  # pragma: no cover — defensive
+                continue
+            xmins.append(xmin)
+            ymins.append(ymin)
+            xmaxs.append(xmax)
+            ymaxs.append(ymax)
+
+        if not xmins:
+            return None
+        return min(xmins), min(ymins), max(xmaxs), max(ymaxs)
+
+    def _set_limits(self, bounds, pad_fraction=0.1):
+        """Frame the given bounds with padding.
+
+        Args:
+            bounds (tuple): ``(xmin, ymin, xmax, ymax)``.
+            pad_fraction (float): Margin as a fraction of each extent.
+        """
+        xmin, ymin, xmax, ymax = bounds
+        dx = (xmax - xmin) * pad_fraction or 0.1
+        dy = (ymax - ymin) * pad_fraction or 0.1
+        for ax in self.figure.axes:
+            ax.set_xlim(xmin - dx, xmax + dx)
+            ax.set_ylim(ymin - dy, ymax + dy)
+
+    def auto_scale(self, include_chip: bool = False):
+        """Frame the design.
+
+        Args:
+            include_chip (bool): Frame the whole chip rather than just the
+                components. Defaults to False.
+
+        Notes:
+            The default deliberately ignores the chip. ``QMplRenderer`` draws
+            the die outline, so a plain ``ax.autoscale()`` frames the full
+            chip -- a default 9x6mm die around a 0.65mm transmon leaves the
+            component an unreadable speck. The tutorials were all written
+            assuming the chip is ignored.
+
+            Falls back to framing everything when no component has usable
+            bounds, so an empty design still shows the chip rather than an
+            arbitrary window.
+        """
+        if not include_chip:
+            bounds = self._component_bounds()
+            if bounds is not None:
+                self._set_limits(bounds)
+                self.refresh()
+                return
+
         for ax in self.figure.axes:
             ax.autoscale()
         self.refresh()
@@ -610,27 +997,10 @@ class PlotCanvas(FigureCanvas):
             ``MetalGUIHeadless`` viewer always had it; the Qt canvas
             didn't). 10 % padding is added around the combined bbox.
         """
-        xmins, ymins, xmaxs, ymaxs = [], [], [], []
-        for name in component_names:
-            if name not in self.design.components:
-                continue
-            try:
-                xmin, ymin, xmax, ymax = self.design.components[name].qgeometry_bounds()
-                xmins.append(xmin)
-                ymins.append(ymin)
-                xmaxs.append(xmax)
-                ymaxs.append(ymax)
-            except Exception:  # pragma: no cover — defensive
-                continue
-        if not xmins:
+        bounds = self._component_bounds(component_names)
+        if bounds is None:
             return
-        xmin, ymin = min(xmins), min(ymins)
-        xmax, ymax = max(xmaxs), max(ymaxs)
-        dx = (xmax - xmin) * 0.1 or 0.1
-        dy = (ymax - ymin) * 0.1 or 0.1
-        for ax in self.figure.axes:
-            ax.set_xlim(xmin - dx, xmax + dx)
-            ax.set_ylim(ymin - dy, ymax + dy)
+        self._set_limits(bounds)
         self.refresh()
 
     def welcome_message(self):
@@ -733,11 +1103,28 @@ class PlotCanvas(FigureCanvas):
         self._annotations["patch"] = []
         self._annotations["text"] = []
 
-    def highlight_components(self, component_names: list[str]):
+    def highlight_all_components(self, show_pins: bool = True):
+        """Highlight and label every component in the design.
+
+        Args:
+            show_pins (bool): Also draw pin arrows and pin names.
+                Defaults to True.
+
+        Returns:
+            int: Number of components labelled.
+        """
+        names = list(self.design.components.keys())
+        self.highlight_components(names, show_pins=show_pins)
+        return len(names)
+
+    def highlight_components(self, component_names: list[str], show_pins: bool = True):
         """Highlight a list of components.
 
         Args:
             component_names (List[str]): A list of component names
+            show_pins (bool): Draw pin arrows and pin names alongside the
+                component name. Turn off on dense chips, where per-pin
+                labels swamp the component labels. Defaults to True.
         """
         # Defaults - todo eventually move to some option place where can be changed
         text_kw = dict(
@@ -801,7 +1188,7 @@ class PlotCanvas(FigureCanvas):
                             ax.add_artist(text)
                         self._annotations["text"] += [text]
 
-                if 1:  # Draw the pins
+                if show_pins:  # Draw the pins
                     # for component_id in self.design.components.keys():
                     for pin_name in component.pins.keys():
                         # self.logger.debug(f'Pin {pin_name}')

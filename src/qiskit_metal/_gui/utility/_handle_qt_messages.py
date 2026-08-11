@@ -77,14 +77,20 @@ def _qt_message_handler(mode, context, message):
         else:
             base_message += " (No context available from Qt)"
 
-        # Capture Python traceback for additional details
-        python_traceback = "".join(traceback.format_stack(limit=10))
+        # A traceback is only worth attaching for CRITICAL/FATAL -- the
+        # messages that can actually indicate the kind of internal-state
+        # corruption this handler was written to help diagnose. Attaching
+        # one to every INFO/WARNING as well (Qt's routine performance and
+        # plugin-capability notices, e.g. "Populating font family aliases
+        # took ...ms") made completely benign log lines read as crash
+        # reports, which is worse for spotting a real one, not better.
+        if mode in ("CRITICAL", "FATAL"):
+            python_traceback = "".join(traceback.format_stack(limit=10))
+            base_message += (
+                f"\nPython Traceback (most recent call last):\n{python_traceback}"
+            )
 
-        # Log the message with the Python traceback
-        logger.log(
-            getattr(logging, mode, logging.DEBUG),
-            f"{base_message}\nPython Traceback (most recent call last):\n{python_traceback}",
-        )
+        logger.log(getattr(logging, mode, logging.DEBUG), base_message)
 
 
 #######################################################################################

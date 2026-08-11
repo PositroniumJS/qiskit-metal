@@ -34,11 +34,6 @@ class Ui_MainWindowPlot:
         self.toolBar.setToolButtonStyle(QtCore.Qt.ToolButtonTextUnderIcon)
         self.toolBar.setObjectName("toolBar")
         MainWindowPlot.addToolBar(QtCore.Qt.TopToolBarArea, self.toolBar)
-        self.actionPan = QtGui.QAction(MainWindowPlot)
-        icon = QtGui.QIcon()
-        icon.addPixmap(QtGui.QPixmap(":/plot/pan"), QtGui.QIcon.Normal, QtGui.QIcon.On)
-        self.actionPan.setIcon(icon)
-        self.actionPan.setObjectName("actionPan")
         self.actionZoom = QtGui.QAction(MainWindowPlot)
         icon1 = QtGui.QIcon()
         icon1.addPixmap(
@@ -85,7 +80,6 @@ class Ui_MainWindowPlot:
         )
         self.actionRuler.setIcon(icon6)
         self.actionRuler.setObjectName("actionRuler")
-        self.toolBar.addAction(self.actionPan)
         self.toolBar.addAction(self.actionAuto)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionCoords)
@@ -108,9 +102,6 @@ class Ui_MainWindowPlot:
             MainWindowPlot.set_position_track,
         )
         QtCore.QObject.connect(
-            self.actionPan, QtCore.SIGNAL("triggered()"), MainWindowPlot.pan
-        )
-        QtCore.QObject.connect(
             self.actionZoom, QtCore.SIGNAL("triggered()"), MainWindowPlot.zoom
         )
         QtCore.QObject.connect(
@@ -124,12 +115,6 @@ class Ui_MainWindowPlot:
         )
         self.toolBar.setWindowTitle(
             QtWidgets.QApplication.translate("MainWindowPlot", "toolBar", None, -1)
-        )
-        self.actionPan.setText(
-            QtWidgets.QApplication.translate("MainWindowPlot", "Help", None, -1)
-        )
-        self.actionPan.setShortcut(
-            QtWidgets.QApplication.translate("MainWindowPlot", "P", None, -1)
         )
         self.actionZoom.setText(
             QtWidgets.QApplication.translate("MainWindowPlot", "Zoom", None, -1)

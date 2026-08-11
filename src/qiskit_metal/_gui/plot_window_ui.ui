@@ -72,7 +72,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionPan"/>
    <addaction name="actionAuto"/>
    <addaction name="separator"/>
    <addaction name="actionCoords"/>
@@ -80,19 +79,6 @@
    <addaction name="separator"/>
    <addaction name="actionRuler"/>
   </widget>
-  <action name="actionPan">
-   <property name="icon">
-    <iconset>
-     <normalon>:/plot/pan</normalon>
-    </iconset>
-   </property>
-   <property name="text">
-    <string>Help</string>
-   </property>
-   <property name="shortcut">
-    <string>P</string>
-   </property>
-  </action>
   <action name="actionZoom">
    <property name="icon">
     <iconset resource="main_window_rc.qrc">
@@ -250,22 +236,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>actionPan</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindowPlot</receiver>
-   <slot>pan()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>399</x>
-     <y>299</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>actionZoom</sender>
    <signal>triggered()</signal>
    <receiver>MainWindowPlot</receiver>
@@ -301,7 +271,6 @@
  <slots>
   <slot>auto_scale()</slot>
   <slot>replot()</slot>
-  <slot>pan()</slot>
   <slot>zoom()</slot>
   <slot>set_position_track(bool)</slot>
   <slot>set_show_pins(bool)</slot>

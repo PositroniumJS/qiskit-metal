@@ -93,7 +93,12 @@ that satisfies both. Drift is the failure mode; CI prevents it. Do not
 2. **`renderers/renderer_ansys_pyaedt/`** — same constraint for the
    pyaedt-based replacement.
 3. **`_gui/` and everything inside it** — requires interactive Qt
-   session to verify behavior.
+   session to verify behavior. **Startup, teardown, stylesheet handling
+   and persisted window state additionally require reading
+   `docs/architecture/gui_crash_defenses.md` first.** Those paths carry
+   defenses from a five-release segfault hunt (issue #1048) that look
+   removable and are not; CI passing is not sufficient evidence there,
+   because the reported crashes never reproduced on CI runners.
 4. **The pyEPR integration bridge** (`renderer_ansys/parse.py`,
    `solution_types.py` interaction with `pyEPR.solution_types`).
    Cross-repo coordination required.
@@ -139,6 +144,7 @@ Don't reach for `_dev/` as a halfway house — it's still public.
 | `.claude/context/architecture.md` | When you need to make structural changes — class hierarchy, option flow, renderer dispatch, lazy-Qt design. |
 | `.claude/context/ecosystem.md` | When making roadmap / API / version decisions — who the users are, the pyEPR/pyaedt/AWS-Palace relationships, the v0.7.0 lite-by-default plan. |
 | `docs/architecture/renderer_protocol.md` | When adding or modifying a renderer. The full inheritance map and override matrix. |
+| `docs/architecture/gui_crash_defenses.md` | **Before touching GUI startup, teardown, stylesheet handling, or persisted window state.** The four distinct failure modes behind issue #1048, every defense and what it guards, the ordering constraints (notably: the crash cookie must stay set across `show()`), and the changes that look safe but reintroduce segfaults. |
 | `docs/headless-usage.rst` | When working on the Qt-free path or onboarding flow. |
 
 ## Adding a new QComponent
@@ -207,8 +213,7 @@ component, which is too slow for a hot docs-build path).
 ## Testing & CI quick reference
 
 - Full suite: `QISKIT_METAL_HEADLESS=1 uv run pytest tests/` (~30s)
-- Lint: `uvx ruff check src` (currently 13 known findings, all in
-  HFSS/`_gui/` zones — see lessons-learned)
+- Lint: `uvx ruff check src` (clean, 0 findings — see Status snapshot)
 - Format: `uvx ruff format src`
 - Docs build: `tox -e docs`
 - Env-drift check: `uv run scripts/check_env_consistency.py`
@@ -217,9 +222,13 @@ CI matrix on every PR: 9 test combos (py3.10/3.11/3.12 ×
 ubuntu/macos/windows) + `lint` + `env-consistency` + `coverage` +
 `tests-lite` (including notebook-execute).
 
-## Status snapshot (as of v0.7.4, June 2026)
+## Status snapshot (as of v0.8.0, August 2026)
 
-- Latest release: **v0.7.4** on PyPI
+- Latest release: **v0.8.0** on PyPI — design-rule checking
+  (`qiskit_metal.validation`, #1169), the `QMplRenderer` die outline,
+  and a hero-gif refresh, no breaking changes. (**Note:** a `v0.7.7`
+  tag/GitHub Release exist on `a7efeeb1` but were never published to
+  PyPI — see `changelog.md`. PyPI went 0.7.6 → 0.8.0 directly.)
 - Test count: **~496 collected** (lite local run; the `_gui` suite
   adds more under the Qt/Xvfb CI jobs), 0 failing, 0 flaky in CI
 - Lite-by-default (shipped in v0.7.0): `qm.view(design)` and headless

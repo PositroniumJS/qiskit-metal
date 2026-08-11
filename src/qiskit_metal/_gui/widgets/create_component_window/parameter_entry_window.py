@@ -23,7 +23,7 @@ from collections import OrderedDict
 from collections.abc import Callable
 from inspect import signature
 from pathlib import Path
-from typing import TYPE_CHECKING, Type, Union
+from typing import TYPE_CHECKING, Type, Union, get_args
 
 import numpy as np
 from PySide6 import QtGui, QtWidgets
@@ -345,7 +345,6 @@ class ParameterEntryWindow(QMainWindow):
             def_con_pads = "_default_connection_pads"
             con_pads = "connection_pads"
             if def_con_pads in param_dict[arg_options]:
-                print(param_dict[arg_options])
                 if (
                     con_pads not in param_dict[arg_options]
                     or len(param_dict[arg_options][con_pads]) < 1
@@ -362,7 +361,19 @@ class ParameterEntryWindow(QMainWindow):
     @staticmethod
     def is_param_usable(param):
         """Determines if a given parameter is usable."""
-        ignore_params = {"self", "design", "make", "kwargs", "args"}
+        # ``component_template`` is a registration-time knob, not a per-instance
+        # option: it is merged into ``design.template_options[<class>]`` the first
+        # time a class is registered, so anything entered here persists for every
+        # later instance of that class in the design. Never synthesize a value for
+        # it -- leave it at its ``None`` default.
+        ignore_params = {
+            "self",
+            "design",
+            "make",
+            "kwargs",
+            "args",
+            "component_template",
+        }
         if param.name in ignore_params:
             return False
 
@@ -382,7 +393,32 @@ class ParameterEntryWindow(QMainWindow):
         if self._gui is not None:  # for the sake of testing, we won't have gui
             self._gui.refresh()
             self._gui.autoscale()
+        self.close_window()
+
+    def close_window(self):
+        """Close this window, including the dock that wraps it.
+
+        ``create_parameter_entry_window`` puts this ``QMainWindow`` inside a
+        floating ``QDockWidget``, so closing only ``self`` hides the contents
+        and leaves an empty dock frame behind.
+        """
+        dock = getattr(self, "dock_widget", None)
+        if dock is not None:
+            dock.close()
         self.close()
+
+    def keyPressEvent(self, event):
+        """Close the window on Escape.
+
+        Only reached when no child consumed the key first, so Escape still
+        cancels an in-progress cell edit in the parameter tree rather than
+        discarding the whole form.
+        """
+        if event.key() == Qt.Key_Escape:
+            self.close_window()
+            event.accept()
+            return
+        super().keyPressEvent(event)
 
     @QComponentParameterEntryExceptionDecorators.entry_exception_pop_up_warning
     def traverse_model_to_create_dictionary(self):
@@ -471,6 +507,13 @@ def dockify(main_window, docked_title, gui):
     # Dockify
     main_window.dock_widget = QDockWidget(docked_title, gui.main_window)
     dock = main_window.dock_widget
+    # QMainWindow.saveState() (triggered on every close()) warns for any
+    # QDockWidget with no objectName -- harmless, but noisy every time a
+    # create-component window is opened and closed. Sanitized from the
+    # title since it's the one thing guaranteed to exist here and be
+    # reasonably descriptive; uniqueness doesn't matter, this dock is never
+    # looked up by name.
+    dock.setObjectName("dockCreateComponent_" + "".join(docked_title.split()))
     dock.setWidget(main_window)
 
     dock.setAllowedAreas(Qt.RightDockWidgetArea)
@@ -509,6 +552,16 @@ def create_default_from_type(my_t: type, param_name: str = None):
     """
     if param_name is not None:
         return param_name + "-" + str(random.randint(0, 1000))
+
+    # Unwrap `X | None` / `Optional[X]` annotations (e.g. QComponent.__init__'s
+    # `component_template: Dict | None`) to the underlying type X, so the checks
+    # below still match it instead of falling through to the np.ndarray default.
+    union_args = get_args(my_t)
+    if union_args:
+        non_none_args = [a for a in union_args if a is not type(None)]
+        if len(non_none_args) == 1:
+            my_t = non_none_args[0]
+
     if my_t is int:
         return 0
     elif my_t is float:

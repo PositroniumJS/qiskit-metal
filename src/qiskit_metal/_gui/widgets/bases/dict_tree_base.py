@@ -286,6 +286,18 @@ class QTreeModel_Base(QAbstractItemModel):
                 self.endResetModel()
             if self._view:
                 self._view.autoresize_columns()
+                self._after_reset()
+
+    def _after_reset(self):
+        """Hook run after any full model reset (``auto_refresh`` and
+        ``refresh``/``load``), for subclasses that need to reassert
+        view-level state a reset wipes out -- most notably expanded rows,
+        since ``beginResetModel``/``endResetModel`` collapses everything
+        and there is no general way to preserve arbitrary expand state
+        across an unknown tree shape. No-op here: the component/pin option
+        trees are meant to come up collapsed. See
+        ``QTreeModel_Chips._after_reset`` for the one model that isn't.
+        """
 
     def refresh(self):
         """Force refresh.
@@ -297,6 +309,8 @@ class QTreeModel_Base(QAbstractItemModel):
         self.load()  # rebuild the tree; handles beginResetModel and endResetModel
         parent_index = self.createIndex(0, 0, self.root)
         self._row_count = self.rowCount(parent_index)
+        if self._view:
+            self._after_reset()
         # finally:
         #     # self.endResetModel()
 
@@ -486,6 +500,13 @@ class QTreeModel_Base(QAbstractItemModel):
                             dic[lbl] = value
                         if self.optionstype == "component":
                             self.component.rebuild()
+                            self.gui.refresh()
+                        elif self.optionstype == "chip":
+                            # Chip geometry is shared: the die outline and
+                            # every component's placement are derived from it,
+                            # so a chip edit needs a full design rebuild
+                            # rather than one component's.
+                            self.design.rebuild()
                             self.gui.refresh()
                         return True
         return False
