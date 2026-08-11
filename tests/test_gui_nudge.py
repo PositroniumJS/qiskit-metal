@@ -217,6 +217,17 @@ try:
     # hand focus to the variables table (RightClickView), so arrows
     # worked exactly once -- movement must hold on every press.
     for press in range(3):
+        if press == 2:
+            # A full rebuild (the R shortcut) between presses: selection,
+            # highlight, and canvas focus must all survive it, so the
+            # user can keep arrowing without re-clicking the component.
+            QTest.keyClick(app.focusWidget(), Qt.Key_R)
+            for _ in range(30):
+                app.processEvents()
+            assert gui.selected_component == "Q1", (
+                "rebuild dropped the selection"
+            )
+            print("MARKER_REBUILD_KEPT_SELECTION", flush=True)
         before = design.components["Q1"].options.pos_x
         QTest.keyClick(app.focusWidget(), Qt.Key_Right)
         for _ in range(20):
@@ -252,6 +263,7 @@ sys.exit(0)
             "MARKER_SELECTED",
             "MARKER_MOVED_1",
             "MARKER_MOVED_2",
+            "MARKER_REBUILD_KEPT_SELECTION",
             "MARKER_MOVED_3",
             "MARKER_DONE",
         ):

@@ -766,6 +766,17 @@ fsync'd, written as the first Python instruction of
 guarded code runs, or its persistence isn't a real disk barrier, it
 will eventually miss exactly the crash it exists for.
 
+**Full-GUI lifecycle tests belong in subprocesses.** Two separate CI
+rounds died the same way: an in-process test that constructs a real
+MetalGUI (first the stress test, then the click-and-arrow test) lost
+the nondeterministic teardown race on a slow runner and the segfault
+killed the whole pytest process, cancelling the rest of the matrix.
+Marker-based subprocess isolation keeps the contract strict while
+containing the blast. Corollary for QTest synthetic clicks: matplotlib
+transforms are physical pixels, Qt wants logical -- divide by
+``devicePixelRatioF()`` or clicks silently miss on Retina while
+passing on CI's ratio-1 runners.
+
 **Headless-local passing says nothing about the on-screen crash
 class.** Offscreen never executes the paint/QPA paths where these
 crashes live, and one fast local run rarely samples a race that 11

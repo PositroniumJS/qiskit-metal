@@ -1564,6 +1564,22 @@ class MetalGUI(QMainWindowBaseHandler):
         if autoscale:
             self.autoscale()
 
+        # Keep the selection across the rebuild. Without this, the
+        # workflow "click a component, arrow-key it around, press R,
+        # keep arrowing" broke at the R: the replot dropped the
+        # highlight and the widget refresh dropped canvas focus, so the
+        # user had to re-click the component to continue. If the
+        # selected component no longer exists (deleted then rebuilt),
+        # clear the stale selection instead.
+        name = self.selected_component
+        if name is not None:
+            if self.design is not None and name in self.design.components:
+                self.highlight_components([name], show_pins=False)
+                self._show_selection_hint(name)
+                self._refocus_canvas()
+            else:
+                self.clear_selection()
+
     def refresh(self):
         """Refreshes everything. Overkill in general.
 
