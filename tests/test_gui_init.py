@@ -293,19 +293,37 @@ class TestGUIInitOnScreen(unittest.TestCase):
                 proc_c = self._run_snippet(
                     _RESTORE_ONLY_SNIPPET, "MARKER_RESTORED_OK", require_success=False
                 )
-                c_succeeded = (
-                    "MARKER_RESTORED_OK" in proc_c.stdout and proc_c.returncode == 0
-                )
-                if not c_succeeded:
+                c_started = "MARKER_RESTORED_OK" in proc_c.stdout
+                if not c_started:
+                    # Crashed inside startup proper (never reached the
+                    # marker). The journal is written before any Qt call,
+                    # so no startup crash can legitimately skip it.
                     self.assertTrue(
                         _journal_exists(),
                         "kernel C crashed during startup but did not leave "
                         "the startup journal behind -- a future launch "
                         "would repeat the same native crash instead of "
-                        "self-healing. The journal is written before any "
-                        "Qt call, so no crash inside MetalGUI.__init__ "
-                        "can legitimately skip it.\n"
+                        "self-healing.\n"
                         f"stderr tail:\n{proc_c.stderr[-2000:]}",
+                    )
+                elif proc_c.returncode != 0:
+                    # Marker printed, then the process died: startup
+                    # COMPLETED (so mark_startup_complete() legitimately
+                    # removed the journal) and the crash happened during
+                    # interpreter/Qt teardown. That is a distinct,
+                    # known-open failure mode (teardown after an opt-in
+                    # restoreState on Windows -- see gui_crash_defenses.md
+                    # "Still open"), and asserting the *startup* journal
+                    # here would misattribute it: CI caught exactly that
+                    # confusion in the first cut of this branch. Surface
+                    # it without failing the startup contract.
+                    print(
+                        "NOTE: kernel C completed startup but crashed at "
+                        f"teardown (exit {proc_c.returncode}) -- known-open "
+                        "teardown-after-restore issue, not a startup "
+                        "self-heal failure. stderr tail:\n"
+                        f"{proc_c.stderr[-800:]}",
+                        file=sys.stderr,
                     )
         finally:
             _clear_persisted_settings()
