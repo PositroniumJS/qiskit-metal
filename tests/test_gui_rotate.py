@@ -59,6 +59,10 @@ class FakeGUI:
 
     rotate_component = MetalGUI.rotate_component
     rotate_selected = MetalGUI.rotate_selected
+    # The real methods re-assert canvas focus after rotating; the stub
+    # has no canvas, and the real implementation no-ops on canvas=None.
+    _refocus_canvas = MetalGUI._refocus_canvas
+    canvas = None
 
     def __init__(self, design):
         self.design = design

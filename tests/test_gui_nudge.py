@@ -183,23 +183,54 @@ class TestRealClickAndKeyDelivery:
 
             ax = canvas.figure.axes[0]
             disp_x, disp_y = ax.transData.transform((0, 0))
-            pos = QPoint(int(disp_x), int(canvas.figure.bbox.height - disp_y))
-            QTest.mousePress(canvas, QtNS.LeftButton, QtNS.NoModifier, pos)
-            for _ in range(10):
-                app.processEvents()
-            QTest.mouseRelease(canvas, QtNS.LeftButton, QtNS.NoModifier, pos)
-            for _ in range(20):
-                app.processEvents()
+            # matplotlib's transform yields PHYSICAL pixels; Qt mouse
+            # events take LOGICAL widget coordinates. On a HiDPI display
+            # (macOS Retina, devicePixelRatio 2) the unscaled point lands
+            # at twice the correct offset and the pick silently misses --
+            # CI's offscreen runners have ratio 1, which hid this.
+            dpr = canvas.devicePixelRatioF()
+            pos = QPoint(
+                int(disp_x / dpr),
+                int((canvas.figure.bbox.height - disp_y) / dpr),
+            )
+            # Retry the click a few times: the very first MetalGUI in a
+            # process can miss the first synthetic pick (matplotlib's
+            # first paint / font-cache warm-up hasn't completed), which
+            # made this test order-dependent -- green inside the full
+            # suite, red when the file ran alone.
+            for _attempt in range(4):
+                QTest.mousePress(canvas, QtNS.LeftButton, QtNS.NoModifier, pos)
+                for _ in range(10):
+                    app.processEvents()
+                QTest.mouseRelease(canvas, QtNS.LeftButton, QtNS.NoModifier, pos)
+                for _ in range(20):
+                    app.processEvents()
+                if gui.selected_component == "Q1":
+                    break
+                QTest.qWait(150)
 
-            assert gui._selected_component == "Q1"
+            assert gui.selected_component == "Q1"
 
-            before = design.components["Q1"].options.pos_x
-            QTest.keyClick(app.focusWidget(), QtNS.Key_Right)
-            for _ in range(20):
-                app.processEvents()
-            after = design.components["Q1"].options.pos_x
-
-            assert after != before
+            # THREE consecutive presses, each sent to whatever widget
+            # actually holds focus at that moment -- not just one. The
+            # first nudge's refresh() used to hand keyboard focus to the
+            # variables table (RightClickView), so arrows worked exactly
+            # once and then navigated that table instead ("I'm able to
+            # use up, down, left, right keys only once" -- user report).
+            # Asserting movement on every press pins the
+            # _refocus_canvas() fix.
+            for press in range(3):
+                before = design.components["Q1"].options.pos_x
+                QTest.keyClick(app.focusWidget(), QtNS.Key_Right)
+                for _ in range(20):
+                    app.processEvents()
+                after = design.components["Q1"].options.pos_x
+                assert after != before, (
+                    f"arrow press {press + 1} did not move the component "
+                    f"-- keyboard focus was stolen from the canvas "
+                    f"(focus is on "
+                    f"{type(app.focusWidget()).__name__})"
+                )
         finally:
             gui.main_window.force_close = True
             gui.main_window.close()
