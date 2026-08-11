@@ -45,6 +45,44 @@ class FakeAction:
         """Mirror QAction.objectName."""
         return self._name
 
+    def menu(self):  # noqa: PLR6301
+        """Mirror QAction.menu -- a plain action carries no submenu.
+
+        Returns None (no submenu); written explicitly because the menu
+        walker branches on ``is not None``.
+        """
+        return None  # noqa: RET501
+
+
+class FakeMenu:
+    """Records what gets added to it; mirrors the QMenu bits used."""
+
+    def __init__(self, actions=()):
+        self._actions = list(actions)
+
+    def actions(self):
+        """Mirror QMenu.actions."""
+        return list(self._actions)
+
+    def addAction(self, action):
+        """Mirror QMenu.addAction."""
+        self._actions.append(action)
+
+
+class FakeMenuAction:
+    """A menu bar entry: an action whose ``menu()`` is the submenu."""
+
+    def __init__(self, menu):
+        self._menu = menu
+
+    def menu(self):
+        """Mirror QAction.menu."""
+        return self._menu
+
+    def objectName(self):
+        """Mirror QAction.objectName."""
+        return ""
+
 
 class FakeToolbar:
     """Records what the layout adds to it."""
@@ -112,6 +150,19 @@ def gui_fixture():
                 setattr(gui.ui, name, FakeAction(name))
     for name in tl.DEMOTED_ACTIONS:
         setattr(gui.ui, name, FakeAction(name))
+
+    # Menu bar mirroring the real .ui: every menu a demotion targets
+    # exists, and actionDelete_All is already in menuDesign exactly as
+    # main_window_ui.ui places it -- while actionBuildHistory is in no
+    # menu at all, which is the state that made it unreachable.
+    menus = {}
+    for _name, (menu_name, _reason) in tl.DEMOTED_ACTIONS.items():
+        menus.setdefault(menu_name, FakeMenu())
+    for menu_name, menu in menus.items():
+        setattr(gui.ui, menu_name, menu)
+    if "menuDesign" in menus:
+        menus["menuDesign"].addAction(gui.ui.actionDelete_All)
+    gui.ui.menubar = FakeMenu([FakeMenuAction(m) for m in menus.values()])
     return gui
 
 
@@ -129,8 +180,52 @@ class TestSpecIntegrity:
 
     def test_every_demotion_states_a_reason(self):
         """The reason distinguishes a decision from an accident."""
-        for name, reason in tl.DEMOTED_ACTIONS.items():
+        for name, (_menu, reason) in tl.DEMOTED_ACTIONS.items():
             assert reason.strip(), f"{name} demoted with no reason"
+
+    def test_every_demotion_names_a_menu(self):
+        """Demoting means "moved to a menu", so the menu is required
+        data -- not a claim in a comment. actionBuildHistory was demoted
+        with only a comment saying it stayed in the menus; it was in no
+        menu, and the Build History window vanished from the UI."""
+        for name, (menu, _reason) in tl.DEMOTED_ACTIONS.items():
+            assert menu and menu.startswith("menu"), (
+                f"{name} demoted without naming a real menu (got {menu!r})"
+            )
+
+
+class TestDemotedActionsStayReachable:
+    """A demoted action the user cannot reach is a deleted action."""
+
+    def test_action_in_no_menu_is_added_to_its_designated_menu(self, gui):
+        """The actionBuildHistory regression, pinned."""
+        tl.ensure_demoted_actions_in_menus(gui)
+
+        menu_name, _reason = tl.DEMOTED_ACTIONS["actionBuildHistory"]
+        placed = [a.objectName() for a in getattr(gui.ui, menu_name).actions()]
+        assert "actionBuildHistory" in placed
+
+    def test_action_already_in_a_menu_is_left_alone(self, gui):
+        """The .ui already puts actionDelete_All in menuDesign; adding it
+        again would render a duplicate entry."""
+        tl.ensure_demoted_actions_in_menus(gui)
+
+        placed = [a.objectName() for a in gui.ui.menuDesign.actions()]
+        assert placed.count("actionDelete_All") == 1
+
+    def test_every_demoted_action_ends_up_reachable(self, gui):
+        """The invariant itself, over the whole table."""
+        tl.ensure_demoted_actions_in_menus(gui)
+
+        reachable = tl._menu_action_names(gui)
+        for name in tl.DEMOTED_ACTIONS:
+            assert name in reachable, f"{name} is demoted but unreachable"
+
+    def test_unknown_menu_is_refused(self, gui, monkeypatch):
+        """A typo in the menu name must fail loudly, not silently drop."""
+        monkeypatch.setitem(tl.DEMOTED_ACTIONS, "actionBuildHistory", ("menuNope", "x"))
+        with pytest.raises(RuntimeError, match="menuNope"):
+            tl.ensure_demoted_actions_in_menus(gui)
 
 
 class TestApplyLayout:
