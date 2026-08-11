@@ -130,6 +130,13 @@ gui.main_window.close()
 See [`docs/headless-usage.rst`](./docs/headless-usage.rst) for the full
 no-Qt workflow and what to use when.
 
+Stability: the GUI self-heals after a crashed launch (startup journal),
+and window layout is no longer auto-restored by default — the historical
+source of the "kernel appears to have died" crashes
+([#1048](https://github.com/qiskit-community/qiskit-metal/issues/1048)).
+See the [FAQ](https://qiskit-community.github.io/qiskit-metal/faq.html)
+for the related environment switches.
+
 </details>
 
 **Next:** browse the [tutorial notebooks](./tutorials/) (40+ Jupyter notebooks
