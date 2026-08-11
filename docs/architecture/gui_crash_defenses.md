@@ -141,10 +141,12 @@ output. Treat **any** `Internal C++ object ... already deleted` anywhere —
 including "cosmetic" ones after a passing suite — as a live use-after-free
 report, never as noise: one was dismissed as a benign at-exit artifact
 here and CI then demonstrated the same leak class as real segfaults.
-(Honest sensitivity note: the stress test did not fail on the pre-fix
-code — clean mid-session cycles are auto-cancelled by PySide6; the at-exit
-orderings that actually crash are exercised by the subprocess tests in
-`test_gui_init.py`/`test_gui_teardown.py`.)
+(Sensitivity: on a fast dev machine the stress cycles rarely lose the
+race — PySide6 auto-cancels bound-method singleShots on clean mid-session
+destruction — but on a slow macOS CI runner the first, in-process version
+of this test reproduced mode 4 as a native `-11` that killed the whole
+pytest process. It now runs its cycles in a subprocess so a native loss
+of the race is attributed and reported instead of destroying the run.)
 
 ### Bisection toggles
 
