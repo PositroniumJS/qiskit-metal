@@ -135,102 +135,137 @@ class TestOffsetLength:
 
 
 class TestRealClickAndKeyDelivery:
-    """A click then an arrow key, injected as genuine Qt events end to end.
+    """A click then arrow keys, injected as genuine Qt events end to end.
 
     Everything above tests the pure arithmetic helpers; TestClickVersusDrag
     in test_gui_click_select.py calls _on_pick_release() directly with a
     fake event, bypassing Qt's own dispatch entirely. Neither would have
-    caught the actual bug: FigureCanvas (PlotCanvas's base class) owns
-    keyPressEvent and never propagates an unhandled key to its parent, so
-    a handler that lived on the parent QMainWindowPlot was simply
-    unreachable -- selection and focus both worked, but the arrow key
-    silently did nothing. Real QTest-injected events go through the same
-    Qt dispatch a live user's input does and are the only way to see that.
+    caught the actual bugs this scenario has produced: (a) FigureCanvas
+    owns keyPressEvent and never propagates an unhandled key to its parent,
+    so a handler on QMainWindowPlot was unreachable; (b) the refresh()
+    after the first nudge handed keyboard focus to the variables table, so
+    arrows worked exactly once. Real QTest-injected events go through the
+    same Qt dispatch a live user's input does and are the only way to see
+    either.
+
+    Runs in a SUBPROCESS: this was the last in-process full-MetalGUI
+    construction in the suite, and a slow macOS CI runner lost the
+    known-open teardown race inside it, segfaulting the whole pytest
+    process (issue #1048 failure mode 4 -- same reason the lifecycle
+    stress test was isolated). The focus contract stays strict via
+    markers; only a native death AFTER the contract is proven is
+    downgraded to a NOTE.
     """
 
-    def test_click_then_arrow_moves_the_component(self):
-        """The exact sequence a user performs: click to select, then an
-        arrow key. Both must be genuine Qt events for this to mean
-        anything -- see the class docstring."""
-        from PySide6.QtWidgets import QApplication
-        from PySide6.QtTest import QTest
-        from PySide6.QtCore import Qt as QtNS, QPoint
-        from qiskit_metal._gui.main_window import MetalGUI
-        from qiskit_metal.qlibrary.qubits.transmon_pocket import TransmonPocket
+    _SNIPPET = """
+import faulthandler, sys
+faulthandler.enable()
+from PySide6.QtWidgets import QApplication
+from PySide6.QtTest import QTest
+from PySide6.QtCore import Qt, QPoint
+from qiskit_metal.designs.design_planar import DesignPlanar
+from qiskit_metal._gui.main_window import MetalGUI
+from qiskit_metal.qlibrary.qubits.transmon_pocket import TransmonPocket
 
-        # MetalGUI directly, not qm.gui(design): the latter branches on
-        # QISKIT_METAL_HEADLESS (set for this whole suite run) and returns
-        # the headless matplotlib viewer instead, which has no QApplication
-        # and no real focus/keyboard dispatch to test.
-        design = DesignPlanar()
-        gui = MetalGUI(design)
-        try:
-            gui.main_window.show()
-            app = QApplication.instance()
-            TransmonPocket(design, "Q1")
-            gui.rebuild()
-            gui.autoscale()
-            for _ in range(20):
-                app.processEvents()
+# MetalGUI directly, not qm.gui(design): the latter branches on
+# QISKIT_METAL_HEADLESS and returns the headless viewer, which has no
+# QApplication and no real focus/keyboard dispatch to test.
+design = DesignPlanar()
+gui = MetalGUI(design)
+app = QApplication.instance()
+try:
+    gui.main_window.show()
+    TransmonPocket(design, "Q1")
+    gui.rebuild()
+    gui.autoscale()
+    for _ in range(20):
+        app.processEvents()
 
-            canvas = gui.canvas
-            # Start focus somewhere else, matching the real bug report:
-            # focus stays on whatever dock last had it until proven
-            # otherwise.
-            gui.main_window.ui.tableComponents.setFocus()
-            for _ in range(10):
-                app.processEvents()
+    canvas = gui.canvas
+    # Start focus somewhere else, matching the real bug report: focus
+    # stays on whatever dock last had it until proven otherwise.
+    gui.main_window.ui.tableComponents.setFocus()
+    for _ in range(10):
+        app.processEvents()
 
-            ax = canvas.figure.axes[0]
-            disp_x, disp_y = ax.transData.transform((0, 0))
-            # matplotlib's transform yields PHYSICAL pixels; Qt mouse
-            # events take LOGICAL widget coordinates. On a HiDPI display
-            # (macOS Retina, devicePixelRatio 2) the unscaled point lands
-            # at twice the correct offset and the pick silently misses --
-            # CI's offscreen runners have ratio 1, which hid this.
-            dpr = canvas.devicePixelRatioF()
-            pos = QPoint(
-                int(disp_x / dpr),
-                int((canvas.figure.bbox.height - disp_y) / dpr),
+    ax = canvas.figure.axes[0]
+    disp_x, disp_y = ax.transData.transform((0, 0))
+    # matplotlib transforms yield PHYSICAL pixels; Qt mouse events take
+    # LOGICAL widget coordinates. On HiDPI (Retina, ratio 2) the
+    # unscaled point lands at twice the correct offset and the pick
+    # silently misses -- CI's ratio-1 offscreen runners hid this.
+    dpr = canvas.devicePixelRatioF()
+    pos = QPoint(int(disp_x / dpr), int((canvas.figure.bbox.height - disp_y) / dpr))
+
+    # Retry: the first MetalGUI in a process can miss the first synthetic
+    # pick before matplotlib's first-paint/font-cache warm-up completes.
+    for _attempt in range(4):
+        QTest.mousePress(canvas, Qt.LeftButton, Qt.NoModifier, pos)
+        for _ in range(10):
+            app.processEvents()
+        QTest.mouseRelease(canvas, Qt.LeftButton, Qt.NoModifier, pos)
+        for _ in range(20):
+            app.processEvents()
+        if gui.selected_component == "Q1":
+            break
+        QTest.qWait(150)
+    assert gui.selected_component == "Q1", "click-select failed"
+    print("MARKER_SELECTED", flush=True)
+
+    # THREE consecutive presses, each sent to whatever widget actually
+    # holds focus at that moment. The first nudge's refresh() used to
+    # hand focus to the variables table (RightClickView), so arrows
+    # worked exactly once -- movement must hold on every press.
+    for press in range(3):
+        before = design.components["Q1"].options.pos_x
+        QTest.keyClick(app.focusWidget(), Qt.Key_Right)
+        for _ in range(20):
+            app.processEvents()
+        after = design.components["Q1"].options.pos_x
+        assert after != before, (
+            f"arrow press {press + 1} did not move the component -- "
+            f"keyboard focus was stolen from the canvas (focus is on "
+            f"{type(app.focusWidget()).__name__})"
+        )
+        print(f"MARKER_MOVED_{press + 1} {after}", flush=True)
+    print("MARKER_DONE", flush=True)
+finally:
+    gui.main_window.force_close = True
+    gui.main_window.close()
+sys.exit(0)
+"""
+
+    def test_click_then_arrows_move_the_component(self):
+        """The exact sequence a user performs: click to select, then
+        three arrow presses -- run in a child process, focus contract
+        asserted via markers."""
+        import subprocess
+        import sys as _sys
+
+        proc = subprocess.run(
+            [_sys.executable, "-X", "faulthandler", "-c", self._SNIPPET],
+            capture_output=True,
+            text=True,
+            timeout=240,
+        )
+        for marker in (
+            "MARKER_SELECTED",
+            "MARKER_MOVED_1",
+            "MARKER_MOVED_2",
+            "MARKER_MOVED_3",
+            "MARKER_DONE",
+        ):
+            assert marker in proc.stdout, (
+                f"focus/nudge contract not proven: {marker} missing.\n"
+                f"stdout:\n{proc.stdout}\n"
+                f"stderr tail:\n{proc.stderr[-2000:]}"
             )
-            # Retry the click a few times: the very first MetalGUI in a
-            # process can miss the first synthetic pick (matplotlib's
-            # first paint / font-cache warm-up hasn't completed), which
-            # made this test order-dependent -- green inside the full
-            # suite, red when the file ran alone.
-            for _attempt in range(4):
-                QTest.mousePress(canvas, QtNS.LeftButton, QtNS.NoModifier, pos)
-                for _ in range(10):
-                    app.processEvents()
-                QTest.mouseRelease(canvas, QtNS.LeftButton, QtNS.NoModifier, pos)
-                for _ in range(20):
-                    app.processEvents()
-                if gui.selected_component == "Q1":
-                    break
-                QTest.qWait(150)
-
-            assert gui.selected_component == "Q1"
-
-            # THREE consecutive presses, each sent to whatever widget
-            # actually holds focus at that moment -- not just one. The
-            # first nudge's refresh() used to hand keyboard focus to the
-            # variables table (RightClickView), so arrows worked exactly
-            # once and then navigated that table instead ("I'm able to
-            # use up, down, left, right keys only once" -- user report).
-            # Asserting movement on every press pins the
-            # _refocus_canvas() fix.
-            for press in range(3):
-                before = design.components["Q1"].options.pos_x
-                QTest.keyClick(app.focusWidget(), QtNS.Key_Right)
-                for _ in range(20):
-                    app.processEvents()
-                after = design.components["Q1"].options.pos_x
-                assert after != before, (
-                    f"arrow press {press + 1} did not move the component "
-                    f"-- keyboard focus was stolen from the canvas "
-                    f"(focus is on "
-                    f"{type(app.focusWidget()).__name__})"
-                )
-        finally:
-            gui.main_window.force_close = True
-            gui.main_window.close()
+        if proc.returncode != 0:
+            print(
+                "NOTE: click-and-arrow child proved the focus contract "
+                f"(all markers) but exited {proc.returncode} during "
+                "teardown -- known-open at-exit issue (#1048), see "
+                "gui_crash_defenses.md 'Still open'. stderr tail:\n"
+                f"{proc.stderr[-800:]}",
+                file=_sys.stderr,
+            )
