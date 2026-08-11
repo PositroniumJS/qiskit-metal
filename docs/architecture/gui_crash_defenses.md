@@ -115,12 +115,27 @@ observed being silently ignored on the affected driver.
 
 `_teardown_qt_widgets` runs via `atexit`, using `deleteLater()` — never
 `close()`, which triggers the "save unsaved changes?" modal and blocks forever
-headless. It **stops every `QTimer` under every top-level widget before
-queueing any deletion**: the single `processEvents()` pass that drains the
-`deleteLater` queue also dispatches any due timers, and a timer callback
-interleaving with the deletions lands on a half-destroyed widget — a native
-use-after-free at interpreter exit (the pristine-subprocess `-11` exits in
-the CI matrix).
+headless. Order matters, and each step exists for a reason:
+
+1. **Stop every `QTimer` under every top-level widget** before queueing any
+   deletion: the `processEvents()` pass that drains the `deleteLater` queue
+   also dispatches due timers, and a timer callback interleaving with the
+   deletions lands on a half-destroyed widget — a native use-after-free at
+   interpreter exit (the pristine-subprocess `-11` exits in the CI matrix).
+2. `deleteLater()` all top-level widgets, then `processEvents()`.
+3. **Drain the deferred-delete queue explicitly** with
+   `sendPostedEvents(None, QEvent.DeferredDelete)` — DeferredDelete events
+   are only handled by `exec()` loops or this exact call, not by a plain
+   `processEvents()` (see the `deleteLater` trap below).
+4. **Destroy the `QApplication` itself** (`shiboken6.delete(app)`) while
+   the interpreter is still fully alive. Without this, the C++ app — and
+   with it the QPA platform plugin and Qt's internal threads — is
+   destroyed during `Py_FinalizeEx` in whatever order module teardown
+   happens to produce; that destructor-ordering race was the residue
+   behind "completed everything, then exited −11" on slow runners.
+   `logging.raiseExceptions` is switched off first, since log emission
+   racing stream closure at exit produces un-suppressable
+   "`--- Logging error ---`" spam via `Handler.handleError`.
 
 ### Deferred-callback discipline (failure mode 4's fuel)
 
@@ -160,6 +175,7 @@ them working:
 | `QISKIT_METAL_GUI_NO_PLOT=1` | Skip the matplotlib canvas embed. |
 | `QISKIT_METAL_RESET_UI_SETTINGS=1` | Start from clean persisted state. |
 | `QISKIT_METAL_RESTORE_LAYOUT=1` | Opt in to automatic window-layout restore at startup (off by default since the journal iteration). |
+| `QISKIT_METAL_GUI_NO_ACTIVATE=1` | Quiet mode for automated on-screen runs: `AA_PluginApplication`, so the process never becomes the active app (no focus steal). Used by the pre-push hook; never default — focus-dependent tests need real activation. |
 | `QISKIT_METAL_QT_HARDWARE_GL=1` | Undo the Windows software-GL default. |
 | `QISKIT_METAL_GUI_FORCE_CLOSE=1` | Sets `main_window.force_close = True` at construction, so any `gui.main_window.close()` call skips `ok_to_close()`'s modal instead of hanging headless (see Teardown, above). Some frozen-Qt tutorial notebooks call `close()` as their last cell to demo the API; `_dev/rerun_auto.py` sets this for its `--write-frozen` Qt-display runs. Never set it for an interactive session — the modal is correct there. |
 
@@ -245,18 +261,19 @@ CI: `tests-gui-display` (Linux Xvfb) and `tests-gui-display-windows`
 
 ## Still open
 
-- Failure mode (4), the GC teardown segfault, on all versions.
-- **Windows teardown after an opt-in layout restore** (PR #1180 CI, both
-  windows display jobs): a process that sets
-  `QISKIT_METAL_RESTORE_LAYOUT=1`, restores a saved layout, completes
-  startup, and exits can die with `access violation ... <no Python
-  frame>` during interpreter/Qt teardown. Startup itself is fine (the
-  marker prints; the journal is legitimately closed) — this is a
-  teardown-side remnant of mode (1)/(4) specific to the restored-state
-  widget tree. `test_gui_init.py`'s self-heal test attributes it
-  correctly (a stderr NOTE, not a startup-contract failure) — the first
-  cut asserted the journal on *any* nonzero exit and misfiled this
-  teardown crash as a startup one.
+- Failure mode (4), the GC teardown segfault, on all versions —
+  **substantially narrowed** by the deferred-callback discipline and the
+  completed atexit teardown (explicit `QApplication` destruction, step 4
+  above), but nondeterministic by nature, so treated as reduced rather
+  than proven gone until the CI matrix stays quiet over many runs.
+- **At-exit native crashes on slow runners** (`access violation` /
+  `-11`, `<no Python frame>`, after startup completed): same story —
+  the explicit `QApplication` destruction removes the finalize-time
+  destructor race that produced them. The init/self-heal tests
+  attribute any recurrence as a stderr NOTE (teardown, not startup),
+  and `test_gui_teardown.py` remains the strict exit-cleanliness gate.
+  Two earlier CI rounds misfiled these teardown crashes as startup
+  failures; the marker-printed protocol prevents that.
 - Whether the macOS `show()` → `QLayout::activate()` crash reported against a
   0.7.3 fork is resolved on 0.8.0 — the reporter never confirmed.
 - ~~The at-exit `QCompleter already deleted` artifact~~ — **resolved, and

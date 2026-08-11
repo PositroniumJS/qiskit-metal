@@ -913,6 +913,17 @@ def kick_start_qApp():
         except AttributeError:  # Attribute only exists for Qt >= 5.6
             pass
 
+        # Opt-in quiet mode for automated on-screen runs: with
+        # AA_PluginApplication the process never becomes the active
+        # application on macOS (no menu-bar takeover, no focus steal
+        # from whatever the developer is typing in), while windows
+        # still create and paint normally. NOT the default -- real
+        # users want real activation, and the focus-dependent
+        # regression tests (arrow-key nudge) must exercise the real
+        # path. Set by the pre-push hook for its on-screen GUI gate.
+        if os.environ.get("QISKIT_METAL_GUI_NO_ACTIVATE"):
+            QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_PluginApplication)
+
         qApp = QApplication(sys.argv)
 
         if qApp is None:

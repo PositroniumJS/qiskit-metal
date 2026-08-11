@@ -126,6 +126,16 @@ def _teardown_qt_widgets():
     idempotent and exception-safe: it is only a best-effort cleanup.
     """
     try:
+        # From here to process exit, log emission can race stream closure;
+        # logging catches those internally and prints an un-suppressable
+        # "--- Logging error ---" block per message via handleError()
+        # (so a try/except at the call site never sees it). Turning off
+        # logging.raiseExceptions is the documented switch for exactly
+        # this production-shutdown situation.
+        import logging as _logging
+
+        _logging.raiseExceptions = False
+
         app = QApplication.instance()
         if app is None:
             return
@@ -144,6 +154,29 @@ def _teardown_qt_widgets():
         for widget in list(app.topLevelWidgets()):
             widget.deleteLater()
         app.processEvents()
+
+        # Finish the job: drain the deferred-delete queue explicitly, then
+        # destroy the QApplication itself while the interpreter is still
+        # fully alive. Without this, the C++ QApplication (and with it the
+        # QPA platform plugin and Qt's internal threads) is destroyed
+        # during Py_FinalizeEx in whatever order module teardown happens
+        # to produce -- the destructor-ordering race behind the rare
+        # "completed everything, then exited -11" crashes on slow CI
+        # runners (issue #1048, "Still open" in gui_crash_defenses.md).
+        # Note the doc's trap about deleteLater under processEvents():
+        # DeferredDelete events are only handled by exec() loops or an
+        # explicit sendPostedEvents(None, DeferredDelete) -- which is why
+        # that call is here and a plain processEvents() is not enough.
+        from PySide6.QtCore import QEvent
+
+        app.sendPostedEvents(None, QEvent.DeferredDelete)
+        app.processEvents()
+        try:
+            import shiboken6
+
+            shiboken6.delete(app)
+        except Exception:  # pragma: no cover - best-effort finalization
+            pass
     except Exception:  # pragma: no cover - cleanup must never raise at exit
         pass
 
@@ -1645,6 +1678,21 @@ class MetalGUI(QMainWindowBaseHandler):
         """
         return getattr(self, "_selected_component", None)
 
+    def _refocus_canvas(self):
+        """Give keyboard focus back to the plot canvas after a nudge/rotate.
+
+        ``self.refresh()`` (called after every nudge/rotate so the edit
+        panel shows the new value) repopulates the side docks, and one of
+        them -- observed: the variables table's ``RightClickView`` --
+        ends up with keyboard focus. The next arrow key then navigates
+        that table instead of moving the component, which is why "arrows
+        work exactly once" was reported. Same re-assertion
+        ``_on_pick_release`` does after a click-select.
+        """
+        canvas = getattr(self, "canvas", None)
+        if canvas is not None:
+            canvas.setFocus(Qt.OtherFocusReason)
+
     def nudge_component(self, name: str, dx_mm: float, dy_mm: float) -> bool:
         """Move a component by a displacement in millimetres.
 
@@ -1693,6 +1741,7 @@ class MetalGUI(QMainWindowBaseHandler):
         # Re-assert the highlight: the rebuild cleared the annotations, and
         # losing the outline mid-nudge makes it unclear what is moving.
         self.highlight_components([name], show_pins=False)
+        self._refocus_canvas()
         self.logger.info(f"Nudged {name} to ({new_x}, {new_y})")
         return True
 
@@ -1740,6 +1789,7 @@ class MetalGUI(QMainWindowBaseHandler):
         component.rebuild()
         self.refresh()
         self.highlight_components([name], show_pins=False)
+        self._refocus_canvas()
         self.logger.info(f"Rotated {name} to {options['orientation']}°")
         return True
 
