@@ -20,6 +20,7 @@ from PySide6.QtWidgets import QTableView, QAbstractItemView
 from qiskit_metal._gui.widgets.bases.QWidget_PlaceholderText import (
     QWidget_PlaceholderText,
 )
+from qiskit_metal._gui.utility._toolbox_qt import single_shot
 
 if TYPE_CHECKING:
     from ...main_window import MetalGUI
@@ -41,9 +42,7 @@ class QTableView_Options(QTableView, QWidget_PlaceholderText):
         QWidget_PlaceholderText.__init__(
             self, "Select a QComponent to edit\n\nfrom the QComponents window", self
         )
-        QTimer.singleShot(
-            200, self.style_me
-        )  # not sure whu the ui isnt unpdating these here.
+        single_shot(self, 200, self.style_me)
 
     def style_me(self):
         """Style the widget."""

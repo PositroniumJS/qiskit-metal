@@ -15,6 +15,7 @@ from PySide6.QtGui import QContextMenuEvent
 from PySide6.QtCore import QPoint, QModelIndex, QTimer
 from PySide6.QtWidgets import QInputDialog, QLineEdit, QTableView, QMenu, QMessageBox
 from PySide6.QtWidgets import QAbstractItemView
+from qiskit_metal._gui.utility._toolbox_qt import single_shot
 
 
 class RightClickView(QTableView):
@@ -32,9 +33,7 @@ class RightClickView(QTableView):
         super().__init__(parent)
         self.gui = parent.parent()  # this is not the main gui
 
-        QTimer.singleShot(
-            200, self.style_me
-        )  # not sure whu the ui isnt unpdating these here.
+        single_shot(self, 200, self.style_me)
 
     def style_me(self):
         """Style this widget."""

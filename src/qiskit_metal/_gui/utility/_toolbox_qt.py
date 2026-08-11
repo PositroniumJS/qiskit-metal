@@ -14,11 +14,44 @@
 from types import MethodType
 
 # from PySide6 import QtCore, QtWidgets
-from PySide6.QtCore import QTimer, Qt
+from PySide6.QtCore import QObject, QTimer, Qt
 from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
 from PySide6.QtWidgets import QDockWidget
 
-__all__ = ["blend_colors"]
+__all__ = ["blend_colors", "single_shot"]
+
+
+def single_shot(parent: QObject, ms: int, callback) -> QTimer:
+    """A ``QTimer.singleShot`` replacement whose timer dies with ``parent``.
+
+    ``QTimer.singleShot(ms, bound_method)`` creates an internal timer with
+    no reachable parent. If the object owning ``bound_method`` is destroyed
+    before the timer fires, the callback lands on a dead C++ object — a
+    ``RuntimeError`` when Python catches it, a native use-after-free when
+    it doesn't. Issue #1048's nondeterministic teardown segfaults ("failure
+    mode 4" in ``docs/architecture/gui_crash_defenses.md``) are this class
+    of bug: deferred callbacks outliving the widgets they reference.
+
+    Parenting the timer to the object the callback touches makes Qt stop
+    and destroy the timer during that object's own destruction — the
+    callback can then never fire on a dead target, by construction. Use
+    this for every delayed call in ``_gui/``; never a naked
+    ``QTimer.singleShot`` with a bound method.
+
+    Args:
+        parent (QObject): Owner whose destruction must cancel the callback
+            — almost always the object whose method ``callback`` is.
+        ms (int): Delay in milliseconds.
+        callback: Zero-argument callable.
+
+    Returns:
+        QTimer: The started timer (rarely needed; kept for tests).
+    """
+    timer = QTimer(parent)
+    timer.setSingleShot(True)
+    timer.timeout.connect(callback)
+    timer.start(ms)
+    return timer
 
 
 def blend_colors(color1: QColor, color2: QColor, r: float = 0.2, alpha=255) -> QColor:
@@ -82,7 +115,9 @@ def doShowHighlighWidget(self: QDockWidget, timeout=1500, style_highlight=None):
     # monkey patch class instance:
     # https://stackoverflow.com/questions/28127874/monkey-patching-python-an-instance-method
 
-    QTimer.singleShot(timeout, self.doResetStyle)
+    # Parented to the dock: if it's destroyed before the timeout, the
+    # reset silently never fires instead of calling into a dead widget.
+    single_shot(self, timeout, self.doResetStyle)
 
 
 def doToggleDockWidget(self: QDockWidget, timeout=1500, style_highlight=None):

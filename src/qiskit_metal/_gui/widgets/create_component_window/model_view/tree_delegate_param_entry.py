@@ -25,6 +25,7 @@ from PySide6.QtWidgets import (
 from qiskit_metal._gui.widgets.create_component_window.model_view.tree_model_param_entry import (
     TreeModelParamEntry,
 )
+from qiskit_metal._gui.utility._toolbox_qt import single_shot
 
 #: Leaf names that name a QComponent in this design.
 _COMPONENT_FIELDS = {"component"}
@@ -97,7 +98,11 @@ class ParamDelegate(QItemDelegate):
         # positioning/showing the editor yet at createEditor() time, and
         # QCompleter.complete() needs that geometry to place the popup
         # correctly.
-        QTimer.singleShot(0, completer.complete)
+        # Parented to the completer: if the editor (and with it the
+        # completer) is destroyed before this fires -- editing cancelled in
+        # the same event-loop turn -- the deferred complete() call dies with
+        # it instead of landing on a deleted QCompleter (issue #1048).
+        single_shot(completer, 0, completer.complete)
         return editor
 
     def _completions_for(self, index: QModelIndex) -> list:

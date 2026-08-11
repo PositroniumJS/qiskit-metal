@@ -30,6 +30,7 @@ from qiskit_metal._gui.utility._handle_qt_messages import slot_catch_error
 from qiskit_metal._gui.widgets.bases.QWidget_PlaceholderText import (
     QWidget_PlaceholderText,
 )
+from qiskit_metal._gui.utility._toolbox_qt import single_shot
 
 if TYPE_CHECKING:
     from ...main_window import MetalGUI
@@ -69,7 +70,7 @@ class QTableView_AllComponents(QTableView, QWidget_PlaceholderText):
         self.setSelectionBehavior(QTableView.SelectRows)
 
         # Apply styling
-        QTimer.singleShot(100, self.style2)
+        single_shot(self, 100, self.style2)
 
     def style2(self):
         """Style the widget."""
