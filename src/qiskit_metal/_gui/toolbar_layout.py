@@ -93,13 +93,28 @@ TOOLBAR_LAYOUT = {
     ],
 }
 
-#: Actions deliberately left off the toolbars, still available in the menus.
-#: Each entry needs a reason -- this is the record of an intentional choice,
-#: so a future reader can tell it apart from an accident.
+#: Actions deliberately left off the toolbars, kept reachable in a menu.
+#: ``name -> (menu attribute, reason)``. The menu is part of the record,
+#: not a comment: :func:`ensure_demoted_actions_in_menus` puts the action
+#: there when no menu already offers it, so "demoted" can never silently
+#: mean "unreachable".
+#:
+#: It did once. ``actionBuildHistory`` lived only on ``toolBarDesign``
+#: (the .ui never added it to a menu), so demoting it removed the Build
+#: History window from the UI entirely while this table claimed it was
+#: "still available in the menus" -- an assertion nothing checked. Hence
+#: the placement below and the test that pins it.
 DEMOTED_ACTIONS = {
-    "actionBuildHistory": "Diagnostic; rarely consulted. Menu only.",
-    "actionDelete_All": "Destructive and rare; menu only, where the "
-    "confirmation dialog reads as deliberate.",
+    "actionBuildHistory": (
+        "menuView",
+        "Diagnostic; rarely consulted. Menu only -- it opens a window, "
+        "which is what the View menu is for.",
+    ),
+    "actionDelete_All": (
+        "menuDesign",
+        "Destructive and rare; menu only, where the confirmation dialog "
+        "reads as deliberate. Already placed by the .ui.",
+    ),
 }
 
 
@@ -153,6 +168,58 @@ def check_no_actions_lost(gui: "MetalGUI", existing: set) -> None:
         )
 
 
+def _menu_action_names(gui: "MetalGUI") -> set:
+    """Every action name reachable from the menu bar, submenus included."""
+    names = set()
+
+    def walk(menu):
+        for action in menu.actions():
+            submenu = action.menu()
+            if submenu is not None:
+                walk(submenu)
+            elif action.objectName():
+                names.add(action.objectName())
+
+    menubar = getattr(gui.ui, "menubar", None)
+    if menubar is not None:
+        walk(menubar)
+    return names
+
+
+def ensure_demoted_actions_in_menus(gui: "MetalGUI") -> None:
+    """Guarantee every demoted action is reachable from some menu.
+
+    Taking an action off the toolbars is only a demotion if the user can
+    still get to it. An action the .ui never added to a menu becomes
+    invisible instead -- which is what happened to ``actionBuildHistory``
+    (see :data:`DEMOTED_ACTIONS`). Actions already offered by a menu are
+    left exactly where the .ui put them.
+
+    Args:
+        gui (MetalGUI): The GUI being laid out.
+
+    Raises:
+        RuntimeError: A demoted action names a menu that does not exist.
+    """
+    reachable = _menu_action_names(gui)
+
+    for name, (menu_name, _reason) in DEMOTED_ACTIONS.items():
+        if name in reachable:
+            continue
+
+        action = getattr(gui.ui, name, None)
+        if action is None:
+            continue  # check_no_actions_lost already covers unknown names
+
+        menu = getattr(gui.ui, menu_name, None)
+        if menu is None:
+            raise RuntimeError(
+                f"DEMOTED_ACTIONS puts {name!r} in {menu_name!r}, which "
+                "does not exist. Menu names must match main_window_ui.ui."
+            )
+        menu.addAction(action)
+
+
 def apply_toolbar_layout(gui: "MetalGUI") -> None:
     """Rebuild the managed toolbars from :data:`TOOLBAR_LAYOUT`.
 
@@ -168,6 +235,7 @@ def apply_toolbar_layout(gui: "MetalGUI") -> None:
     """
     existing = _collect_existing_action_names(gui)
     check_no_actions_lost(gui, existing)
+    ensure_demoted_actions_in_menus(gui)
 
     for toolbar_name, action_names in TOOLBAR_LAYOUT.items():
         toolbar = getattr(gui.ui, toolbar_name, None)
