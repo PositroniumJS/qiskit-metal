@@ -15,6 +15,8 @@ from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QTreeView, QAbstractItemView
 
+from qiskit_metal._gui.utility._toolbox_qt import single_shot
+
 
 class QTreeView_Base(QTreeView):
     """This class extends the `QTreeView` class."""
@@ -25,7 +27,7 @@ class QTreeView_Base(QTreeView):
             parent (QtWidgets.QWidget): The widget
         """
         QTreeView.__init__(self, parent)
-        QTimer.singleShot(200, self.style_me)
+        single_shot(self, 200, self.style_me)
         self.expanded.connect(self.resize_on_expand)
 
     def style_me(self):

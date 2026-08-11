@@ -12,6 +12,7 @@
 """"""
 
 import matplotlib.pyplot as plt
+from PySide6 import QtCore
 from PySide6.QtCore import QTimer
 
 from qiskit_metal._gui.utility._handle_qt_messages import slot_catch_error
@@ -76,8 +77,13 @@ class AnimatedText:
 
         self.text = ax.text(*loc, text, **kw)
 
-        # Timer
-        self.timer = QTimer()
+        # Timer -- parented to the Qt canvas so it is stopped and destroyed
+        # with the canvas rather than surviving as an orphan that ticks
+        # into dead matplotlib/Qt objects during teardown (issue #1048).
+        # ``ax.figure.canvas`` is the FigureCanvasQTAgg QWidget whenever
+        # this extension is used (it is GUI-only).
+        canvas = getattr(ax.figure, "canvas", None)
+        self.timer = QTimer(canvas if isinstance(canvas, QtCore.QObject) else None)
         self.timer.timeout.connect(self.timer_tick)
 
         if start:

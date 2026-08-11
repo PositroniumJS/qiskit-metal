@@ -45,6 +45,28 @@
 # layout than a hand-arranged maintainer session — auto-refreshed
 # screenshots are functional but visually inferior. Deferred to a
 # follow-up.
+#
+# STATUS 2026-08-07: the infra side is built and verified —
+# ``.github/workflows/notebooks-qt-refresh.yml`` (workflow_dispatch only,
+# never runs on push/PR, uploads an artifact rather than committing) and
+# ``_dev/rerun_auto.py --write-frozen``, which flips a frozen-Qt notebook
+# from "headless, check-only" to "real MetalGUI under Xvfb, write outputs
+# back" — the two are coupled so a headless render can never silently land
+# over a hand-curated Qt screenshot. Confirmed end-to-end against a
+# throwaway notebook: ``QISKIT_METAL_HEADLESS`` correctly unset,
+# ``qm.gui(design)`` resolves to the real ``MetalGUI`` class, not the
+# headless viewer.
+#
+# NOT done: dark-theme screenshots. The theme is deliberately not
+# auto-applied on a fresh profile (see
+# ``docs/architecture/gui_crash_defenses.md`` — the auto-apply fix was
+# tried and reintroduced a segfault, then reverted). A CI runner is always
+# a fresh profile, so today this workflow would produce *unstyled*
+# screenshots. The safe fix is a `gui.load_stylesheet('metal_dark')` call
+# added to each frozen notebook's setup cell — that's a genuine content
+# edit to a hand-curated notebook, gated behind the same maintainer
+# decision as the rest of the screenshot regen (autoscale default, etc.).
+# Do this together with the real regen, not separately.
 
 # --- Section 1: the user-facing onboarding path ---
 docs/tut/1-Overview/1.1-Quick-start.ipynb

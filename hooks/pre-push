@@ -87,6 +87,30 @@ if ! uv run --quiet scripts/check_qlibrary_images.py > /tmp/.qm-prepush-qlimg.lo
     fail=1
 fi
 
+# 5. On-screen GUI lifecycle tests — only when this push touches the GUI.
+# Issue #1048's crash class (native Qt init/teardown segfaults) never
+# shows up under the headless suite: offscreen skips the paint/QPA code
+# paths where it lives, and one fast local run rarely samples the race
+# that CI's 11-job matrix hits. These subprocess tests run the REAL
+# on-screen GUI (~40s) and are the only local gate that would have
+# caught the PR #1180 matrix failures before push. Requires a display
+# (any desktop session; $DISPLAY/xvfb-run on Linux).
+gui_touched=$(git diff --name-only "$remote_sha..$local_sha" 2>/dev/null | grep -E 'src/qiskit_metal/(_gui|renderers/renderer_mpl)/' | head -1)
+if [[ -n "$gui_touched" ]] || [[ -z "$remote_sha" ]] || [[ "$remote_sha" == "0000000000000000000000000000000000000000" ]]; then
+    echo "  → on-screen GUI init/teardown tests (GUI files in this push; ~40s)"
+    # QISKIT_METAL_GUI_NO_ACTIVATE: the ~10 subprocess GUI windows this
+    # gate spawns render without stealing focus from whatever the
+    # developer is working on (macOS AA_PluginApplication). Local-hook
+    # convenience only -- CI runs the default activation path.
+    if ! QISKIT_METAL_GUI_NO_ACTIVATE=1 uv run --quiet pytest tests/test_gui_init.py tests/test_gui_teardown.py -q > /tmp/.qm-prepush-gui.log 2>&1; then
+        echo "  ✗ on-screen GUI lifecycle tests failed:"
+        cat /tmp/.qm-prepush-gui.log | tail -25
+        fail=1
+    fi
+else
+    echo "  → on-screen GUI tests (skipped — no GUI files in this push)"
+fi
+
 # Optional: uncomment to also run the docs build before push.
 # Adds ~35s but catches docs-build regressions.
 # echo "  → docs build (sphinx)"

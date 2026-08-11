@@ -711,6 +711,80 @@ flips 180°.
 HFSS results. Then use `test_pin_normals_point_outward` to gate
 in CI.
 
+## MetalGUI segfaults — the whole story lives in one document
+
+Issue #1048 and its descendants (#1103, #1109) produced four distinct
+crash bugs, five releases of fixes, and a set of defenses in
+`_gui/` that look like removable defensive noise and are not.
+
+That history is written up in
+**`docs/architecture/gui_crash_defenses.md`** — read it before
+touching GUI startup, teardown, stylesheet handling, or persisted
+window state.
+
+The two lessons that generalize beyond the GUI:
+
+**CI passing is not evidence there.** The Windows `show()` crash never
+reproduced under Xvfb or on GitHub runners, because runners start with
+an empty registry — which is exactly the state that works. Reporter
+confirmation on the affected hardware was the only real signal.
+
+**A defense can be load-bearing by accident.** The stylesheet was
+loaded at the end of `restore_window_settings`, after five guards that
+`clear()` and return early. That looked like a bug — and is one, the
+theme is genuinely skipped on a fresh profile. But moving the load out
+so it always runs turned `test_gui_init.py` and `test_gui_teardown.py`
+from 5 passed to 5 failed with `SIGBUS` (attempted 2026-08-07,
+reverted). The early returns were accidentally protecting a known
+crash trigger. Before "fixing" something that looks vestigial in a
+crash-hardened path, check what it is standing in front of.
+
+**"Internal C++ object already deleted" is never noise** (2026-08-10,
+PR #1180). One appeared after the full suite already reported passing,
+exit code 0, and got classified as a benign at-exit artifact and
+documented as cosmetic. CI then produced `-11` segfaults on the macOS
+matrix and self-heal failures on the display jobs from the same leak
+class: deferred Qt callbacks (naked `QTimer.singleShot(ms,
+bound_method)`, model poll timers) outliving the widgets they touch.
+The Python-visible RuntimeError and the native segfault are the same
+use-after-free; which one you get depends only on whether the freed
+memory was reused yet. Treat any such message anywhere in output as a
+live crash report. `tests/test_gui_lifecycle_stress.py` fails on them;
+`single_shot()` in `_gui/utility/_toolbox_qt.py` is the required
+pattern for delayed calls.
+
+**A crash marker must open before the code it guards, on a medium a
+crash can't lose.** The `restore_in_progress` QSettings cookie failed
+in CI two ways at once: it was set partway through init, so crashes
+before that point left no cookie ("crashed but did not leave the
+cookie set"), and `QSettings.sync()` routes through `cfprefsd` on
+macOS, which flushes asynchronously — a native crash right after
+`sync()` can lose the very write meant to record it. Replaced by the
+startup journal (`_gui/startup_journal.py`): a plain flag file,
+fsync'd, written as the first Python instruction of
+`MetalGUI.__init__`. If a guard's coverage window opens after any
+guarded code runs, or its persistence isn't a real disk barrier, it
+will eventually miss exactly the crash it exists for.
+
+**Full-GUI lifecycle tests belong in subprocesses.** Two separate CI
+rounds died the same way: an in-process test that constructs a real
+MetalGUI (first the stress test, then the click-and-arrow test) lost
+the nondeterministic teardown race on a slow runner and the segfault
+killed the whole pytest process, cancelling the rest of the matrix.
+Marker-based subprocess isolation keeps the contract strict while
+containing the blast. Corollary for QTest synthetic clicks: matplotlib
+transforms are physical pixels, Qt wants logical -- divide by
+``devicePixelRatioF()`` or clicks silently miss on Retina while
+passing on CI's ratio-1 runners.
+
+**Headless-local passing says nothing about the on-screen crash
+class.** Offscreen never executes the paint/QPA paths where these
+crashes live, and one fast local run rarely samples a race that 11
+slow CI jobs sample every push. The pre-push hook now runs
+`test_gui_init.py` + `test_gui_teardown.py` on the real display
+whenever a push touches `_gui/` or `renderer_mpl/` (~40s) — the local
+gate that would have caught the PR #1180 matrix failures before push.
+
 ## What this list doesn't include
 
 Stuff that's NOT a "lesson learned" — those go in

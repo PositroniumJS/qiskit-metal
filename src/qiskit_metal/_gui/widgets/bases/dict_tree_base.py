@@ -263,11 +263,63 @@ class QTreeModel_Base(QAbstractItemModel):
         self.timer.start(self.__refreshtime)
         self.timer.timeout.connect(self.auto_refresh)
 
+    def _view_alive(self) -> bool:
+        """Whether ``self._view``'s C++ object still exists.
+
+        The model (``self``) and its view can be destroyed independently --
+        closing a dock/dialog tears down the view, but this model's own
+        polling ``QTimer`` (parented to the model, not the view) keeps
+        firing regardless and calls back into ``self._view`` on every tick.
+        Without this check, a tick landing after the view's C++ side is
+        gone raises ``RuntimeError: ... already deleted`` -- and, worse,
+        touching a half-destroyed Qt object from a stray timer callback is
+        exactly the kind of use-after-free that shows up later as an
+        unrelated segfault elsewhere in the process (issue #1048 failure
+        mode 4; see ``docs/architecture/gui_crash_defenses.md``). Same
+        ``shiboken6.isValid`` idiom as ``log_metal.py``'s ``_widget_alive``,
+        widened here to also treat ``shiboken6.isValid`` itself raising
+        ``RuntimeError`` as "not alive" rather than letting it propagate --
+        under the advanced object-graph corruption failure mode 4 describes,
+        querying validity is itself unreliable, not just the object being
+        queried. Confirmed via a real at-exit repro: the same suite run
+        that reported 798/798 passing then raised
+        ``RuntimeError: ... QCompleter already deleted`` straight out of
+        ``shiboken6.isValid`` during Python's own atexit teardown, after
+        every test had already completed. Failing safe (assume dead, stop
+        polling) is correct either way -- there is nothing left to refresh
+        towards if the validity check itself can't be trusted.
+        """
+        if self._view is None:
+            return False
+        try:
+            import shiboken6
+        except ImportError:  # pragma: no cover - shiboken ships with PySide6
+            try:
+                self._view.objectName()
+                return True
+            except RuntimeError:
+                return False
+
+        try:
+            return shiboken6.isValid(self._view)
+        except RuntimeError:
+            # shiboken itself couldn't answer -- don't probe self._view
+            # again (e.g. via objectName()) to find out; that's touching
+            # the same already-suspect object a second time. Fail closed.
+            return False
+
     def auto_refresh(self):
         """Check to see if the total number of rows has been changed.
 
         If so, completely rebuild the model and tree.
         """
+        if self._view is not None and not self._view_alive():
+            # The view this model was refreshing for is gone; nothing left
+            # to refresh towards, and continuing to poll only risks the
+            # next tick touching it anyway. Stop for good.
+            self.timer.stop()
+            return
+
         # TODO: Check if new nodes have been added; if so, rebuild model.
         new_row_count = self.rowCount(self.createIndex(0, 0))
         if self._row_count != new_row_count:
@@ -286,6 +338,18 @@ class QTreeModel_Base(QAbstractItemModel):
                 self.endResetModel()
             if self._view:
                 self._view.autoresize_columns()
+                self._after_reset()
+
+    def _after_reset(self):
+        """Hook run after any full model reset (``auto_refresh`` and
+        ``refresh``/``load``), for subclasses that need to reassert
+        view-level state a reset wipes out -- most notably expanded rows,
+        since ``beginResetModel``/``endResetModel`` collapses everything
+        and there is no general way to preserve arbitrary expand state
+        across an unknown tree shape. No-op here: the component/pin option
+        trees are meant to come up collapsed. See
+        ``QTreeModel_Chips._after_reset`` for the one model that isn't.
+        """
 
     def refresh(self):
         """Force refresh.
@@ -297,6 +361,8 @@ class QTreeModel_Base(QAbstractItemModel):
         self.load()  # rebuild the tree; handles beginResetModel and endResetModel
         parent_index = self.createIndex(0, 0, self.root)
         self._row_count = self.rowCount(parent_index)
+        if self._view:
+            self._after_reset()
         # finally:
         #     # self.endResetModel()
 
@@ -486,6 +552,13 @@ class QTreeModel_Base(QAbstractItemModel):
                             dic[lbl] = value
                         if self.optionstype == "component":
                             self.component.rebuild()
+                            self.gui.refresh()
+                        elif self.optionstype == "chip":
+                            # Chip geometry is shared: the die outline and
+                            # every component's placement are derived from it,
+                            # so a chip edit needs a full design rebuild
+                            # rather than one component's.
+                            self.design.rebuild()
                             self.gui.refresh()
                         return True
         return False

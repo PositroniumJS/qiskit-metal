@@ -116,7 +116,9 @@ class QTableModel_AllComponents(QAbstractTableModel):
             finally:
                 self.endResetModel()
 
-            # for some reason the horizontal header is hidden even if i call this in init
+            # Was compensating for QTableView_AllComponents.style2() hiding
+            # the header on construction (fixed -- see that method); kept as
+            # a harmless belt-and-suspenders show() on every content change.
             self._tableView.horizontalHeader().show()
             self.update_view()
 

@@ -43,7 +43,7 @@ class SQUID_LOOP(QComponent):
     lower.)
 
     .. image::
-        squid_loop.png
+        SQUID_LOOP.png
 
     .. meta::
         :description: Squid Loop

@@ -43,6 +43,57 @@ this file is for choices we made on purpose.
 
 ---
 
+## 2026-08-10 — GUI crash defenses: journal file over QSettings cookie, layout restore opt-in
+
+Issue #1048, PR #1180 CI failures.
+
+### Startup crash marker moved from QSettings to a plain fsync'd file
+
+The `restore_in_progress` cookie missed crashes two ways in CI: it was
+written partway through init (a native crash before
+`restore_window_settings()` — QPA plugin load, early widget construction —
+left no cookie), and `QSettings.sync()` is not a synchronous disk barrier
+on macOS (writes route through `cfprefsd`, which flushes asynchronously,
+so a crash immediately after `sync()` can lose the write). The
+replacement (`_gui/startup_journal.py`) is a flag file written with
+`flush()` + `os.fsync()` as the first Python instruction of
+`MetalGUI.__init__`, removed after `show()` returns. "File exists" is the
+whole protocol.
+
+Road not taken: hardening the cookie in place (set it earlier, add a
+second sync). Rejected because QSettings' persistence guarantees are
+platform-dependent in exactly the failure mode the marker exists for,
+and no in-QSettings fix changes that.
+
+### Automatic layout restore is now opt-in (`QISKIT_METAL_RESTORE_LAYOUT=1`)
+
+Replaying a persisted `restoreGeometry`/`restoreState` blob into a
+changed display environment is the root trigger of the on-screen
+`show()` crash class. Four invalidation heuristics (version, Qt version,
+display fingerprint, crash marker) narrowed the window without closing
+it, because no heuristic enumerates every way a display environment can
+differ between sessions. Default startup now uses the default layout;
+the guarded restore still runs for users who set the env var. The
+version/fingerprint checks and stylesheet restore are unchanged.
+
+Road not taken: deleting layout persistence outright. Kept behind the
+env var because the invalidation machinery already exists and the
+restore path stays exercised by `tests/test_gui_init.py`.
+
+### Deferred Qt callbacks must be parented to what they touch
+
+All 12 `QTimer.singleShot(ms, bound_method)` sites in `_gui/` and
+`renderer_mpl/` replaced with `single_shot(parent, ms, cb)`
+(`_gui/utility/_toolbox_qt.py`), and `_teardown_qt_widgets` stops every
+`QTimer` before queueing deletions. PySide6 auto-cancels a bound-method
+singleShot when its receiver is destroyed cleanly mid-session, but not
+in the at-exit/GC orderings where issue #1048's failure mode 4 lives —
+`tests/test_gui_lifecycle_stress.py` documents that sensitivity limit in
+its docstring.
+
+
+---
+
 ## 2026-08-01 — design-rule checking: what the rules assume, and what they refuse to claim
 
 PR #1168. Issue #1169.

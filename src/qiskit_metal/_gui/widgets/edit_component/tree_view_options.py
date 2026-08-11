@@ -20,6 +20,7 @@ from PySide6.QtWidgets import QTreeView, QAbstractItemView
 from qiskit_metal._gui.widgets.bases.QWidget_PlaceholderText import (
     QWidget_PlaceholderText,
 )
+from qiskit_metal._gui.utility._toolbox_qt import single_shot
 
 if TYPE_CHECKING:
     from ...main_window import MetalGUI
@@ -42,7 +43,7 @@ class QTreeView_Options(QTreeView, QWidget_PlaceholderText):
             self, "Select a QComponent to edit\n\nfrom the QComponents window", self
         )
         # not sure whu the ui isn't updating these here.
-        QTimer.singleShot(200, self.style_me)
+        single_shot(self, 200, self.style_me)
         self.expanded.connect(self.resize_on_expand)
 
     def style_me(self):

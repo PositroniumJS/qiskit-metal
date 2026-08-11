@@ -33,7 +33,44 @@ from qiskit_metal.toolbox_python._logging import setup_logger
 from qiskit_metal import __version__
 from qiskit_metal._gui._init_trace import trace_init as _trace_init
 from qiskit_metal._gui.utility._handle_qt_messages import slot_catch_error
+from qiskit_metal._gui.utility._toolbox_qt import single_shot
 from qiskit_metal._gui.widgets.log_widget.log_metal import LogHandler_for_QTextLog
+
+
+def _is_newer_version(current: str, saved: str) -> bool:
+    """Is ``current`` a newer Metal release than ``saved``?
+
+    This gates one of the issue-#1048 defenses: persisted window state
+    written by an older Metal is discarded rather than restored. It also
+    happens to be what gives users new layout defaults on upgrade instead of
+    a stale saved arrangement.
+
+    It used to be a plain string comparison, which is correct only while
+    every component stays single-digit. ``'0.10.0' > '0.9.0'`` is False, so
+    at v0.10.0 the guard would have silently stopped firing -- a crash
+    defense degrading with no symptom until someone hit the crash.
+
+    Falls back to the old string comparison for unparseable values (a
+    hand-edited registry, a dev build) and treats *any* doubt as "newer", so
+    the failure mode is discarding state that might have been fine rather
+    than restoring state that is not.
+
+    Args:
+        current (str): The running Metal version.
+        saved (str): The version recorded in the persisted settings.
+
+    Returns:
+        bool: True when the settings should be discarded.
+    """
+    try:
+        from packaging.version import InvalidVersion, Version
+
+        try:
+            return Version(current) > Version(saved)
+        except InvalidVersion:
+            return str(current) != str(saved)
+    except Exception:  # pragma: no cover - packaging should always be present
+        return str(current) > str(saved)
 
 
 def _display_fingerprint() -> str:
@@ -90,7 +127,12 @@ class QMainWindowExtensionBase(QMainWindow):
         super().__init__()
         # Set manually
         self.handler: QMainWindowBaseHandler = None
-        self.force_close = False
+        # QISKIT_METAL_GUI_FORCE_CLOSE=1 skips the "save unsaved changes?"
+        # modal on close() -- for automated/headless callers (tests, the
+        # notebook screenshot regen script) where there is no user to click
+        # it and it would otherwise hang forever. Interactive sessions
+        # should never set this; the modal is the correct behavior there.
+        self.force_close = bool(os.environ.get("QISKIT_METAL_GUI_FORCE_CLOSE"))
 
     @property
     def logger(self) -> logging.Logger:
@@ -192,25 +234,24 @@ class QMainWindowExtensionBase(QMainWindow):
            persisted state: clear it and continue with defaults, so the
            next launch doesn't hit the same trap.
 
-        Crash-cookie scope (issue #1048, PR #1129 hardening): CI caught a
-        real gap in the first cut of this defense. The ``restore_in_progress``
-        cookie was cleared immediately after ``restoreState()`` returned --
-        but the actual reported crash site (RhinoHand's original
-        faulthandler trace) is ``main_window.show()``, called by
-        ``MetalGUI.__init__`` well AFTER this method returns.
-        ``restoreState()`` can complete without raising while still leaving
-        the widget tree in a state that only faults once Qt tries to paint
-        it. Clearing the cookie here therefore erased the ONE signal that
-        would let a crash at ``show()`` be detected on the next launch.
+        Crash-recovery scope (issue #1048, third iteration): native-crash
+        self-healing is owned by the **startup journal**
+        (``startup_journal.py``) -- a flag file opened at the first
+        instruction of ``MetalGUI.__init__`` and removed by
+        ``mark_startup_complete()`` only after ``main_window.show()``
+        returns. It replaced the ``restore_in_progress`` QSettings cookie
+        that used to be set/checked here, which had two holes CI hit for
+        real: it opened too late (a crash before this method -- QPA
+        plugin init, early widget construction -- left no cookie) and
+        QSettings' ``sync()`` is not a guaranteed disk barrier on every
+        platform (macOS ``cfprefsd`` flushes asynchronously, so a crash
+        could lose the very write meant to record it).
 
-        Fix: this method no longer clears the cookie on success. It stays
-        set (True) after a successful restore, and the caller (``MetalGUI.
-        __init__``) is responsible for calling ``mark_startup_complete()``
-        once ``main_window.show()`` has returned without crashing. If
-        ``show()`` crashes natively, that call never happens, the cookie
-        stays True on disk, and the next launch's cookie check discards
-        the state before attempting either ``restoreState()`` or ``show()``
-        again.
+        Additionally, the layout restore itself is **opt-in** as of this
+        iteration (``QISKIT_METAL_RESTORE_LAYOUT=1``): replaying a stale
+        geometry/state blob is the root trigger of the on-screen crash
+        class, and defaulting to a fresh layout removes the trigger
+        entirely for users who never asked for layout persistence.
         """
 
         # Escape hatch: users hitting the persisted-state crash can
@@ -225,7 +266,7 @@ class QMainWindowExtensionBase(QMainWindow):
             return
 
         version_settings = self.settings.value("metal_version", defaultValue="0")
-        if __version__ > version_settings:
+        if _is_newer_version(__version__, version_settings):
             self.logger.debug(f"Clearing window settings [{version_settings}]...")
             self.settings.clear()
             return
@@ -260,14 +301,15 @@ class QMainWindowExtensionBase(QMainWindow):
             self.settings.clear()
             return
 
-        # Crash-cookie recovery (issue #1048 third-order fix).
-        # ``restoreGeometry``/``restoreState`` are Qt native code -- if
-        # they blow up we get an OS-level abort, not a Python exception,
-        # so the try/except below cannot catch them. To self-heal after
-        # a crash of that shape we set an on-disk cookie *before* the
-        # potentially-crashing call and clear it *after*. On the next
-        # launch, a cookie left set means the previous launch died
-        # inside restore -- discard the state and start fresh.
+        # Crash recovery for native aborts is handled by the startup
+        # journal (``startup_journal.py``): a flag file opened at the very
+        # first instruction of ``MetalGUI.__init__`` and closed by
+        # ``mark_startup_complete()`` after ``show()`` returns. It
+        # supersedes the ``restore_in_progress`` QSettings cookie that
+        # used to live here -- the cookie only covered restore→show and
+        # could be lost by an async ``sync()`` on a crash; the journal
+        # covers all of init and is fsync'd. Legacy cookie left set by an
+        # older version still triggers recovery once:
         if self.settings.value("restore_in_progress", False, type=bool):
             self.logger.warning(
                 "Previous MetalGUI launch appears to have crashed during "
@@ -277,30 +319,36 @@ class QMainWindowExtensionBase(QMainWindow):
             return
 
         try:
-            self.logger.debug("Restoring window settings...")
+            # Automatic window-layout restore is opt-in (issue #1048).
+            # Replaying a saved ``restoreGeometry``/``restoreState`` blob
+            # into a changed display environment is the root trigger of
+            # the on-screen ``show()`` crashes this file spends most of
+            # its code defending against: Qt applies a stale blob without
+            # complaint and only faults natively at first paint. The
+            # checks above (version, Qt version, display fingerprint)
+            # narrow the window; opt-in closes it. Users who want their
+            # layout back across sessions set
+            # ``QISKIT_METAL_RESTORE_LAYOUT=1`` and get the guarded
+            # restore below; everyone else gets the default layout and a
+            # startup that cannot be poisoned by persisted geometry.
+            if os.environ.get("QISKIT_METAL_RESTORE_LAYOUT"):
+                self.logger.debug("Restoring window settings (opt-in)...")
 
-            # Mark restore-in-progress and flush to disk *before* touching
-            # the native Qt calls that might crash.
-            self.settings.setValue("restore_in_progress", True)
-            self.settings.sync()
+                # should probably call .encode("ascii") here
+                geom = self.settings.value("geometry", "")
+                if isinstance(geom, str):
+                    geom = geom.encode("ascii")
+                self.restoreGeometry(geom)
 
-            # should probably call .encode("ascii") here
-            geom = self.settings.value("geometry", "")
-            if isinstance(geom, str):
-                geom = geom.encode("ascii")
-            self.restoreGeometry(geom)
-
-            window_state = self.settings.value("windowState", "")
-            if isinstance(window_state, str):
-                window_state = window_state.encode("ascii")
-            self.restoreState(window_state)
-
-            # Deliberately NOT clearing the cookie here -- see the
-            # "Crash-cookie scope" docstring section above. The real
-            # crash site is ``main_window.show()``, called by our caller
-            # well after this method returns. The cookie stays set until
-            # ``mark_startup_complete()`` confirms ``show()`` also
-            # succeeded.
+                window_state = self.settings.value("windowState", "")
+                if isinstance(window_state, str):
+                    window_state = window_state.encode("ascii")
+                self.restoreState(window_state)
+            else:
+                self.logger.debug(
+                    "Window-layout restore skipped (opt in with "
+                    "QISKIT_METAL_RESTORE_LAYOUT=1); using default layout."
+                )
 
             # Issue #1048 bisection toggle: if the stylesheet (which affects
             # every paint operation) is the trigger for the Qt 6.11 + Intel
@@ -330,21 +378,22 @@ class QMainWindowExtensionBase(QMainWindow):
             self.settings.clear()
 
     def mark_startup_complete(self):
-        """Clear the ``restore_in_progress`` crash-cookie.
+        """Close the startup crash journal.
 
         Call this once the entire risky startup sequence has finished
         without crashing -- specifically, after ``main_window.show()``
-        has returned (issue #1048 / PR #1129). Do NOT call this
-        immediately after ``restore_window_settings()`` returns; the
-        cookie must stay set across the ``show()`` call too, since
-        that's the actual crash site the cookie is meant to guard.
-
-        Safe to call even when no restore was attempted this launch
-        (fresh install, or state was cleared by one of the earlier
-        invalidation checks) -- clearing an already-False cookie is a
-        no-op.
+        has returned (issue #1048 / PR #1129). The journal is opened by
+        ``MetalGUI.__init__`` as its first instruction, so the protected
+        window spans ALL of init, not just the restore-to-show span the
+        old ``restore_in_progress`` QSettings cookie covered. See
+        ``startup_journal.py`` for the crash-durability rationale.
         """
-        self.settings.setValue("restore_in_progress", False)
+        from qiskit_metal._gui.startup_journal import complete_startup
+
+        complete_startup()
+        # Clean up the legacy QSettings cookie for users upgrading from
+        # a version that wrote it; harmless if absent.
+        self.settings.remove("restore_in_progress")
         self.settings.sync()
 
     def bring_to_top(self):
@@ -693,7 +742,13 @@ class QMainWindowBaseHandler:
 
             self._log_handler = self.create_log_handler("GUI", self.logger)
 
-            QTimer.singleShot(1500, self.ui.log_text.welcome_message)
+            # Parented to the log widget: a short-lived GUI (tests, quick
+            # scripted sessions) can be torn down before this 1.5s delay
+            # elapses, and a naked singleShot would then call
+            # welcome_message() on the destroyed widget — the exact
+            # at-exit ``textCursor()`` / "already deleted" crash seen on
+            # the macOS CI jobs (issue #1048 failure mode 4).
+            single_shot(self.ui.log_text, 1500, self.ui.log_text.welcome_message)
 
         else:
             self.logger.warning("UI does not have `log_text`")
@@ -716,8 +771,10 @@ class QMainWindowBaseHandler:
 
         Args:
             path (str) : Path to stylesheet or its name.
-                Can be: 'default', 'qdarkstyle' or None.
-                `qdarkstyle` requires
+                Can be: 'default' (no stylesheet -- follows the OS/Qt native
+                theme, which is dark on a dark-mode OS despite the name),
+                'metal_dark', 'metal_light_gray', 'qdarkstyle', or an
+                arbitrary .qss file path. `qdarkstyle` requires
                 >>> pip install qdarkstyle
 
         Returns:
@@ -749,6 +806,10 @@ class QMainWindowBaseHandler:
         elif path == "metal_dark":
             path_full = self.path_stylesheets / "metal_dark" / "style.qss"
             # print(f'path_full = {path_full}')
+            self._load_stylesheet_from_file(path_full)
+
+        elif path == "metal_light_gray":
+            path_full = self.path_stylesheets / "metal_light_gray" / "style.qss"
             self._load_stylesheet_from_file(path_full)
 
         else:
@@ -851,6 +912,17 @@ def kick_start_qApp():
             QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
         except AttributeError:  # Attribute only exists for Qt >= 5.6
             pass
+
+        # Opt-in quiet mode for automated on-screen runs: with
+        # AA_PluginApplication the process never becomes the active
+        # application on macOS (no menu-bar takeover, no focus steal
+        # from whatever the developer is typing in), while windows
+        # still create and paint normally. NOT the default -- real
+        # users want real activation, and the focus-dependent
+        # regression tests (arrow-key nudge) must exercise the real
+        # path. Set by the pre-push hook for its on-screen GUI gate.
+        if os.environ.get("QISKIT_METAL_GUI_NO_ACTIVATE"):
+            QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_PluginApplication)
 
         qApp = QApplication(sys.argv)
 

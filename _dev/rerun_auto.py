@@ -79,21 +79,47 @@ def _load_list(path: Path) -> list[Path]:
     return paths
 
 
-def run_one(nb_path: Path, inplace: bool = True) -> tuple[Path, bool, str, float]:
+def run_one(
+    nb_path: Path, inplace: bool = True, qt_display: bool = False
+) -> tuple[Path, bool, str, float]:
     """Execute a single notebook. Returns (path, ok, log_excerpt, seconds).
 
-    When ``inplace`` is False, outputs land in ``/tmp/<basename>.executed.ipynb``
-    instead of being written back into the source — used for the
-    frozen-Qt set, where committed outputs are hand-curated and must
-    not be clobbered by headless re-runs.
+    Args:
+        nb_path: Notebook to execute.
+        inplace: Write outputs back into the source ``.ipynb``. When False,
+            outputs land in ``/tmp/<basename>.executed.ipynb`` instead —
+            used for the frozen-Qt set's default check-only mode, where
+            committed outputs are hand-curated and must not be clobbered.
+        qt_display: Run with the real Qt ``MetalGUI`` instead of forcing
+            ``QISKIT_METAL_HEADLESS=1``. Only meaningful under a real (or
+            Xvfb) display and the ``[gui]`` extra -- see
+            ``--write-frozen`` / ``docs/architecture/gui_crash_defenses.md``
+            for why this is opt-in and not the default even for the
+            frozen-Qt set: forcing headless is what makes today's
+            check-only frozen run safe to execute anywhere, including a
+            laptop with no display. Setting this without a working Qt
+            display makes every notebook fail, not silently fall back.
     """
     t0 = time.monotonic()
-    env = {
-        **os.environ,
-        "QISKIT_METAL_HEADLESS": "1",
-        "QISKIT_METAL_HEADLESS_QUIET": "1",
-        "MPLBACKEND": "Agg",
-    }
+    env = {**os.environ, "MPLBACKEND": "Agg"}
+    if qt_display:
+        # Deliberately do NOT set QISKIT_METAL_HEADLESS here: that is what
+        # forces qm.gui(design) to the headless matplotlib viewer instead of
+        # the real MetalGUI, which defeats the entire point of a Qt-display
+        # run -- the committed frozen-Qt screenshots are of the real desktop
+        # window. QT_QPA_PLATFORM is left to the caller's environment (e.g.
+        # ``xvfb-run``, or a real display), not overridden here.
+        env["QISKIT_METAL_HEADLESS_QUIET"] = "1"
+        # Some frozen-Qt notebooks end with gui.main_window.close() as a
+        # "how to close the GUI" demo cell. Interactively that pops a
+        # "save unsaved changes?" modal, which is correct there -- but
+        # under an automated/offscreen run there is no user to click it,
+        # so it hangs until ExecutePreprocessor.timeout fires. See
+        # docs/architecture/gui_crash_defenses.md before changing this.
+        env["QISKIT_METAL_GUI_FORCE_CLOSE"] = "1"
+    else:
+        env["QISKIT_METAL_HEADLESS"] = "1"
+        env["QISKIT_METAL_HEADLESS_QUIET"] = "1"
     # In CI the lite venv was created with ``uv venv`` and a custom
     # ipykernel name; honour ``JUPYTER_KERNEL_NAME`` so nbconvert
     # uses that kernel instead of the (absent) default ``python3``.
@@ -155,6 +181,19 @@ def main() -> int:
         default="",
         help="only execute notebooks whose path contains this substring",
     )
+    parser.add_argument(
+        "--write-frozen",
+        action="store_true",
+        help=(
+            "Also write back the frozen-Qt set's outputs (--inplace, real "
+            "MetalGUI, no QISKIT_METAL_HEADLESS). Requires a real or Xvfb "
+            "display with the [gui] extra installed -- see "
+            "docs/architecture/gui_crash_defenses.md and "
+            "_dev/notebooks-frozen-qt.txt before using this outside CI. "
+            "Without this flag the frozen-Qt set stays in its default "
+            "check-only mode: headless, output to /tmp, source untouched."
+        ),
+    )
     args = parser.parse_args()
 
     auto_refresh = _load_list(AUTO_REFRESH_LIST)
@@ -166,7 +205,8 @@ def main() -> int:
     print(f"Auto-refresh (--inplace): {len(auto_refresh)}")
     for p in auto_refresh:
         print(f"  ↻ {p.relative_to(REPO)}")
-    print(f"\nFrozen Qt (check-only):   {len(frozen_qt)}")
+    frozen_label = "WRITE-BACK, real Qt" if args.write_frozen else "check-only"
+    print(f"\nFrozen Qt ({frozen_label}):   {len(frozen_qt)}")
     for p in frozen_qt:
         print(f"  ✱ {p.relative_to(REPO)}")
 
@@ -175,11 +215,13 @@ def main() -> int:
         return 0
 
     print(f"\nExecuting with {args.jobs} parallel worker(s)...\n")
-    work = [(p, True) for p in auto_refresh] + [(p, False) for p in frozen_qt]
+    work = [(p, True, False) for p in auto_refresh] + [
+        (p, args.write_frozen, args.write_frozen) for p in frozen_qt
+    ]
 
     def _exec(item):
-        nb, inplace = item
-        return run_one(nb, inplace=inplace)
+        nb, inplace, qt_display = item
+        return run_one(nb, inplace=inplace, qt_display=qt_display)
 
     if args.jobs == 1:
         results = [_exec(it) for it in work]
