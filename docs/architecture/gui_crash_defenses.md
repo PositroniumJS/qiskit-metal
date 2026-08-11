@@ -150,6 +150,18 @@ Recurring timers likewise: always `QTimer(self)`, and models that poll a
 view must liveness-check it (`shiboken6.isValid`) each tick — see
 `QTreeModel_Base._view_alive`.
 
+**Full-MetalGUI lifecycle tests run in subprocesses, never in the main
+pytest process.** Two CI rounds proved why: the in-process stress test
+and then the in-process click-and-arrow test each lost the mode-4 race
+on a slow runner and segfaulted the entire pytest process, cancelling
+the matrix. The pattern: the child proves its contract via printed
+markers (strict -- a missing marker fails); a native death *after* the
+contract is proven is reported as an attributed teardown NOTE. Related
+QTest gotcha: matplotlib transforms yield PHYSICAL pixels while Qt
+mouse events take LOGICAL coordinates -- divide by
+``devicePixelRatioF()`` or synthetic clicks silently miss on HiDPI
+displays (CI's ratio-1 runners will not catch the omission).
+
 `tests/test_gui_lifecycle_stress.py` cycles build → close → pump-past-
 every-timer-deadline and fails on any "already deleted" in the captured
 output. Treat **any** `Internal C++ object ... already deleted` anywhere —
