@@ -14,7 +14,7 @@ Design and analyze superconducting quantum chips with a Python API + optional GU
 that plugs into your favourite EDA tools.
 No Qt required — works headlessly in any Jupyter notebook or plain Python script.
 
-.. grid:: 1 2 3 3
+.. grid:: 1 2 2 4
    :gutter: 2
 
    .. grid-item-card:: 🚀 Install
@@ -39,11 +39,22 @@ No Qt required — works headlessly in any Jupyter notebook or plain Python scri
 
          Hands-on notebooks
 
-   .. grid-item-card:: 💬 Community
+   .. grid-item-card:: 🧩 Component Gallery
       :class-header: sd-bg-primary sd-text-light
 
-      .. button-link:: https://discord.gg/kaZ3UFuq
+      .. button-ref:: qcomponents-gallery
+         :ref-type: doc
          :color: primary
+         :outline:
+         :expand:
+
+         Browse every QComponent visually
+
+   .. grid-item-card:: 💬 Community
+      :class-header: sd-bg-secondary sd-text-light
+
+      .. button-link:: https://discord.gg/FPNybyfpxd
+         :color: secondary
          :outline:
          :expand:
 
@@ -68,10 +79,11 @@ in a simple, open, community-driven framework.
 
    .. grid-item-card:: Quantum Device Components
       :class-header: sd-bg-secondary sd-text-light
-      :link: qlibrary
-      :link-type: ref
+      :link: qcomponents-gallery
+      :link-type: doc
 
-      :ref:`qlibrary`
+      Visual catalog: every transmon, coupler, route, resonator,
+      termination, and lumped element shipped with Quantum Metal.
 
    .. grid-item-card:: Quantum Renderer
       :class-header: sd-bg-primary sd-text-light
@@ -97,7 +109,7 @@ in a simple, open, community-driven framework.
 
       Fastest way to reach maintainers and the broader community.
 
-      .. button-link:: https://discord.gg/kaZ3UFuq
+      .. button-link:: https://discord.gg/FPNybyfpxd
          :color: primary
          :outline:
          :expand:
@@ -147,7 +159,7 @@ in a simple, open, community-driven framework.
 
          QDC website
 
-      .. button-link:: https://discord.gg/kaZ3UFuq
+      .. button-link:: https://discord.gg/FPNybyfpxd
          :color: secondary
          :outline:
          :expand:
@@ -156,10 +168,9 @@ in a simple, open, community-driven framework.
 
 .. note::
     **Rebrand in progress: Qiskit Metal → Quantum Metal.**
-    The PyPI package is ``quantum-metal`` (v0.5+; current: v0.7.0).
-    A future release (target v0.8–v1.0) will rename the import path from
-    ``qiskit_metal`` to ``quantum_metal``. ``import qiskit_metal`` raises a
-    ``FutureWarning`` — silence it with ``QISKIT_METAL_SUPPRESS_RENAME_WARNING=1``.
+    The PyPI package is ``quantum-metal`` (v0.5+).
+    A future release will rename the import path from ``qiskit_metal``
+    to ``quantum_metal``; no version has been set for that yet.
     See :doc:`installation` and :doc:`migration-to-v0.7.0`.
 
 .. toctree::
@@ -168,31 +179,27 @@ in a simple, open, community-driven framework.
     :hidden:
 
     Installing Quantum Metal<installation>
-    Quick Start<tut/1-Overview/1.2-Quick-start>
+    Quick Start<tut/1-Overview/1.1-Quick-start>
+    Built on / with Quantum Metal<ecosystem>
 
 .. toctree::
     :maxdepth: 1
-    :caption: Tutorials
+    :caption: Tutorials & Examples
     :hidden:
 
     Tutorials<tut/index>
+    QComponent Gallery<qcomponents-gallery>
     Example Designs<circuit-examples/index>
     Videos & Education<videoseducation>
 
 .. toctree::
     :maxdepth: 1
-    :caption: Ecosystem
-    :hidden:
-
-    Built on / with Quantum Metal<ecosystem>
-
-.. toctree::
-    :maxdepth: 2
-    :caption: Concepts
+    :caption: How It Works
     :hidden:
 
     Quantum Metal Workflow<workflow>
-    Frequently Asked Questions<faq>
+    Quantization Methods<quantization>
+    GUI Navigation & Shortcuts<gui-shortcuts>
 
 .. toctree::
     :maxdepth: 2
@@ -209,13 +216,22 @@ in a simple, open, community-driven framework.
     GUI<apidocs/gui>
 
 .. toctree::
+    :maxdepth: 1
+    :caption: Project
+    :hidden:
+
+    Roadmap<roadmap>
+    Frequently Asked Questions<faq>
+    Migrating to v0.7.0<migration-to-v0.7.0>
+
+.. toctree::
     :maxdepth: 2
     :caption: Community & Contributing
     :hidden:
 
     Contributor Guide<contributor-guide>
+    Architecture<architecture>
     Using Quantum Metal without Qt<headless-usage>
-    Migrating to v0.7.0<migration-to-v0.7.0>
     Code of Conduct<https://github.com/Qiskit/qiskit/blob/master/CODE_OF_CONDUCT.md>
 
 .. Per-class autodoc stubs in ``apidocs/`` are reached via the

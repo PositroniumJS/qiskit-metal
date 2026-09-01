@@ -2,26 +2,49 @@
  "cells": [
   {
    "cell_type": "markdown",
+   "id": "e675e833",
    "metadata": {},
    "source": [
     "# Readout line"
    ]
   },
   {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/qiskit-community/qiskit-metal/blob/main/tutorials/Appendix%20C%20Circuit%20examples/E.%20Input-output-coupling/42-ResonatorAndLaunchPad.ipynb)\n",
+    "[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/qiskit-community/qiskit-metal/main?labpath=tutorials%2FAppendix%20C%20Circuit%20examples%2FE.%20Input-output-coupling%2F42-ResonatorAndLaunchPad.ipynb)\n",
+    "\n",
+    "> 💡 **Running in Colab or Binder?** Skip the desktop GUI install — the cell below grabs the lite (no-Qt) wheel, and `qm.gui(design)` auto-picks an inline matplotlib viewer with the same API (`gui.rebuild()`, `gui.screenshot()`, `gui.edit_component(...)`) as the desktop `MetalGUI`."
+   ]
+  },
+  {
    "cell_type": "code",
-   "execution_count": 1,
+   "execution_count": null,
    "metadata": {},
    "outputs": [],
    "source": [
-    "# Enables module automatic reload.\n",
-    "# Your notebook will be able to pick up code updates made to qiskit-metal (or other) module code.\n",
-    "\n",
-    "%reload_ext autoreload\n",
-    "%autoreload 2"
+    "# In Colab / Binder, uncomment to install Quantum Metal (lite, no Qt).\n",
+    "# Locally you should already have it via `pip install quantum-metal` or\n",
+    "# `pip install 'quantum-metal[gui]'` for the desktop GUI.\n",
+    "# !pip install -q quantum-metal"
    ]
   },
   {
    "cell_type": "markdown",
+   "id": "c315da56",
+   "metadata": {},
+   "source": [
+    "> 💡 **Using this tutorial without the Qt GUI**\n",
+    "> \n",
+    "> This tutorial uses the desktop `MetalGUI`. To follow along on Colab, Binder, JupyterHub, or any environment where Qt isn't available, **replace any `gui.rebuild()` / `gui.screenshot()` call with `qm.view(design)`** — it renders the design to a matplotlib `Figure` you can display inline or save with `fig.savefig(...)`.\n",
+    "> \n",
+    "> See [1.1 Quick start](../../1-Overview/1.1-Quick-start.ipynb) for a complete runnable walkthrough and [`docs/headless-usage.rst`](../../../docs/headless-usage.rst) for the full reference."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "954967b9",
    "metadata": {},
    "source": [
     "Import key libraries and open the Metal GUI. Also we configure the notebook to enable overwriting of existing components"
@@ -29,7 +52,8 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 2,
+   "execution_count": null,
+   "id": "121efd67",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -47,6 +71,7 @@
   {
    "cell_type": "code",
    "execution_count": 3,
+   "id": "e1209f28",
    "metadata": {},
    "outputs": [
     {
@@ -79,6 +104,7 @@
   {
    "cell_type": "code",
    "execution_count": 4,
+   "id": "c404b7c7",
    "metadata": {},
    "outputs": [
     {
@@ -115,6 +141,7 @@
   {
    "cell_type": "code",
    "execution_count": 5,
+   "id": "8ae610ec",
    "metadata": {},
    "outputs": [
     {
@@ -144,7 +171,8 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 6,
+   "execution_count": null,
+   "id": "5df82aee",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -158,7 +186,8 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 7,
+   "execution_count": null,
+   "id": "25a09ffc",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -170,7 +199,8 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 8,
+   "execution_count": null,
+   "id": "61d38d7c",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -192,7 +222,8 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 9,
+   "execution_count": null,
+   "id": "08af8b07",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -205,6 +236,7 @@
   {
    "cell_type": "code",
    "execution_count": 10,
+   "id": "f9806468",
    "metadata": {},
    "outputs": [
     {
@@ -233,6 +265,7 @@
   {
    "cell_type": "code",
    "execution_count": 11,
+   "id": "24eabc27",
    "metadata": {},
    "outputs": [
     {
@@ -269,6 +302,7 @@
   {
    "cell_type": "code",
    "execution_count": 12,
+   "id": "efe8c53a",
    "metadata": {},
    "outputs": [
     {
@@ -294,6 +328,7 @@
   {
    "cell_type": "code",
    "execution_count": 13,
+   "id": "5683d27b",
    "metadata": {
     "tags": [
      "nbsphinx-thumbnail"
@@ -328,6 +363,7 @@
   {
    "cell_type": "code",
    "execution_count": 14,
+   "id": "92b243ec",
    "metadata": {},
    "outputs": [
     {
@@ -349,6 +385,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
+   "id": "285d5cfb",
    "metadata": {},
    "outputs": [],
    "source": []
@@ -375,5 +412,5 @@
   }
  },
  "nbformat": 4,
- "nbformat_minor": 4
+ "nbformat_minor": 5
 }

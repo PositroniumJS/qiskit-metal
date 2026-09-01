@@ -1,0 +1,1027 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="GUI Navigation &amp; Shortcuts" href="gui-shortcuts.html"><link rel="prev" title="Quantum Metal Workflow" href="workflow.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Quantization Methods Overview - Quantum Metal 0.8.1</title>
+      <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/qiskit-sphinx-theme.css?v=8ff9dcb6" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Vibur" />
+    <link rel="stylesheet" type="text/css" href="_static/jupyterlite_sphinx.css?v=f676e775" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 2H2C1.73478 2 1.48043 2.10536 1.29289 2.29289C1.10536 2.48043 1 2.73478 1 3V13C1 13.2652 1.10536 13.5196 1.29289 13.7071C1.48043 13.8946 1.73478 14 2 14H14C14.2652 14 14.5196 13.8946 14.7071 13.7071C14.8946 13.5196 15 13.2652 15 13V3C15 2.73478 14.8946 2.48043 14.7071 2.29289C14.5196 2.10536 14.2652 2 14 2V2ZM2 3H10V13H2V3ZM14 13H11V3H14V13Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 3H2V4H14V3Z" fill="currentColor"/>
+      <path d="M14 12H2V13H14V12Z" fill="currentColor"/>
+      <path d="M14 6H2V7H14V6Z" fill="currentColor"/>
+      <path d="M14 9H2V10H14V9Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 8L6.00005 13L5.30005 12.3L9.60005 8L5.30005 3.7L6.00005 3L11 8Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 13H1V14H15V13Z" fill="currentColor"/>
+      <path d="M12.7 4.5C13.1 4.1 13.1 3.5 12.7 3.1L10.9 1.3C10.5 0.9 9.9 0.9 9.5 1.3L2 8.8V12H5.2L12.7 4.5ZM10.2 2L12 3.8L10.5 5.3L8.7 3.5L10.2 2ZM3 11V9.2L8 4.2L9.8 6L4.8 11H3Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 13.0002C11.5523 13.0002 12 12.5525 12 12.0002C12 11.4479 11.5523 11.0002 11 11.0002C10.4477 11.0002 10 11.4479 10 12.0002C10 12.5525 10.4477 13.0002 11 13.0002Z" fill="currentColor"/>
+      <path d="M14.8884 11.7394C14.5795 10.9524 14.0464 10.2734 13.3552 9.78646C12.664 9.29954 11.8451 9.02615 11 9.00017C10.1549 9.02615 9.33604 9.29954 8.64484 9.78646C7.95365 10.2734 7.42052 10.9524 7.11155 11.7394L7 12.0002L7.11155 12.2609C7.42052 13.0479 7.95365 13.727 8.64484 14.2139C9.33604 14.7008 10.1549 14.9742 11 15.0002C11.8451 14.9742 12.664 14.7008 13.3552 14.2139C14.0464 13.727 14.5795 13.0479 14.8884 12.2609L15 12.0002L14.8884 11.7394ZM11 14.0002C10.6044 14.0002 10.2178 13.8829 9.88886 13.6631C9.55996 13.4433 9.30362 13.131 9.15224 12.7655C9.00087 12.4001 8.96126 11.998 9.03843 11.61C9.1156 11.222 9.30608 10.8657 9.58579 10.586C9.86549 10.3063 10.2219 10.1158 10.6098 10.0386C10.9978 9.96143 11.3999 10.001 11.7654 10.1524C12.1308 10.3038 12.4432 10.5601 12.6629 10.889C12.8827 11.2179 13 11.6046 13 12.0002C12.9994 12.5304 12.7885 13.0388 12.4136 13.4137C12.0386 13.7887 11.5303 13.9996 11 14.0002Z" fill="currentColor"/>
+      <path d="M6 14.0002H4V2.00017H8V5.00017C8.00077 5.26515 8.10637 5.51906 8.29374 5.70643C8.48111 5.8938 8.73502 5.99941 9 6.00017H12V8.00017H13V5.00017C13.0018 4.93446 12.9893 4.86913 12.9634 4.80871C12.9375 4.74828 12.8988 4.6942 12.85 4.65017L9.35 1.15017C9.30599 1.10134 9.2519 1.06263 9.19147 1.03674C9.13104 1.01084 9.06572 0.998364 9 1.00017H4C3.73502 1.00094 3.48111 1.10654 3.29374 1.29391C3.10637 1.48128 3.00077 1.73519 3 2.00017V14.0002C3.00077 14.2652 3.10637 14.5191 3.29374 14.7064C3.48111 14.8938 3.73502 14.9994 4 15.0002H6V14.0002ZM9 2.20017L11.8 5.00017H9V2.20017Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">Quantum Metal 0.8.1</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  
+  <span class="sidebar-brand-text">Quantum Metal 0.8.1</span>
+  
+</a>
+<form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Get Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installing Quantum Metal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tut/1-Overview/1.1-Quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ecosystem.html">Built on / with Quantum Metal</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials &amp; Examples</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="tut/index.html">Tutorials</a><input aria-label="Toggle navigation of Tutorials" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="tut/1-Overview/1.1-Quick-start.html">1.1 Quick start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/1-Overview/1.2-Bird%27s-eye-view-of-Quantum-Metal.html">1.2 Bird’s eye view of Quantum Metal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/1-Overview/1.3-Build-a-4-qubit-chip.html">1.3 Build a 4-qubit chip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/1-Overview/1.4-Saving-Your-Chip-Design.html">1.4 Saving Your Chip Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/1-Overview/1.5-Parametric-design---iterate-and-compare.html">1.5 Parametric Design: Iterate and Compare</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/2-From-components-to-chip/2.01-How-to-use-a-QComponent.html">2.01 QComponent lifecycle — use, copy, delete, rename</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/2-From-components-to-chip/2.11-Routing-101.html">2.11 Routing 101</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/2-From-components-to-chip/2.12-Simple-Meander.html">2.12 Simple Meander</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/2-From-components-to-chip/2.13-Hybrid-Auto-and-AStar.html">2.13 Hybrid Auto and AStar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/2-From-components-to-chip/2.14-Get-them-all-with-MixedRoute.html">2.14 Get them all with MixedRoute</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/2-From-components-to-chip/2.15-Airbridges.html">Airbridges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/2-From-components-to-chip/2.21-Design-a-4-qubit-full-chip.html">2.21 Design a 4 qubit full chip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/2-From-components-to-chip/2.22-Design-100-qubits-programmatically.html">2.22 Design 100 qubits programmatically</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/2-From-components-to-chip/2.23-Modify-chip-options.html">2.23 Modify chip options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/2-From-components-to-chip/2.24-Design-rule-checking.html">Design rule checking</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/2-From-components-to-chip/2.31-Create-a-QComponent-Basic.html">2.31 Create a QComponent - Basic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/2-From-components-to-chip/2.32-Create-a-QComponent-Advanced.html">2.32 Create a QComponent - Advanced</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/2-From-components-to-chip/2.33-Add-my-QComponent-to-a-reusable-python-file.html">2.33 Add my QComponent to a reusable python file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/3-Renderers/3.1-Introduction-to-QRenderers.html">3.1 Introduction to QRenderers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/3-Renderers/3.2-Export-your-design-to-GDS.html">3.2 Export your design to GDS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/3-Renderers/3.3-Render-your-design-to-Ansys.html">3.3 Render your design to Ansys</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/3-Renderers/3.4-How-do-I-make-my-custom-QRenderer.html">3.4 How do I make my custom QRenderer?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/3-Renderers/3.5-Render-your-design-to-Gmsh.html">3.5 Render your design to Gmsh</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.01-Capacitance-and-LOM.html">4.01 Capacitance matrix and LOM analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.02-Eigenmode-and-EPR.html">4.02 Eigenmode and EPR analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.03-Impedance.html">4.03 Impedance, admittance and scattering analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.04-New-LOM-and-Fluxonium-Example.html">4.04 New LOM and Fluxonium Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.05-New-LOM-and-Two-Coupled-Transmon-Example.html">4.05 New LOM and Two Coupled Transmon Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.05-New-LOM-and-Two-Coupled-Transmon-Example-with-sequence.html">4.05 New LOM and Two Coupled Transmon Example with sequence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.11-Analyze-and-tune-a-transmon.html">4.11 Analyzing and tuning a transmon qubit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.12-Analyze-a-resonator.html">4.12 Analyzing and tuning a resonator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.13-Analyze-transmon-and-resonator.html">4.13 Analyzing and tuning a transmon qubit with a resonator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.14-Analyze-a-double-hanger-resonator.html">4.14 Analyzing a double hanger resonator (S Param)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.15-CPW-kappa-calculation.html">4.15 CPW Kappa Calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.16-Analyze-S21-of-Hange-Geometry-with-WirebondLunchpadDriven.html">4.16 S21 simulation of a resonator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.17-Fit-S21-of-Hanger-Resonator-Geometry.html">4.17 S21 simulation and fitting of a resonator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.18-Analyse-a-Resonator-with-Ports.html">4.18 Eigenmode simulation with Ports</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.19-Analyze-a-transmon-using-ElmerFEM.html">4.19 Analyse a Transmon Qubit using ElmerFEM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.21-Capacitance-matrix.html">4.21 Sweeps - Capacitance matrix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.22-Eigenmode-matrix.html">4.22 Sweeps - Eigenmode matrix</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.23-Impedance-and-scattering-Z-S-Y-matrices.html">4.23 Sweeps - Impedance, scattering and admittance (Z S Y) matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.31-Plot-quantum-oscillator-wavefunction.html">4.31 Plotting Wavefunctions of the Quantum Harmonic Oscillator (LC Circuit)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.32-Transmon-analytics-HCPB.html">4.32 Transmon Analytics: Plotting Eigenvalues as a Function of Offset Charge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.33-Transmon-analytics.html">4.33 Transmon Analytics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/4.34-Transmon-qubit-CPB-hamiltonian-charge-basis.html">4.34 Modeling transmon qubit Cooper-pair box Hamiltonian in the charge basis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/Design-and-Simulation-of-a-Cross-Resonance-Gate.html">The Cross Resonance (CR) Gate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/4-Analysis/cQED-with-the-Jaynes-Cummings-Interaction-Model.html">Circuit Quantum Electrodynamics (cQED) and the Jaynes-Cummings Interaction Model Using the HCPB Class and QuTip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/full-design-examples/Reference-design-1-Transmon-with-readout-resonator.html">Reference design 1 — Transmon with readout resonator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/full-design-examples/Reference-design-2-Two-coupled-transmons.html">Reference design 2 — Two coupled transmons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/full-design-examples/Reference-design-3-Four-qubit-multiplexed-readout.html">Reference design 3 — Four-qubit multiplexed readout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/quick-topics/JJ-Demo-Notebook.html">Josephson Junction QComponent Demo Notebook</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/quick-topics/Managing-pins.html">Managing pins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/quick-topics/Managing-variables.html">Managing variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/quick-topics/Opening-documentation.html">Opening the documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/quick-topics/QComponent-3-fingers-capacitor.html">QComponent - 3-fingers capacitor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/quick-topics/QComponent-Interdigitated-transmon.html">QComponent - Interdigitated transmon qubit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tut/quick-topics/Testing-QComponents-for-overlap-and-collisions.html">Demo Notebook Demonstrating How to Test for Component/CPW Overlap</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="qcomponents-gallery.html">QComponent Gallery</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="circuit-examples/index.html">Example Designs</a><input aria-label="Toggle navigation of Example Designs" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/A.Qubits/01-Transmon_cross.html">Single Transmon - Grounded (xmon)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/A.Qubits/02-Transmon_floating.html">Single Transmon - Floating</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/A.Qubits/03-concentric_transmon.html">Concentric Transmon</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/A.Qubits/04-Interdigitated_Transmon.html">Interdigitated Transmon Qubits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/A.Qubits/05-Transmon_cross_fl.html">Single Transmon - Grounded (xmon) flux lines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/A.Qubits/06-Transmon_floating_6.html">Single Transmon - Floating with 6 connection pads</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/A.Qubits/07-Transmon_floating_cl.html">Single Transmon - Floating with charge lines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/A.Qubits/08-JJ-Dolan.html">Josephson Junction (Dolan)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/A.Qubits/09-JJ-Manhattan.html">Josephson Junction (Manhattan)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/A.Qubits/10-Transmon_floating_teeth.html">Single Transmon - Floating with teeth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/A.Qubits/11-Star_shaped_qubit.html">Star shaped qubit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/B.Resonators/11-Resonator_Meander.html">Simple CPW Meander</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/C.Composite-bi-partite/21-OneTransmonsWithMeanderAndOTG.html">Transmon coupled to CPW resonator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/D.Qubit-couplers/31-TwoCrossmonsTunableCoupler.html">Tunable Coupler (MIT)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/D.Qubit-couplers/32-TwoTransmonsDirectCoupling.html">Direct Coupler (transmon-transmon)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/D.Qubit-couplers/33-TwoTransmonsWithMeander.html">Bus Resonator Coupler (transmon-transmon)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/E.Input-output-coupling/41-LaunchPad.html">CPW Launch Pad</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/E.Input-output-coupling/42-ResonatorAndLaunchPad.html">Readout line</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/E.Input-output-coupling/43-TransmonPocketCL.html">Charge Line</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/F.Small-quantum-chips/51-Four_qubit_chip.html">Four Qubit Chip Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/full-design-flow-examples/Example-full-chip-design.html">Example full chip design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/full-design-flow-examples/Example-used-in-the-launch-video.html">Launch Videos</a></li>
+<li class="toctree-l2"><a class="reference internal" href="circuit-examples/full-design-flow-examples/Exercise-for-the-South-Korea-Hackathon%2720.html">South Korea Qiskit Hackathon’20 - Qiskit Metal exercise</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="videoseducation.html">Videos &amp; Education</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How It Works</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="workflow.html">Quantum Metal Workflow</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Quantization Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui-shortcuts.html">GUI Navigation &amp; Shortcuts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/designs.html">QDesigns</a><input aria-label="Toggle navigation of QDesigns" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.designs.QDesign.html">QDesign</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.designs.DesignPlanar.html">DesignPlanar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.designs.MultiPlanar.html">MultiPlanar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.designs.DesignFlipChip.html">DesignFlipChip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.designs.QNet.html">QNet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.designs.Components.html">Components</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/qlibrary.html">QComponents</a><input aria-label="Toggle navigation of QComponents" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.QComponent.html">QComponent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.ParsedDynamicAttributes_Component.html">ParsedDynamicAttributes_Component</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.BaseQubit.html">BaseQubit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.QRoute.html">QRoute</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.QRouteLead.html">QRouteLead</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.QRoutePoint.html">QRoutePoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.CircleCaterpillar.html">CircleCaterpillar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.CircleRaster.html">CircleRaster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.NGon.html">NGon</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.NSquareSpiral.html">NSquareSpiral</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.Rectangle.html">Rectangle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.RectangleHollow.html">RectangleHollow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.Cap3Interdigital.html">Cap3Interdigital</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.CapNInterdigital.html">CapNInterdigital</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.ResonatorCoilRect.html">ResonatorCoilRect</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.CoupledLineTee.html">CoupledLineTee</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.LineTee.html">LineTee</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.CapNInterdigitalTee.html">CapNInterdigitalTee</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.TunableCoupler01.html">TunableCoupler01</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.TunableCoupler02.html">TunableCoupler02</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.ReadoutResFC.html">ReadoutResFC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.ResonatorLumped.html">ResonatorLumped</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.LaunchpadWirebond.html">LaunchpadWirebond</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.LaunchpadWirebondCoupled.html">LaunchpadWirebondCoupled</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.LaunchpadWirebondDriven.html">LaunchpadWirebondDriven</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.OpenToGround.html">OpenToGround</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.ShortToGround.html">ShortToGround</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.RouteStraight.html">RouteStraight</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.RouteFramed.html">RouteFramed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.RouteMeander.html">RouteMeander</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.RouteAnchors.html">RouteAnchors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.RouteMixed.html">RouteMixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.RoutePathfinder.html">RoutePathfinder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.jj_dolan.html">jj_dolan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.jj_manhattan.html">jj_manhattan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.TransmonConcentric.html">TransmonConcentric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.TransmonConcentricType2.html">TransmonConcentricType2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.TransmonCross.html">TransmonCross</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.TransmonCrossFL.html">TransmonCrossFL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.TransmonInterdigitated.html">TransmonInterdigitated</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.TransmonPocket.html">TransmonPocket</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.TransmonPocketCL.html">TransmonPocketCL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.TransmonPocket6.html">TransmonPocket6</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.TransmonPocketTeeth.html">TransmonPocketTeeth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.TunableCoupler01.html">TunableCoupler01</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.SQUID_LOOP.html">SQUID_LOOP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.SNAIL.html">SNAIL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.StarQubit.html">StarQubit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qlibrary.anchored_path.html">anchored_path</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/analyses.html">Analyses</a><input aria-label="Toggle navigation of Analyses" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.analyses.QAnalysis.html">QAnalysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.analyses.QSimulation.html">QSimulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.analyses.LOManalysis.html">LOManalysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.analyses.EPRanalysis.html">EPRanalysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.analyses.LumpedElementsSim.html">LumpedElementsSim</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.analyses.EigenmodeSim.html">EigenmodeSim</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.analyses.ScatteringImpedanceSim.html">ScatteringImpedanceSim</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.analyses.Hcpb.html">Hcpb</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.analyses.Hcpb_analytic.html">Hcpb_analytic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.analyses.HO_wavefunctions.html">HO_wavefunctions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.analyses.transmon_analytics.html">transmon_analytics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.analyses.cpw_calculations.html">cpw_calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.analyses.kappa_calculation.html">kappa_calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.analyses.lumped_capacitive.html">lumped_capacitive</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.analyses.Sweeper.html">Sweeper</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/renderers.html">QRenderers</a><input aria-label="Toggle navigation of QRenderers" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.QRenderer.html">QRenderer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.QRendererGui.html">QRendererGui</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.QRendererAnalysis.html">QRendererAnalysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.PlotCanvas.html">PlotCanvas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.MplInteraction.html">MplInteraction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.ZoomOnWheel.html">ZoomOnWheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.PanAndZoom.html">PanAndZoom</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.QMplRenderer.html">QMplRenderer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.AnimatedText.html">AnimatedText</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.QGDSRenderer.html">QGDSRenderer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.Cheesing.html">Cheesing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.QAnsysRenderer.html">QAnsysRenderer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.QHFSSRenderer.html">QHFSSRenderer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.QQ3DRenderer.html">QQ3DRenderer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.QPyaedt.html">QPyaedt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.QQ3DPyaedt.html">QQ3DPyaedt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.QHFSSPyaedt.html">QHFSSPyaedt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.QHFSSDrivenmodalPyaedt.html">QHFSSDrivenmodalPyaedt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.QHFSSEigenmodePyaedt.html">QHFSSEigenmodePyaedt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.QGmshRenderer.html">QGmshRenderer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.renderers.Vec3DArray.html">Vec3DArray</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/toolbox_metal.html">Toolbox</a><input aria-label="Toggle navigation of Toolbox" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.toolbox_metal.QiskitMetalExceptions.html">QiskitMetalExceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.toolbox_metal.QiskitMetalDesignError.html">QiskitMetalDesignError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.toolbox_metal.about.html">about</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.toolbox_metal.import_export.html">import_export</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.toolbox_metal.math_and_overrides.html">math_and_overrides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.toolbox_metal.parsing.html">parsing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.toolbox_metal.layer_stack_handler.html">layer_stack_handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.toolbox_metal.bounds_for_path_and_poly_tables.html">bounds_for_path_and_poly_tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.toolbox_metal.determine_larger_box.html">determine_larger_box</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/qgeometries.html">QGeometry</a><input aria-label="Toggle navigation of QGeometry" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal.qgeometries.QGeometryTables.html">QGeometryTables</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="apidocs/gui.html">GUI</a><input aria-label="Toggle navigation of GUI" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="apidocs/qiskit_metal._gui.MetalGUI.html">MetalGUI</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Project</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Roadmap</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="migration-to-v0.7.0.html">Migrating to v0.7.0 (lite-by-default install)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="migration-to-v0.7.0.html#v0-7-2-follow-on-prefer-qm-gui-design-over-metalgui-design">v0.7.2 follow-on: prefer <code class="docutils literal notranslate"><span class="pre">qm.gui(design)</span></code> over <code class="docutils literal notranslate"><span class="pre">MetalGUI(design)</span></code></a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Community &amp; Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributor-guide.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="headless-usage.html">Using Quantum Metal without Qt</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/Qiskit/qiskit/blob/master/CODE_OF_CONDUCT.md">Code of Conduct</a></li>
+</ul>
+
+</div></div>
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/quantization.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="quantization-methods-overview">
+<span id="quantization"></span><h1>Quantization Methods Overview<a class="headerlink" href="#quantization-methods-overview" title="Link to this heading">¶</a></h1>
+<p>We currently support two complementary quantization approaches that cover most day-to-day chip design
+work: a lightweight lumped/ quasi-lumped model and a full-wave, black-box style energy-participation
+ratio (EPR) workflow. Use this section as a quick “why and when” guide before you pick a solver.</p>
+<p><strong>What you give us</strong>
+- Your device geometry (from the QComponent library or your own components)
+- A small set of materials/stack assumptions (dielectrics, metal films, boundaries)
+- The excitation/ports you care about (for scattering or eigenmode solves)</p>
+<p><strong>What you get back</strong>
+- Modal frequencies, anharmonicities, and dispersive shifts
+- Coupling strengths and participation matrices you can plug into Hamiltonians
+- Loss estimates tied to specific volumes (dielectrics, conductors, seams) so you can chase the right bottleneck</p>
+<p>Each method balances speed, fidelity, and required setup. Start with the lumped model when you need
+fast iteration and intuitive circuit pictures; switch to EPR when geometry and field participation
+really matter.</p>
+<img alt="Missing Image" src="_images/quantization.png" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<section id="lumped-oscillator-model">
+<h2>Lumped-oscillator model<a class="headerlink" href="#lumped-oscillator-model" title="Link to this heading">¶</a></h2>
+<p>In the lumped-oscillator model you treat each component as a compact circuit element whose capacitance
+and inductance can be extracted from fast quasi-static simulations or closed-form formulas. Think of it
+as a guided way to draw a circuit, pull out the C and L values, and then stitch those into a Hamiltonian.</p>
+<p><em>When to use it.</em> Early design and parameter sweeps when you want intuition and speed. Routing,
+connector placement, and first-order coupling strengths are often “good enough” here. Because solves are
+cheap, you can explore a lot of geometry/stack variants before moving to heavier solvers.</p>
+<p><em>How it works.</em> Partition the device into a handful of cells, solve each one quickly to get effective
+C/L values, then assemble the network and quantize. The reduction step preserves the pairwise couplings
+so you keep track of renormalization and loading. The result is a simple Hamiltonian with parameters you
+can iterate on in minutes.</p>
+<p>References:</p>
+<ul class="simple">
+<li><p>Zlatko K. Minev, Thomas G. McConkey, Maika Takita, Antonio Corcoles, Jay M. Gambetta,
+Circuit quantum electrodynamics (cQED) with modular quasi-lumped models. (2021)</p></li>
+</ul>
+<a class="reference internal image-reference" href="_images/lump.png"><img alt="Missing Image" src="_images/lump.png" width="388" />
+</a>
+<a class="reference internal image-reference" href="_images/lumped2.png"><img alt="Missing Image" src="_images/lumped2.png" width="400" />
+</a>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<section id="composite-system-api-cell-subsystem-compositesystem">
+<span id="lom-composite-api"></span><h3>Composite-system API: <code class="docutils literal notranslate"><span class="pre">Cell</span></code> / <code class="docutils literal notranslate"><span class="pre">Subsystem</span></code> / <code class="docutils literal notranslate"><span class="pre">CompositeSystem</span></code><a class="headerlink" href="#composite-system-api-cell-subsystem-compositesystem" title="Link to this heading">¶</a></h3>
+<p>The lumped-oscillator model is assembled from three classes in
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">qiskit_metal.analyses.quantization.lom_core_analysis</span></code>. A <strong>Cell</strong> holds
+an extracted capacitance matrix plus any inductors and junctions; a
+<strong>Subsystem</strong> maps a set of circuit nodes to a quantum model (transmon,
+fluxonium, transmission-line or lumped resonator, …); and a
+<strong>CompositeSystem</strong> reduces and quantizes the combined network. These are the
+classes used in tutorials <code class="docutils literal notranslate"><span class="pre">4.04</span></code> and <code class="docutils literal notranslate"><span class="pre">4.05</span></code>.</p>
+<p>The accepted <code class="docutils literal notranslate"><span class="pre">q_opts</span></code> for every built-in subsystem <code class="docutils literal notranslate"><span class="pre">sys_type</span></code>
+(<code class="docutils literal notranslate"><span class="pre">TRANSMON</span></code>, <code class="docutils literal notranslate"><span class="pre">FLUXONIUM</span></code>, <code class="docutils literal notranslate"><span class="pre">TL_RESONATOR</span></code>, <code class="docutils literal notranslate"><span class="pre">LUMPED_RESONATOR</span></code>) — which
+values you supply and which are computed from the extracted L and C matrices —
+are listed on <code class="xref py py-class docutils literal notranslate"><span class="pre">Subsystem</span></code> below. Call
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">QuantumSystemRegistry.registry()</span></code> to enumerate every registered type,
+including any custom builder you add.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="qiskit_metal.analyses.quantization.lom_core_analysis.Cell">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Cell</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_metal/analyses/quantization/lom_core_analysis.html#Cell"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_metal.analyses.quantization.lom_core_analysis.Cell" title="Link to this definition">¶</a></dt>
+<dd><p>A physical subdivision of the device (i.e., the composite system), a sub-graph
+of capaciators, inductoros and other linear or non-linear circuit elements. The
+cell can be independently simulated to extract its electromagnetic parameters, which
+the the user provides as inputs to this object</p>
+<p>Initialize the cell object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>options</strong> (<em>Dict</em>) – <p>options can contain the following keys
+node_rename (dict): a dict mapping from original node names to</p>
+<blockquote>
+<div><p>new node names, {old_name: new_name}</p>
+</div></blockquote>
+<dl class="simple">
+<dt>cap_mat (pd.DataFrame): Maxwell capacitance of the cell in</dt><dd><p>pandas dataframe</p>
+</dd>
+<dt>ind_dict (dict): the keys are tuples of specifying the two nodes</dt><dd><p>between which the inductors lie. For example,
+{(‘n1’, ‘n2’): 10} specifies that there is an inductor of 10
+nH between node ‘n1’ and ‘n2’ for one cell and an inductor of
+13 nH between node ‘n5’ and ‘n7’ for another cell</p>
+</dd>
+<dt>jj_dict (dict): dict mapping original circuit nodes to custom-named</dt><dd><p>junction nodes. This is the parameter informing the LOM analysis between
+which nodes the Josephson junctions are located. For example,
+{(‘n1’, ‘n2’): ‘j1’} specifies that there is a junction between
+nodes ‘n1’ and ‘n2’ and named as ‘j1’ cf_dict (dict):</p>
+</dd>
+<dt>cj_dict (dict): if provided, specifies the junction capacitances in each</dt><dd><p>cell. Structure is the same as ind_dict. For the dict, the keys are
+tuples of specifying the two nodes between which the junctions lie.
+For example, {(‘n1’, ‘n2’): 2} specifies that there is an
+junction capacitance of 2 fF between node ‘n1’ and ‘n2’ for the first
+provided cell and None for the second provided cell.</p>
+</dd>
+</dl>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">Subsystem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">sys_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">q_opts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_metal/analyses/quantization/lom_core_analysis.html#Subsystem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem" title="Link to this definition">¶</a></dt>
+<dd><p>Class representing a subsystem that can typically be mapped to a quantum system with known
+solution, such as a transmon, a fluxonium or a quantum harmonic oscillator.</p>
+<p>A subsystem is defined by three things: a <code class="docutils literal notranslate"><span class="pre">name</span></code>, a <code class="docutils literal notranslate"><span class="pre">sys_type</span></code> (which
+built-in or custom quantum model it maps to), and the list of circuit
+<code class="docutils literal notranslate"><span class="pre">nodes</span></code> it occupies. Type-specific numbers — offset charge, external
+flux, resonator frequency, scQubits truncation, etc. — are passed through
+the <code class="docutils literal notranslate"><span class="pre">q_opts</span></code> dict.</p>
+<p><strong>Any frequency-like value in</strong> <code class="docutils literal notranslate"><span class="pre">q_opts</span></code> <strong>must be given in GHz.</strong></p>
+<section id="built-in-sys-type-values-and-their-q-opts">
+<h4>Built-in <code class="docutils literal notranslate"><span class="pre">sys_type</span></code> values and their <code class="docutils literal notranslate"><span class="pre">q_opts</span></code><a class="headerlink" href="#built-in-sys-type-values-and-their-q-opts" title="Link to this heading">¶</a></h4>
+<p>The list below is the accepted-parameter reference for the four models
+shipped with quantum-metal. Call
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">QuantumSystemRegistry.registry()</span></code> at runtime to list every
+registered type, including any you have added yourself. Parameters marked
+<em>(computed)</em> are extracted from the reduced L and C matrices during the
+LOM solve and must <strong>not</strong> be supplied; the rest are optional and fall
+back to the defaults shown.</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;TRANSMON&quot;</span></code> — maps to <code class="docutils literal notranslate"><span class="pre">scqubits.Transmon</span></code>.</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">EJ</span></code>, <code class="docutils literal notranslate"><span class="pre">EC</span></code> — <em>(computed)</em> from the extracted L and C matrices.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ng</span></code> — offset charge (default <code class="docutils literal notranslate"><span class="pre">0.001</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ncut</span></code> — charge-basis cutoff (default <code class="docutils literal notranslate"><span class="pre">22</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">truncated_dim</span></code> — retained levels (default <code class="docutils literal notranslate"><span class="pre">10</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nodes</span></code> — a single junction node.</p></li>
+</ul>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">&quot;FLUXONIUM&quot;</span></code> — maps to <code class="docutils literal notranslate"><span class="pre">scqubits.Fluxonium</span></code>.</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">EC</span></code> — <em>(computed)</em> from the extracted C matrix.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">EJ</span></code> — Josephson energy in GHz <strong>(required)</strong>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">EL</span></code> — inductive energy in GHz <strong>(required)</strong>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">flux</span></code> — external flux in units of the flux quantum
+<span class="math notranslate nohighlight">\(\Phi_0\)</span> <strong>(required)</strong>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cutoff</span></code> — basis cutoff (default <code class="docutils literal notranslate"><span class="pre">110</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">truncated_dim</span></code> — retained levels (default <code class="docutils literal notranslate"><span class="pre">10</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nodes</span></code> — a single junction node.</p></li>
+</ul>
+</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;TL_RESONATOR&quot;</span></code> — distributed transmission-line resonator, maps to
+<code class="docutils literal notranslate"><span class="pre">scqubits.Oscillator</span></code>.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">f_res</span></code> — resonator frequency in GHz <strong>(required)</strong>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Z0</span></code> — characteristic impedance in ohms (default <code class="docutils literal notranslate"><span class="pre">50</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vp</span></code> — phase velocity in m/s, or the string <code class="docutils literal notranslate"><span class="pre">&quot;use_design&quot;</span></code>
+(default) to derive it from the <code class="docutils literal notranslate"><span class="pre">design</span></code> stack below.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">design</span></code> — dict of the physical stack used when
+<code class="docutils literal notranslate"><span class="pre">vp=&quot;use_design&quot;</span></code>: <code class="docutils literal notranslate"><span class="pre">line_width</span></code>, <code class="docutils literal notranslate"><span class="pre">line_gap</span></code>,
+<code class="docutils literal notranslate"><span class="pre">substrate_thickness</span></code>, <code class="docutils literal notranslate"><span class="pre">film_thickness</span></code>, all in <strong>meters</strong>
+(defaults <code class="docutils literal notranslate"><span class="pre">10e-6</span></code>, <code class="docutils literal notranslate"><span class="pre">6e-6</span></code>, <code class="docutils literal notranslate"><span class="pre">750e-6</span></code>, <code class="docutils literal notranslate"><span class="pre">200e-9</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">truncated_dim</span></code> — retained levels (default <code class="docutils literal notranslate"><span class="pre">3</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">other_end_shorted</span></code> — <code class="docutils literal notranslate"><span class="pre">True</span></code> if the far end is shorted to
+ground (default <code class="docutils literal notranslate"><span class="pre">False</span></code>). A shorted resonator must be given a
+single node.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nodes</span></code> — one node (open- or shorted-end) or two nodes.</p></li>
+</ul>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;LUMPED_RESONATOR&quot;</span></code> — lumped LC resonator, maps to
+<code class="docutils literal notranslate"><span class="pre">scqubits.Oscillator</span></code>.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">f_res</span></code> — <em>(computed)</em> from the extracted L and C matrices.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">truncated_dim</span></code> — retained levels (default <code class="docutils literal notranslate"><span class="pre">3</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">nodes</span></code> — a single node.</p></li>
+</ul>
+</div></blockquote>
+<p>See tutorials <code class="docutils literal notranslate"><span class="pre">4.04</span></code> and <code class="docutils literal notranslate"><span class="pre">4.05</span></code> for worked transmon / fluxonium /
+coupled-transmon examples.</p>
+<p>Initialize the Subsystem object</p>
+<dl class="field-list simple">
+<dt class="field-odd">param name<span class="colon">:</span></dt>
+<dd class="field-odd"><p>name of the subsystem</p>
+</dd>
+<dt class="field-even">type name<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">param sys_type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>type of the subsystem. Type can be one of the types implemented
+by one of the concrete QuantumBuilders (call QuantumSystemRegistry.registry()
+to see all the choices), which can also be custom-made by user</p>
+</dd>
+<dt class="field-even">type sys_type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+<dt class="field-odd">param nodes<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of nodes the subsystem corresponds to. For example, for
+a transmon subsystem, this would just be a list of a single node which is the
+user-defined junction node in the Cell object</p>
+</dd>
+<dt class="field-even">type nodes<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[str]</p>
+</dd>
+<dt class="field-odd">param q_opts<span class="colon">:</span></dt>
+<dd class="field-odd"><p>options relevant to the type of quantum subsystem. The
+Subsystem object builds the quantum subsystem using quantumfy() which calls
+make_quantum() of the corresponding QuantumBuilder. q_opts provides
+parameters needed by make_quantum(). In the case of qubit subsystems, make_quantum()
+takes advantage of the scQbuits package (<a class="reference external" href="https://scqubits.readthedocs.io">https://scqubits.readthedocs.io</a>).
+Consequently, the default options correspond to the default options of the qubit
+classes in scQubits. Defaults to None.</p>
+</dd>
+<dt class="field-even">type q_opts<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict, optional</p>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem.h_params">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">h_params</span></span><a class="headerlink" href="#qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem.h_params" title="Link to this definition">¶</a></dt>
+<dd><p>Hamiltonian parameters of the subsystem</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem.quantum_system">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">quantum_system</span></span><a class="headerlink" href="#qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem.quantum_system" title="Link to this definition">¶</a></dt>
+<dd><p>The quantum subsystem that the subsystem corresponds to. It
+is built by calling an associated builder passed in quantumfy()
+using the Visitor pattern</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem.quantumfy">
+<span class="sig-name descname"><span class="pre">quantumfy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">quantum_builder</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="_modules/qiskit_metal/analyses/quantization/lom_core_analysis.html#Subsystem.quantumfy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem.quantumfy" title="Link to this definition">¶</a></dt>
+<dd><p>Building the corresponding quantum system with an
+associated builder</p>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">CompositeSystem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subsystems</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem" title="qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem"><span class="pre">Subsystem</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.Cell" title="qiskit_metal.analyses.quantization.lom_core_analysis.Cell"><span class="pre">Cell</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grd_node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodes_force_keep</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s_remove_provided</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s_keep_provided</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_metal/analyses/quantization/lom_core_analysis.html#CompositeSystem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem" title="Link to this definition">¶</a></dt>
+<dd><p>Class representing the composite system which may consist of multiple subsystems and cells.</p>
+<p>A composite system stitches one or more <a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.Cell" title="qiskit_metal.analyses.quantization.lom_core_analysis.Cell"><code class="xref py py-class docutils literal notranslate"><span class="pre">Cell</span></code></a> objects (each
+carrying an extracted capacitance matrix, and optionally inductors and
+junctions) together with the <a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem" title="qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem"><code class="xref py py-class docutils literal notranslate"><span class="pre">Subsystem</span></code></a> objects that describe
+which quantum model each set of nodes maps to. Calling
+<a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.circuitGraph" title="qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.circuitGraph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">circuitGraph()</span></code></a> reduces the combined L and C matrices;
+<a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.create_hilbertspace" title="qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.create_hilbertspace"><code class="xref py py-meth docutils literal notranslate"><span class="pre">create_hilbertspace()</span></code></a> and <a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.hamiltonian_results" title="qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.hamiltonian_results"><code class="xref py py-meth docutils literal notranslate"><span class="pre">hamiltonian_results()</span></code></a> then build and
+diagonalize the coupled Hamiltonian.</p>
+<p class="rubric">Example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_metal.analyses.quantization.lom_core_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Cell</span><span class="p">,</span> <span class="n">Subsystem</span><span class="p">,</span> <span class="n">CompositeSystem</span><span class="p">)</span>
+
+<span class="c1"># A cell holds the extracted capacitance matrix plus the junction</span>
+<span class="n">cell</span> <span class="o">=</span> <span class="n">Cell</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="n">node_rename</span><span class="o">=</span><span class="p">{},</span>
+                 <span class="n">cap_mat</span><span class="o">=</span><span class="n">cap_df</span><span class="p">,</span>               <span class="c1"># pandas DataFrame</span>
+                 <span class="n">ind_dict</span><span class="o">=</span><span class="p">{(</span><span class="s1">'pad_top'</span><span class="p">,</span> <span class="s1">'pad_bot'</span><span class="p">):</span> <span class="mf">12.0</span><span class="p">},</span>   <span class="c1"># nH</span>
+                 <span class="n">jj_dict</span><span class="o">=</span><span class="p">{(</span><span class="s1">'pad_top'</span><span class="p">,</span> <span class="s1">'pad_bot'</span><span class="p">):</span> <span class="s1">'j1'</span><span class="p">}))</span>
+
+<span class="n">transmon</span> <span class="o">=</span> <span class="n">Subsystem</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">'Q1'</span><span class="p">,</span> <span class="n">sys_type</span><span class="o">=</span><span class="s1">'TRANSMON'</span><span class="p">,</span> <span class="n">nodes</span><span class="o">=</span><span class="p">[</span><span class="s1">'j1'</span><span class="p">])</span>
+
+<span class="n">composite</span> <span class="o">=</span> <span class="n">CompositeSystem</span><span class="p">(</span>
+    <span class="n">subsystems</span><span class="o">=</span><span class="p">[</span><span class="n">transmon</span><span class="p">],</span>
+    <span class="n">cells</span><span class="o">=</span><span class="p">[</span><span class="n">cell</span><span class="p">],</span>
+    <span class="n">grd_node</span><span class="o">=</span><span class="s1">'ground'</span><span class="p">,</span>
+    <span class="n">nodes_force_keep</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">hilbertspace</span> <span class="o">=</span> <span class="n">composite</span><span class="o">.</span><span class="n">create_hilbertspace</span><span class="p">()</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">composite</span><span class="o">.</span><span class="n">hamiltonian_results</span><span class="p">(</span><span class="n">hilbertspace</span><span class="p">,</span> <span class="n">evals_count</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Initialize the CompositeSystem object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>subsystems</strong> (<em>List</em><em>[</em><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem" title="qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem"><em>Subsystem</em></a><em>]</em>) – list of Subsystem objects</p></li>
+<li><p><strong>cells</strong> (<em>List</em><em>[</em><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.Cell" title="qiskit_metal.analyses.quantization.lom_core_analysis.Cell"><em>Cell</em></a><em>]</em>) – list of Cell objects</p></li>
+<li><p><strong>grd_node</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – name of the ground node</p></li>
+<li><p><strong>nodes_force_keep</strong> (<em>Sequence</em><em>, </em><em>optional</em>) – a list of nodes that will not be eliminated
+during L and C matrices reduction. Use this parameter to specify non-dynamic
+nodes (nodes that are connected capacitors only or inductors only) that should
+be preserved. If not specified (i.e., None), all non-dynamic nodes are eliminated</p></li>
+<li><p><strong>s_remove_provided</strong> (<em>np.ndarray</em>) – precalculated s_remove; see documentation on CircuitGraph.S_Remove</p></li>
+<li><p><strong>s_keep_provided</strong> (<em>np.ndarray</em>) – precalculated s_keep; see documentation on CircuitGraph.S_Keep</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.add_interaction">
+<span class="sig-name descname"><span class="pre">add_interaction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><span class="pre">ndarray</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gscale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">HilbertSpace</span></span></span><a class="reference internal" href="_modules/qiskit_metal/analyses/quantization/lom_core_analysis.html#CompositeSystem.add_interaction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.add_interaction" title="Link to this definition">¶</a></dt>
+<dd><p>add interaction terms to the composite hilbertspace</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gs</strong> (<em>np.ndarray</em>) – coupling strength matrix. If not provided,
+it will be calculated by compute_gs()</p></li>
+<li><p><strong>gscale</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – coupling strength scale</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Hilbertspace object for the Hamiltonian</dt><dd><p>of the composite system with interations added</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>scq.HilbertSpace</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.circuitGraph">
+<span class="sig-name descname"><span class="pre">circuitGraph</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">CircuitGraph</span></span></span><a class="reference internal" href="_modules/qiskit_metal/analyses/quantization/lom_core_analysis.html#CompositeSystem.circuitGraph"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.circuitGraph" title="Link to this definition">¶</a></dt>
+<dd><p>create a CircuitGraph object with circuit parameters of the composite system</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>CircuitGraph object for LOM analysis</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>CircuitGraph</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.compute_gs">
+<span class="sig-name descname"><span class="pre">compute_gs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coupling_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'CAPACITIVE'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_metal/analyses/quantization/lom_core_analysis.html#CompositeSystem.compute_gs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.compute_gs" title="Link to this definition">¶</a></dt>
+<dd><p>compute g matrices from reduced C inverse matrix C^{-1}_{k} and reduced L inverse matrix L^{-1}_{k}
+and zero point flucuations (Q_zpf, Phi_zpf)</p>
+<p>Note that the computed g’s are in MHz</p>
+<p>Note: the resulting matrix is in the basis of nodes_keep, which may not be in the same order of
+subsystems</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.create_hilbertspace">
+<span class="sig-name descname"><span class="pre">create_hilbertspace</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">HilbertSpace</span></span></span><a class="reference internal" href="_modules/qiskit_metal/analyses/quantization/lom_core_analysis.html#CompositeSystem.create_hilbertspace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.create_hilbertspace" title="Link to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>create the composite hilbertspace including all the subsystems. Interaction</dt><dd><p>NOT included</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><dl class="simple">
+<dt>Hilbertspace object for the Hamiltonian</dt><dd><p>of the composite system without interations added</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>scq.HilbertSpace</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.hamiltonian_results">
+<span class="sig-name descname"><span class="pre">hamiltonian_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hilbertspace</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">HilbertSpace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">evals_count</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">print_info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html#pandas.DataFrame" title="(in pandas v3.0.5)"><span class="pre">DataFrame</span></a></span></span><a class="reference internal" href="_modules/qiskit_metal/analyses/quantization/lom_core_analysis.html#CompositeSystem.hamiltonian_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.hamiltonian_results" title="Link to this definition">¶</a></dt>
+<dd><p>Print and return results</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hilbertspace</strong> (<em>scq.HilbertSpace</em>) – Hilbertspace object for the Hamiltonian
+of the composite system</p></li>
+<li><p><strong>evals_count</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a><em>, </em><em>optional</em>) – Number of eigenenergy levels to keep
+after diagonalizing the Hamiltonian. Defaults to 10.</p></li>
+<li><p><strong>print_info</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a><em>, </em><em>optional</em>) – If true, print results as well. Defaults to True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>dataframe containing the results</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pd.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.node_index">
+<span class="sig-name descname"><span class="pre">node_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">node</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/qiskit_metal/analyses/quantization/lom_core_analysis.html#CompositeSystem.node_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.node_index" title="Link to this definition">¶</a></dt>
+<dd><p>Obtain the index of a given node in the composite system’s reduced
+capacitance matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>node</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – name of the node</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="qiskit_metal.analyses.quantization.lom_core_analysis.QuantumSystemRegistry">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">QuantumSystemRegistry</span></span><a class="reference internal" href="_modules/qiskit_metal/analyses/quantization/lom_core_analysis.html#QuantumSystemRegistry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#qiskit_metal.analyses.quantization.lom_core_analysis.QuantumSystemRegistry" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</section>
+</section>
+<section id="energy-the-energy-participation-ratio-epr-method">
+<h2>Energy: The energy-participation-ratio (EPR) method<a class="headerlink" href="#energy-the-energy-participation-ratio-epr-method" title="Link to this heading">¶</a></h2>
+<p>The energy-participation-ratio (EPR) method is a general (black-box) quantization method.
+Based on the Quantum Metal integration with <a class="reference external" href="https://github.com/zlatko-minev/pyEPR">pyEPR</a>,
+one can automate the design and quantization of Josephson quantum circuits,
+and even 3D circuits.</p>
+<p>The EPR method is based on the energy-participation ratio (EPR) of a dissipative or nonlinear
+element in an electromagnetic mode. The EPR, a number between zero and one, quantifies how much
+of the energy of a mode is stored in each element. It obeys universal constraints—valid
+regardless of the circuit topology and nature of the nonlinear elements.
+The EPR of the elements are calculated from a unique, efficient electromagnetic eigenmode
+simulation of the linearized circuit, including lossy elements.
+Their set is the key input to the determination of the quantum Hamiltonian of the system.
+The method provides an intuitive and simple-to-use tool to quantize multi-junction circuits.
+It is especially well-suited for finding the Hamiltonian and dissipative parameters of weakly
+anharmonic systems, such as transmon qubits coupled to resonators, or Josephson transmission lines.
+The EPR method is experimentally tested on a variety of Josephson circuits, and demonstrated
+high agreement for nonlinear couplings and modal Hamiltonian parameters, over many order of
+magnitude in energy.</p>
+<p><em>When to use it.</em> When layout details matter: packaging effects, higher-mode participation, junction
+placement, seams, or substrate losses. EPR gives you a field-aware Hamiltonian and ties every loss
+number to a physical volume, so you know which lever to pull next.</p>
+<p><em>What you set up.</em> Draw your design, define materials and boundaries, place ports, and run a single
+eigenmode solve on the linearized circuit. pyEPR reads the fields, computes participations for every
+nonlinear/lossy element, and hands back frequencies, dispersive shifts, anharmonicities, and loss
+budgets. Because it is black-box, it scales to multi-mode, multi-junction systems with minimal
+hand-tuning.</p>
+<p>References:</p>
+<ul class="simple">
+<li><p>Minev, Z. K., Leghtas, Z., Mudhada, S. O., Reinhold, P., Diringer, A., &amp; Devoret, M. H. (2018). <a class="reference external" href="https://github.com/zlatko-minev/pyEPR/blob/master/pyEPR.bib">pyEPR: The energy-participation-ratio (EPR) open-source framework for quantum device design.</a></p></li>
+<li><p>Minev, Z. K., Leghtas, Z., Mundhada, S. O., Christakis, L., Pop, I. M., &amp; Devoret, M. H. (2020). Energy-participation quantization of Josephson circuits. ArXiv. Retrieved from <a class="reference external" href="http://arxiv.org/abs/2010.00620">http://arxiv.org/abs/2010.00620</a> (2020)</p></li>
+<li><p>Z.K. Minev, Ph.D. Dissertation, Yale University (2018), Chapter 4. <a class="reference external" href="https://arxiv.org/abs/1902.10355">arXiv:1902.10355</a>  (2018)</p></li>
+<li><p><a class="reference external" href="https://pyepr-docs.readthedocs.io">pyEPR docs</a></p></li>
+</ul>
+</section>
+<section id="impedance-impedance-based-black-box-quantization-bbq">
+<h2>Impedance: impedance-based black-box quantization (BBQ)<a class="headerlink" href="#impedance-impedance-based-black-box-quantization-bbq" title="Link to this heading">¶</a></h2>
+<p>The impedance formulation of black-box quantization builds the Hamiltonian directly from the
+frequency-dependent impedance seen between nonlinear elements and ground. It shares the “full-wave
+fields first, circuit later” philosophy of EPR, but works in the impedance domain: from a port-defined
+impedance matrix you extract effective mode frequencies, participation factors, and couplings.</p>
+<p><em>When to use it.</em> For strongly multi-port/multi-mode layouts where port impedances are the most natural
+handle (e.g., rich bus networks, Purcell filters, or chip-package assemblies). It is also a good cross
+check to EPR when you want to validate couplings via an independent pipeline.</p>
+<p><em>What you set up.</em> Define ports at the locations of junctions or pins, run an eigenmode or driven solve
+to obtain the impedance matrix versus frequency, then sample around the modes of interest. The resulting
+impedances map to effective inductive/capacitive participations and give you the Hamiltonian parameters.</p>
+<p><em>Outputs.</em> Mode frequencies, nonlinear participation, and cross-Kerr rates derived from the impedance
+matrix, plus a clear picture of how design changes move those impedances. Use it to tune Purcell filters,
+set coupling windows, or debug unexpected mode crowding.</p>
+<img alt="Missing Image" src="_images/epr.png" />
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="gui-shortcuts.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">GUI Navigation &amp; Shortcuts</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="workflow.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Quantum Metal Workflow</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; Quantum Metal Community; 2019-2025 Qiskit Development Team
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            <div class="last-updated">
+              Last updated on 2026/09/01</div>
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Quantization Methods Overview</a><ul>
+<li><a class="reference internal" href="#lumped-oscillator-model">Lumped-oscillator model</a><ul>
+<li><a class="reference internal" href="#composite-system-api-cell-subsystem-compositesystem">Composite-system API: <code class="docutils literal notranslate"><span class="pre">Cell</span></code> / <code class="docutils literal notranslate"><span class="pre">Subsystem</span></code> / <code class="docutils literal notranslate"><span class="pre">CompositeSystem</span></code></a><ul>
+<li><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.Cell"><code class="docutils literal notranslate"><span class="pre">Cell</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem"><code class="docutils literal notranslate"><span class="pre">Subsystem</span></code></a><ul>
+<li><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem.h_params"><code class="docutils literal notranslate"><span class="pre">Subsystem.h_params</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem.quantum_system"><code class="docutils literal notranslate"><span class="pre">Subsystem.quantum_system</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.Subsystem.quantumfy"><code class="docutils literal notranslate"><span class="pre">Subsystem.quantumfy()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem"><code class="docutils literal notranslate"><span class="pre">CompositeSystem</span></code></a><ul>
+<li><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.add_interaction"><code class="docutils literal notranslate"><span class="pre">CompositeSystem.add_interaction()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.circuitGraph"><code class="docutils literal notranslate"><span class="pre">CompositeSystem.circuitGraph()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.compute_gs"><code class="docutils literal notranslate"><span class="pre">CompositeSystem.compute_gs()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.create_hilbertspace"><code class="docutils literal notranslate"><span class="pre">CompositeSystem.create_hilbertspace()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.hamiltonian_results"><code class="docutils literal notranslate"><span class="pre">CompositeSystem.hamiltonian_results()</span></code></a></li>
+<li><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.CompositeSystem.node_index"><code class="docutils literal notranslate"><span class="pre">CompositeSystem.node_index()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#qiskit_metal.analyses.quantization.lom_core_analysis.QuantumSystemRegistry"><code class="docutils literal notranslate"><span class="pre">QuantumSystemRegistry</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#energy-the-energy-participation-ratio-epr-method">Energy: The energy-participation-ratio (EPR) method</a></li>
+<li><a class="reference internal" href="#impedance-impedance-based-black-box-quantization-bbq">Impedance: impedance-based black-box quantization (BBQ)</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=ec16d22d"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="_static/jupyterlite_sphinx.js?v=96e329c5"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    </body>
+</html>

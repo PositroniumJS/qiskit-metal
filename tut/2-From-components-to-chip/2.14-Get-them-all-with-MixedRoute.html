@@ -3,15 +3,15 @@
   <head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
-<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="2.21 Design a 4 qubit full chip" href="2.21-Design-a-4-qubit-full-chip.html"><link rel="prev" title="2.13 Hybrid Auto and AStar" href="2.13-Hybrid-Auto-and-AStar.html">
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="Airbridges" href="2.15-Airbridges.html"><link rel="prev" title="2.13 Hybrid Auto and AStar" href="2.13-Hybrid-Auto-and-AStar.html">
 
     <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
-        <title>2.14 Get them all with MixedRoute - Quantum Metal 0.7.1</title>
+        <title>2.14 Get them all with MixedRoute - Quantum Metal 0.8.1</title>
       <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/qiskit-sphinx-theme.css?v=8ff9dcb6" />
     <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Vibur" />
-    <link rel="stylesheet" type="text/css" href="../../_static/jupyterlite_sphinx.css?v=8ee2c72c" />
+    <link rel="stylesheet" type="text/css" href="../../_static/jupyterlite_sphinx.css?v=f676e775" />
     <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
     <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
     <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
@@ -158,7 +158,7 @@
       </label>
     </div>
     <div class="header-center">
-      <a href="../../index.html"><div class="brand">Quantum Metal 0.7.1</div></a>
+      <a href="../../index.html"><div class="brand">Quantum Metal 0.8.1</div></a>
     </div>
     <div class="header-right">
       <div class="theme-toggle-container theme-toggle-header">
@@ -180,7 +180,7 @@
       <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
   
   
-  <span class="sidebar-brand-text">Quantum Metal 0.7.1</span>
+  <span class="sidebar-brand-text">Quantum Metal 0.8.1</span>
   
 </a>
 <form class="sidebar-search-container" method="get" action="../../search.html" role="search">
@@ -192,26 +192,27 @@
   <p class="caption" role="heading"><span class="caption-text">Get Started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installing Quantum Metal</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../1-Overview/1.2-Quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../1-Overview/1.1-Quick-start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ecosystem.html">Built on / with Quantum Metal</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<p class="caption" role="heading"><span class="caption-text">Tutorials &amp; Examples</span></p>
 <ul class="current">
 <li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">Tutorials</a><input aria-label="Toggle navigation of Tutorials" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="../1-Overview/1.1-Bird%27s-eye-view-of-Qiskit-Metal.html">1.1 Bird’s eye view of Quantum Metal (Formerly: Qiskit Metal)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../1-Overview/1.2-Quick-start.html">1.2 Quick start</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../1-Overview/1.3-Saving-Your-Chip-Design.html">1.3 Saving Your Chip Design</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../1-Overview/1.4-Headless-quick-view-%28no-Qt-GUI%29.html">1.4 Headless Quick View — using Quantum Metal without the Qt GUI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1-Overview/1.1-Quick-start.html">1.1 Quick start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1-Overview/1.2-Bird%27s-eye-view-of-Quantum-Metal.html">1.2 Bird’s eye view of Quantum Metal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1-Overview/1.3-Build-a-4-qubit-chip.html">1.3 Build a 4-qubit chip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../1-Overview/1.4-Saving-Your-Chip-Design.html">1.4 Saving Your Chip Design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../1-Overview/1.5-Parametric-design---iterate-and-compare.html">1.5 Parametric Design: Iterate and Compare</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../1-Overview/1.6-QComponent-shape-library.html">1.6 QComponent Shape Library</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2.01-How-to-use-a-QComponent.html">2.01 How to use a QComponent</a></li>
-<li class="toctree-l2"><a class="reference internal" href="2.02-How-to-copy-a-QComponent.html">2.02 How to copy a QComponent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.01-How-to-use-a-QComponent.html">2.01 QComponent lifecycle — use, copy, delete, rename</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2.11-Routing-101.html">2.11 Routing 101</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2.12-Simple-Meander.html">2.12 Simple Meander</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2.13-Hybrid-Auto-and-AStar.html">2.13 Hybrid Auto and AStar</a></li>
 <li class="toctree-l2 current current-page"><a class="current reference internal" href="#">2.14 Get them all with MixedRoute</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.15-Airbridges.html">Airbridges</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2.21-Design-a-4-qubit-full-chip.html">2.21 Design a 4 qubit full chip</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2.22-Design-100-qubits-programmatically.html">2.22 Design 100 qubits programmatically</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2.23-Modify-chip-options.html">2.23 Modify chip options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="2.24-Design-rule-checking.html">Design rule checking</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2.31-Create-a-QComponent-Basic.html">2.31 Create a QComponent - Basic</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2.32-Create-a-QComponent-Advanced.html">2.32 Create a QComponent - Advanced</a></li>
 <li class="toctree-l2"><a class="reference internal" href="2.33-Add-my-QComponent-to-a-reusable-python-file.html">2.33 Add my QComponent to a reusable python file</a></li>
@@ -244,6 +245,9 @@
 <li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.34-Transmon-qubit-CPB-hamiltonian-charge-basis.html">4.34 Modeling transmon qubit Cooper-pair box Hamiltonian in the charge basis</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../4-Analysis/Design-and-Simulation-of-a-Cross-Resonance-Gate.html">The Cross Resonance (CR) Gate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../4-Analysis/cQED-with-the-Jaynes-Cummings-Interaction-Model.html">Circuit Quantum Electrodynamics (cQED) and the Jaynes-Cummings Interaction Model Using the HCPB Class and QuTip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../full-design-examples/Reference-design-1-Transmon-with-readout-resonator.html">Reference design 1 — Transmon with readout resonator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../full-design-examples/Reference-design-2-Two-coupled-transmons.html">Reference design 2 — Two coupled transmons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../full-design-examples/Reference-design-3-Four-qubit-multiplexed-readout.html">Reference design 3 — Four-qubit multiplexed readout</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../quick-topics/JJ-Demo-Notebook.html">Josephson Junction QComponent Demo Notebook</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../quick-topics/Managing-pins.html">Managing pins</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../quick-topics/Managing-variables.html">Managing variables</a></li>
@@ -253,6 +257,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../quick-topics/Testing-QComponents-for-overlap-and-collisions.html">Demo Notebook Demonstrating How to Test for Component/CPW Overlap</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../../qcomponents-gallery.html">QComponent Gallery</a></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../circuit-examples/index.html">Example Designs</a><input aria-label="Toggle navigation of Example Designs" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/A.Qubits/01-Transmon_cross.html">Single Transmon - Grounded (xmon)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/A.Qubits/02-Transmon_floating.html">Single Transmon - Floating</a></li>
@@ -265,8 +270,6 @@
 <li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/A.Qubits/09-JJ-Manhattan.html">Josephson Junction (Manhattan)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/A.Qubits/10-Transmon_floating_teeth.html">Single Transmon - Floating with teeth</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/A.Qubits/11-Star_shaped_qubit.html">Star shaped qubit</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/A.Qubits/11-Star_shaped_qubit.html#A-Star-Qubit">A Star Qubit</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/A.Qubits/11-Star_shaped_qubit.html#Closing-the-Qiskit-Metal-GUI">Closing the Qiskit Metal GUI</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/B.Resonators/11-Resonator_Meander.html">Simple CPW Meander</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/C.Composite-bi-partite/21-OneTransmonsWithMeanderAndOTG.html">Transmon coupled to CPW resonator</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/D.Qubit-couplers/31-TwoCrossmonsTunableCoupler.html">Tunable Coupler (MIT)</a></li>
@@ -283,16 +286,11 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../../videoseducation.html">Videos &amp; Education</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Ecosystem</span></p>
+<p class="caption" role="heading"><span class="caption-text">How It Works</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../ecosystem.html">Built on / with Quantum Metal</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Concepts</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../workflow.html">Roadmap</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../workflow.html#quantum-metal-workflow">Quantum Metal Workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../workflow.html#quantization-methods-overview">Quantization Methods Overview</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../workflow.html">Quantum Metal Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quantization.html">Quantization Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gui-shortcuts.html">GUI Navigation &amp; Shortcuts</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
@@ -353,6 +351,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.TransmonPocketTeeth.html">TransmonPocketTeeth</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.TunableCoupler01.html">TunableCoupler01</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.SQUID_LOOP.html">SQUID_LOOP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.SNAIL.html">SNAIL</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.StarQubit.html">StarQubit</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.anchored_path.html">anchored_path</a></li>
 </ul>
@@ -420,11 +419,18 @@
 </ul>
 </li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Project</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../roadmap.html">Roadmap</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../migration-to-v0.7.0.html">Migrating to v0.7.0 (lite-by-default install)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../migration-to-v0.7.0.html#v0-7-2-follow-on-prefer-qm-gui-design-over-metalgui-design">v0.7.2 follow-on: prefer <code class="docutils literal notranslate"><span class="pre">qm.gui(design)</span></code> over <code class="docutils literal notranslate"><span class="pre">MetalGUI(design)</span></code></a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Community &amp; Contributing</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../contributor-guide.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture.html">Architecture</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../headless-usage.html">Using Quantum Metal without Qt</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../migration-to-v0.7.0.html">Migrating to v0.7.0</a></li>
 <li class="toctree-l1"><a class="reference external" href="https://github.com/Qiskit/qiskit/blob/master/CODE_OF_CONDUCT.md">Code of Conduct</a></li>
 </ul>
 
@@ -468,42 +474,41 @@
 </div>
 <section id="2.14-Get-them-all-with-MixedRoute">
 <h1>2.14 Get them all with MixedRoute<a class="headerlink" href="#2.14-Get-them-all-with-MixedRoute" title="Link to this heading">¶</a></h1>
+<p><a class="reference external" href="https://colab.research.google.com/github/qiskit-community/qiskit-metal/blob/main/tutorials/2%20From%20components%20to%20chip/B.%20Routing%20between%20QComponents/2.14%20Get%20them%20all%20with%20MixedRoute.ipynb"><img alt="Open in Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a> <a class="reference external" href="https://mybinder.org/v2/gh/qiskit-community/qiskit-metal/main?labpath=tutorials%2F2%20From%20components%20to%20chip%2FB.%20Routing%20between%20QComponents%2F2.14%20Get%20them%20all%20with%20MixedRoute.ipynb"><img alt="Binder" src="https://mybinder.org/badge_logo.svg" /></a></p>
+<blockquote>
+<div><p>💡 <strong>Running in Colab or Binder?</strong> Skip the desktop GUI install — the cell below grabs the lite (no-Qt) wheel, and <code class="docutils literal notranslate"><span class="pre">qm.gui(design)</span></code> auto-picks an inline matplotlib viewer with the same API (<code class="docutils literal notranslate"><span class="pre">gui.rebuild()</span></code>, <code class="docutils literal notranslate"><span class="pre">gui.screenshot()</span></code>, <code class="docutils literal notranslate"><span class="pre">gui.edit_component(...)</span></code>) as the desktop <code class="docutils literal notranslate"><span class="pre">MetalGUI</span></code>.</p>
+</div></blockquote>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># In Colab / Binder, uncomment to install Quantum Metal (lite, no Qt).</span>
+<span class="c1"># Locally you should already have it via `pip install quantum-metal` or</span>
+<span class="c1"># `pip install 'quantum-metal[gui]'` for the desktop GUI.</span>
+<span class="c1"># !pip install -q quantum-metal</span>
+</pre></div>
+</div>
+</div>
 <blockquote>
 <div><p>💡 <strong>Using this tutorial without the Qt GUI</strong></p>
 <p>This tutorial uses the desktop <code class="docutils literal notranslate"><span class="pre">MetalGUI</span></code>. To follow along on Colab, Binder, JupyterHub, or any environment where Qt isn’t available, <strong>replace any ``gui.rebuild()`` / ``gui.screenshot()`` call with ``qm.view(design)``</strong> — it renders the design to a matplotlib <code class="docutils literal notranslate"><span class="pre">Figure</span></code> you can display inline or save with <code class="docutils literal notranslate"><span class="pre">fig.savefig(...)</span></code>.</p>
-<p>See <a class="reference internal" href="../1-Overview/1.4-Headless-quick-view-%28no-Qt-GUI%29.html"><span class="doc">1.4 Headless quick view</span></a> for a complete runnable walkthrough and <code class="docutils literal notranslate"><span class="pre">`docs/headless-usage.rst</span></code> &lt;../../docs/headless-usage.rst&gt;`__ for the full reference.</p>
+<p>See <a class="reference internal" href="../1-Overview/1.1-Quick-start.html"><span class="doc">1.1 Quick start</span></a> for a complete runnable walkthrough and <code class="docutils literal notranslate"><span class="pre">`docs/headless-usage.rst</span></code> &lt;../../docs/headless-usage.rst&gt;`__ for the full reference.</p>
 </div></blockquote>
 <p>Creates 2 transmon pockets facing each other.</p>
 <p>Anchors are user-specified points through which the Routing must pass.</p>
 <p>Between anchors you can specify different connection algorythms.</p>
 <div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">reload_ext</span> autoreload
-<span class="o">%</span><span class="k">autoreload</span> 2
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_metal</span><span class="w"> </span><span class="kn">import</span> <span class="n">designs</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_metal</span><span class="w"> </span><span class="kn">import</span> <span class="n">MetalGUI</span><span class="p">,</span> <span class="n">Dict</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">qiskit_metal</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">qm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_metal</span><span class="w"> </span><span class="kn">import</span> <span class="n">designs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_metal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span>
 
 <span class="n">design</span> <span class="o">=</span> <span class="n">designs</span><span class="o">.</span><span class="n">DesignPlanar</span><span class="p">()</span>
-<span class="n">gui</span> <span class="o">=</span> <span class="n">MetalGUI</span><span class="p">(</span><span class="n">design</span><span class="p">)</span>
+<span class="n">gui</span> <span class="o">=</span> <span class="n">qm</span><span class="o">.</span><span class="n">gui</span><span class="p">(</span><span class="n">design</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area stderr docutils container">
-<div class="highlight"><pre>
-11:15PM 15s WARNING [_maybe_warn_lite_flip]: [FutureWarning] quantum-metal v0.7.0 will move PySide6, qdarkstyle, pyaedt, pyEPR-quantum, and gmsh out of base dependencies into opt-in extras. To preserve the current v0.6.x install behaviour, run `pip install &#39;quantum-metal[full]&#39;` before upgrading. See ROADMAP.md and docs/migration-to-v0.7.0.rst for details. Set QISKIT_METAL_SUPPRESS_LITE_FLIP_WARNING=1 to silence.
-</pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
@@ -515,7 +520,7 @@
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
@@ -523,27 +528,36 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_metal.qlibrary.qubits.transmon_pocket</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransmonPocket</span>
 
 <span class="n">optionsQ</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
-    <span class="n">pad_width</span><span class="o">=</span><span class="s2">&quot;425 um&quot;</span><span class="p">,</span>
-    <span class="n">pocket_height</span><span class="o">=</span><span class="s2">&quot;650um&quot;</span><span class="p">,</span>
+    <span class="n">pad_width</span><span class="o">=</span><span class="s2">"425 um"</span><span class="p">,</span>
+    <span class="n">pocket_height</span><span class="o">=</span><span class="s2">"650um"</span><span class="p">,</span>
     <span class="n">connection_pads</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>  <span class="c1"># pin connectors</span>
         <span class="n">a</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">loc_W</span><span class="o">=+</span><span class="mi">1</span><span class="p">,</span> <span class="n">loc_H</span><span class="o">=+</span><span class="mi">1</span><span class="p">),</span>
-        <span class="n">b</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">loc_W</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">loc_H</span><span class="o">=+</span><span class="mi">1</span><span class="p">,</span> <span class="n">pad_height</span><span class="o">=</span><span class="s2">&quot;30um&quot;</span><span class="p">),</span>
-        <span class="n">c</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">loc_W</span><span class="o">=+</span><span class="mi">1</span><span class="p">,</span> <span class="n">loc_H</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pad_width</span><span class="o">=</span><span class="s2">&quot;200um&quot;</span><span class="p">),</span>
-        <span class="n">d</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">loc_W</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">loc_H</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pad_height</span><span class="o">=</span><span class="s2">&quot;50um&quot;</span><span class="p">),</span>
+        <span class="n">b</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">loc_W</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">loc_H</span><span class="o">=+</span><span class="mi">1</span><span class="p">,</span> <span class="n">pad_height</span><span class="o">=</span><span class="s2">"30um"</span><span class="p">),</span>
+        <span class="n">c</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">loc_W</span><span class="o">=+</span><span class="mi">1</span><span class="p">,</span> <span class="n">loc_H</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pad_width</span><span class="o">=</span><span class="s2">"200um"</span><span class="p">),</span>
+        <span class="n">d</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">loc_W</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">loc_H</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">pad_height</span><span class="o">=</span><span class="s2">"50um"</span><span class="p">),</span>
     <span class="p">),</span>
 <span class="p">)</span>
 
 <span class="n">q0</span> <span class="o">=</span> <span class="n">TransmonPocket</span><span class="p">(</span>
-    <span class="n">design</span><span class="p">,</span> <span class="s2">&quot;Q0&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">pos_x</span><span class="o">=</span><span class="s2">&quot;-5.0mm&quot;</span><span class="p">,</span> <span class="n">pos_y</span><span class="o">=</span><span class="s2">&quot;0.0mm&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">optionsQ</span><span class="p">)</span>
+    <span class="n">design</span><span class="p">,</span> <span class="s2">"Q0"</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">pos_x</span><span class="o">=</span><span class="s2">"-5.0mm"</span><span class="p">,</span> <span class="n">pos_y</span><span class="o">=</span><span class="s2">"0.0mm"</span><span class="p">,</span> <span class="o">**</span><span class="n">optionsQ</span><span class="p">)</span>
 <span class="p">)</span>
 <span class="n">q1</span> <span class="o">=</span> <span class="n">TransmonPocket</span><span class="p">(</span>
-    <span class="n">design</span><span class="p">,</span> <span class="s2">&quot;Q1&quot;</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">pos_x</span><span class="o">=</span><span class="s2">&quot;5.0mm&quot;</span><span class="p">,</span> <span class="n">pos_y</span><span class="o">=</span><span class="s2">&quot;0.0mm&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">optionsQ</span><span class="p">)</span>
+    <span class="n">design</span><span class="p">,</span> <span class="s2">"Q1"</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">pos_x</span><span class="o">=</span><span class="s2">"5.0mm"</span><span class="p">,</span> <span class="n">pos_y</span><span class="o">=</span><span class="s2">"0.0mm"</span><span class="p">,</span> <span class="o">**</span><span class="n">optionsQ</span><span class="p">)</span>
 <span class="p">)</span>
 
 <span class="n">gui</span><span class="o">.</span><span class="n">rebuild</span><span class="p">()</span>
 <span class="n">gui</span><span class="o">.</span><span class="n">autoscale</span><span class="p">()</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Figure size 800x800 with 2 Axes&gt;
+</pre></div></div>
 </div>
 <section id="Single-CPW-using-one-meander-and-3-simple-segments">
 <h2>Single CPW using one meander and 3 simple segments<a class="headerlink" href="#Single-CPW-using-one-meander-and-3-simple-segments" title="Link to this heading">¶</a></h2>
@@ -555,11 +569,11 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
 
-<span class="n">ops</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fillet</span><span class="o">=</span><span class="s2">&quot;90um&quot;</span><span class="p">)</span>
+<span class="n">ops</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fillet</span><span class="o">=</span><span class="s2">"90um"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
@@ -570,62 +584,71 @@
 <span class="n">anchors</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">4.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span>
 
 <span class="n">between_anchors</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>  <span class="c1"># S, M, PF</span>
-<span class="n">between_anchors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;S&quot;</span>
-<span class="n">between_anchors</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;M&quot;</span>
-<span class="n">between_anchors</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;S&quot;</span>
-<span class="n">between_anchors</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;M&quot;</span>
-<span class="n">between_anchors</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;S&quot;</span>
+<span class="n">between_anchors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"S"</span>
+<span class="n">between_anchors</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"M"</span>
+<span class="n">between_anchors</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"S"</span>
+<span class="n">between_anchors</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"M"</span>
+<span class="n">between_anchors</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"S"</span>
 
 <span class="n">jogsS</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-<span class="n">jogsS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsS</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsS</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsS</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;500um&quot;</span><span class="p">]</span>
-<span class="n">jogsS</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
+<span class="n">jogsS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsS</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsS</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"L"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsS</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"L"</span><span class="p">,</span> <span class="s2">"500um"</span><span class="p">]</span>
+<span class="n">jogsS</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
 
 <span class="n">jogsE</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-<span class="n">jogsE</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsE</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsE</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;500um&quot;</span><span class="p">]</span>
-<span class="n">jogsE</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
+<span class="n">jogsE</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"L"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"L"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsE</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsE</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"500um"</span><span class="p">]</span>
+<span class="n">jogsE</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"L"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
 
 
 <span class="n">optionsR</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;pin_inputs&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;start_pin&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;component&quot;</span><span class="p">:</span> <span class="s2">&quot;Q0&quot;</span><span class="p">,</span> <span class="s2">&quot;pin&quot;</span><span class="p">:</span> <span class="s2">&quot;b&quot;</span><span class="p">},</span>
-        <span class="s2">&quot;end_pin&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;component&quot;</span><span class="p">:</span> <span class="s2">&quot;Q1&quot;</span><span class="p">,</span> <span class="s2">&quot;pin&quot;</span><span class="p">:</span> <span class="s2">&quot;a&quot;</span><span class="p">},</span>
+    <span class="s2">"pin_inputs"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"start_pin"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"component"</span><span class="p">:</span> <span class="s2">"Q0"</span><span class="p">,</span> <span class="s2">"pin"</span><span class="p">:</span> <span class="s2">"b"</span><span class="p">},</span>
+        <span class="s2">"end_pin"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"component"</span><span class="p">:</span> <span class="s2">"Q1"</span><span class="p">,</span> <span class="s2">"pin"</span><span class="p">:</span> <span class="s2">"a"</span><span class="p">},</span>
     <span class="p">},</span>
-    <span class="s2">&quot;total_length&quot;</span><span class="p">:</span> <span class="s2">&quot;32mm&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;chip&quot;</span><span class="p">:</span> <span class="s2">&quot;main&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;layer&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;trace_width&quot;</span><span class="p">:</span> <span class="s2">&quot;cpw_width&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;step_size&quot;</span><span class="p">:</span> <span class="s2">&quot;0.25mm&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;anchors&quot;</span><span class="p">:</span> <span class="n">anchors</span><span class="p">,</span>
-    <span class="s2">&quot;between_anchors&quot;</span><span class="p">:</span> <span class="n">between_anchors</span><span class="p">,</span>
-    <span class="s2">&quot;advanced&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;avoid_collision&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">},</span>
-    <span class="s2">&quot;meander&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;spacing&quot;</span><span class="p">:</span> <span class="s2">&quot;200um&quot;</span><span class="p">,</span> <span class="s2">&quot;asymmetry&quot;</span><span class="p">:</span> <span class="s2">&quot;0um&quot;</span><span class="p">},</span>
-    <span class="s2">&quot;snap&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;lead&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;start_straight&quot;</span><span class="p">:</span> <span class="s2">&quot;0.3mm&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;end_straight&quot;</span><span class="p">:</span> <span class="s2">&quot;0.3mm&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;start_jogged_extension&quot;</span><span class="p">:</span> <span class="n">jogsS</span><span class="p">,</span>
-        <span class="s2">&quot;end_jogged_extension&quot;</span><span class="p">:</span> <span class="n">jogsE</span><span class="p">,</span>
+    <span class="s2">"total_length"</span><span class="p">:</span> <span class="s2">"32mm"</span><span class="p">,</span>
+    <span class="s2">"chip"</span><span class="p">:</span> <span class="s2">"main"</span><span class="p">,</span>
+    <span class="s2">"layer"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"trace_width"</span><span class="p">:</span> <span class="s2">"cpw_width"</span><span class="p">,</span>
+    <span class="s2">"step_size"</span><span class="p">:</span> <span class="s2">"0.25mm"</span><span class="p">,</span>
+    <span class="s2">"anchors"</span><span class="p">:</span> <span class="n">anchors</span><span class="p">,</span>
+    <span class="s2">"between_anchors"</span><span class="p">:</span> <span class="n">between_anchors</span><span class="p">,</span>
+    <span class="s2">"advanced"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"avoid_collision"</span><span class="p">:</span> <span class="s2">"true"</span><span class="p">},</span>
+    <span class="s2">"meander"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"spacing"</span><span class="p">:</span> <span class="s2">"200um"</span><span class="p">,</span> <span class="s2">"asymmetry"</span><span class="p">:</span> <span class="s2">"0um"</span><span class="p">},</span>
+    <span class="s2">"snap"</span><span class="p">:</span> <span class="s2">"true"</span><span class="p">,</span>
+    <span class="s2">"lead"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"start_straight"</span><span class="p">:</span> <span class="s2">"0.3mm"</span><span class="p">,</span>
+        <span class="s2">"end_straight"</span><span class="p">:</span> <span class="s2">"0.3mm"</span><span class="p">,</span>
+        <span class="s2">"start_jogged_extension"</span><span class="p">:</span> <span class="n">jogsS</span><span class="p">,</span>
+        <span class="s2">"end_jogged_extension"</span><span class="p">:</span> <span class="n">jogsE</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="o">**</span><span class="n">ops</span><span class="p">,</span>
 <span class="p">}</span>
 
-<span class="n">qa</span> <span class="o">=</span> <span class="n">RouteMixed</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="s2">&quot;line&quot;</span><span class="p">,</span> <span class="n">optionsR</span><span class="p">)</span>
+<span class="n">qa</span> <span class="o">=</span> <span class="n">RouteMixed</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="s2">"line"</span><span class="p">,</span> <span class="n">optionsR</span><span class="p">)</span>
 
 <span class="n">gui</span><span class="o">.</span><span class="n">rebuild</span><span class="p">()</span>
 <span class="n">gui</span><span class="o">.</span><span class="n">autoscale</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Figure size 800x800 with 2 Axes&gt;
+</pre></div></div>
+</div>
 </section>
 <section id="Single-CPW-using-the-pathfinder-segments">
 <h2>Single CPW using the pathfinder segments<a class="headerlink" href="#Single-CPW-using-the-pathfinder-segments" title="Link to this heading">¶</a></h2>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
@@ -635,76 +658,71 @@
 <span class="n">anchors</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">3.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.7</span><span class="p">])</span>
 
 <span class="n">between_anchors</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>  <span class="c1"># S, M, PF</span>
-<span class="n">between_anchors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;S&quot;</span>
-<span class="n">between_anchors</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;S&quot;</span>
-<span class="n">between_anchors</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;PF&quot;</span>
-<span class="n">between_anchors</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;S&quot;</span>
+<span class="n">between_anchors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"S"</span>
+<span class="n">between_anchors</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"S"</span>
+<span class="n">between_anchors</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"PF"</span>
+<span class="n">between_anchors</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"S"</span>
 
 <span class="n">jogsS</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-<span class="n">jogsS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsS</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsS</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsS</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;500um&quot;</span><span class="p">]</span>
-<span class="n">jogsS</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
+<span class="n">jogsS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"L"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsS</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"L"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsS</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsS</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"500um"</span><span class="p">]</span>
+<span class="n">jogsS</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"L"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
 
 <span class="n">jogsE</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-<span class="n">jogsE</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsE</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsE</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;500um&quot;</span><span class="p">]</span>
-<span class="n">jogsE</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
+<span class="n">jogsE</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsE</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"L"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsE</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"L"</span><span class="p">,</span> <span class="s2">"500um"</span><span class="p">]</span>
+<span class="n">jogsE</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
 
 
 <span class="n">optionsR</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;pin_inputs&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;start_pin&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;component&quot;</span><span class="p">:</span> <span class="s2">&quot;Q0&quot;</span><span class="p">,</span> <span class="s2">&quot;pin&quot;</span><span class="p">:</span> <span class="s2">&quot;d&quot;</span><span class="p">},</span>
-        <span class="s2">&quot;end_pin&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;component&quot;</span><span class="p">:</span> <span class="s2">&quot;Q1&quot;</span><span class="p">,</span> <span class="s2">&quot;pin&quot;</span><span class="p">:</span> <span class="s2">&quot;c&quot;</span><span class="p">},</span>
+    <span class="s2">"pin_inputs"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"start_pin"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"component"</span><span class="p">:</span> <span class="s2">"Q0"</span><span class="p">,</span> <span class="s2">"pin"</span><span class="p">:</span> <span class="s2">"d"</span><span class="p">},</span>
+        <span class="s2">"end_pin"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"component"</span><span class="p">:</span> <span class="s2">"Q1"</span><span class="p">,</span> <span class="s2">"pin"</span><span class="p">:</span> <span class="s2">"c"</span><span class="p">},</span>
     <span class="p">},</span>
-    <span class="s2">&quot;total_length&quot;</span><span class="p">:</span> <span class="s2">&quot;22mm&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;chip&quot;</span><span class="p">:</span> <span class="s2">&quot;main&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;layer&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;trace_width&quot;</span><span class="p">:</span> <span class="s2">&quot;cpw_width&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;step_size&quot;</span><span class="p">:</span> <span class="s2">&quot;0.25mm&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;anchors&quot;</span><span class="p">:</span> <span class="n">anchors</span><span class="p">,</span>
-    <span class="s2">&quot;between_anchors&quot;</span><span class="p">:</span> <span class="n">between_anchors</span><span class="p">,</span>
-    <span class="s2">&quot;advanced&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;avoid_collision&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">},</span>
-    <span class="s2">&quot;meander&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;spacing&quot;</span><span class="p">:</span> <span class="s2">&quot;200um&quot;</span><span class="p">,</span> <span class="s2">&quot;asymmetry&quot;</span><span class="p">:</span> <span class="s2">&quot;0um&quot;</span><span class="p">},</span>
-    <span class="s2">&quot;snap&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;lead&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;start_straight&quot;</span><span class="p">:</span> <span class="s2">&quot;0.3mm&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;end_straight&quot;</span><span class="p">:</span> <span class="s2">&quot;0.3mm&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;start_jogged_extension&quot;</span><span class="p">:</span> <span class="n">jogsS</span><span class="p">,</span>
-        <span class="s2">&quot;end_jogged_extension&quot;</span><span class="p">:</span> <span class="n">jogsE</span><span class="p">,</span>
+    <span class="s2">"total_length"</span><span class="p">:</span> <span class="s2">"22mm"</span><span class="p">,</span>
+    <span class="s2">"chip"</span><span class="p">:</span> <span class="s2">"main"</span><span class="p">,</span>
+    <span class="s2">"layer"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"trace_width"</span><span class="p">:</span> <span class="s2">"cpw_width"</span><span class="p">,</span>
+    <span class="s2">"step_size"</span><span class="p">:</span> <span class="s2">"0.25mm"</span><span class="p">,</span>
+    <span class="s2">"anchors"</span><span class="p">:</span> <span class="n">anchors</span><span class="p">,</span>
+    <span class="s2">"between_anchors"</span><span class="p">:</span> <span class="n">between_anchors</span><span class="p">,</span>
+    <span class="s2">"advanced"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"avoid_collision"</span><span class="p">:</span> <span class="s2">"true"</span><span class="p">},</span>
+    <span class="s2">"meander"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"spacing"</span><span class="p">:</span> <span class="s2">"200um"</span><span class="p">,</span> <span class="s2">"asymmetry"</span><span class="p">:</span> <span class="s2">"0um"</span><span class="p">},</span>
+    <span class="s2">"snap"</span><span class="p">:</span> <span class="s2">"true"</span><span class="p">,</span>
+    <span class="s2">"lead"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"start_straight"</span><span class="p">:</span> <span class="s2">"0.3mm"</span><span class="p">,</span>
+        <span class="s2">"end_straight"</span><span class="p">:</span> <span class="s2">"0.3mm"</span><span class="p">,</span>
+        <span class="s2">"start_jogged_extension"</span><span class="p">:</span> <span class="n">jogsS</span><span class="p">,</span>
+        <span class="s2">"end_jogged_extension"</span><span class="p">:</span> <span class="n">jogsE</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="o">**</span><span class="n">ops</span><span class="p">,</span>
 <span class="p">}</span>
 
-<span class="n">qb</span> <span class="o">=</span> <span class="n">RouteMixed</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="s2">&quot;line2&quot;</span><span class="p">,</span> <span class="n">optionsR</span><span class="p">)</span>
+<span class="n">qb</span> <span class="o">=</span> <span class="n">RouteMixed</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="s2">"line2"</span><span class="p">,</span> <span class="n">optionsR</span><span class="p">)</span>
 
 <span class="n">gui</span><span class="o">.</span><span class="n">rebuild</span><span class="p">()</span>
 <span class="n">gui</span><span class="o">.</span><span class="n">autoscale</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># gui.screenshot()</span>
-</pre></div>
-</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Figure size 800x800 with 2 Axes&gt;
+</pre></div></div>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># create an obstacle</span>
-<span class="n">TransmonPocket</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">pos_x</span><span class="o">=</span><span class="s2">&quot;1.0mm&quot;</span><span class="p">,</span> <span class="n">pos_y</span><span class="o">=</span><span class="s2">&quot;-2.0mm&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">optionsQ</span><span class="p">))</span>
-<span class="n">TransmonPocket</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">pos_x</span><span class="o">=</span><span class="s2">&quot;1.0mm&quot;</span><span class="p">,</span> <span class="n">pos_y</span><span class="o">=</span><span class="s2">&quot;-1.0mm&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">optionsQ</span><span class="p">))</span>
-<span class="n">TransmonPocket</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">pos_x</span><span class="o">=</span><span class="s2">&quot;-2.0mm&quot;</span><span class="p">,</span> <span class="n">pos_y</span><span class="o">=</span><span class="s2">&quot;-1.0mm&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">optionsQ</span><span class="p">))</span>
-
-<span class="n">gui</span><span class="o">.</span><span class="n">rebuild</span><span class="p">()</span>
-<span class="n">gui</span><span class="o">.</span><span class="n">autoscale</span><span class="p">()</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># gui.screenshot()</span>
 </pre></div>
 </div>
 </div>
@@ -712,73 +730,27 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gui</span><span class="o">.</span><span class="n">screenshot</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="../../_images/tut_2-From-components-to-chip_2.14-Get-them-all-with-MixedRoute_14_0.png" class="no-scaled-link" src="../../_images/tut_2-From-components-to-chip_2.14-Get-them-all-with-MixedRoute_14_0.png" width="500" />
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">anchors</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-<span class="n">anchors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.5</span><span class="p">])</span>
-
-<span class="n">between_anchors</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>  <span class="c1"># S, M, PF</span>
-<span class="n">between_anchors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;S&quot;</span>
-<span class="n">between_anchors</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;PF&quot;</span>
-
-<span class="n">jogsS</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-<span class="n">jogsS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsS</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsS</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsS</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;500um&quot;</span><span class="p">]</span>
-
-<span class="n">jogsE</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-<span class="n">jogsE</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsE</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;200um&quot;</span><span class="p">]</span>
-<span class="n">jogsE</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;500um&quot;</span><span class="p">]</span>
-
-<span class="n">optionsR</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;pin_inputs&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;start_pin&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;component&quot;</span><span class="p">:</span> <span class="s2">&quot;Q0&quot;</span><span class="p">,</span> <span class="s2">&quot;pin&quot;</span><span class="p">:</span> <span class="s2">&quot;c&quot;</span><span class="p">},</span>
-        <span class="s2">&quot;end_pin&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;component&quot;</span><span class="p">:</span> <span class="s2">&quot;Q1&quot;</span><span class="p">,</span> <span class="s2">&quot;pin&quot;</span><span class="p">:</span> <span class="s2">&quot;d&quot;</span><span class="p">},</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;total_length&quot;</span><span class="p">:</span> <span class="s2">&quot;12mm&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;chip&quot;</span><span class="p">:</span> <span class="s2">&quot;main&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;layer&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;trace_width&quot;</span><span class="p">:</span> <span class="s2">&quot;cpw_width&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;step_size&quot;</span><span class="p">:</span> <span class="s2">&quot;0.25mm&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;anchors&quot;</span><span class="p">:</span> <span class="n">anchors</span><span class="p">,</span>
-    <span class="s2">&quot;between_anchors&quot;</span><span class="p">:</span> <span class="n">between_anchors</span><span class="p">,</span>
-    <span class="s2">&quot;advanced&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;avoid_collision&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">},</span>
-    <span class="s2">&quot;meander&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;spacing&quot;</span><span class="p">:</span> <span class="s2">&quot;200um&quot;</span><span class="p">,</span> <span class="s2">&quot;asymmetry&quot;</span><span class="p">:</span> <span class="s2">&quot;0um&quot;</span><span class="p">},</span>
-    <span class="s2">&quot;snap&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;lead&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;start_straight&quot;</span><span class="p">:</span> <span class="s2">&quot;0.3mm&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;end_straight&quot;</span><span class="p">:</span> <span class="s2">&quot;0.3mm&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;start_jogged_extension&quot;</span><span class="p">:</span> <span class="n">jogsS</span><span class="p">,</span>
-        <span class="s2">&quot;end_jogged_extension&quot;</span><span class="p">:</span> <span class="n">jogsE</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="o">**</span><span class="n">ops</span><span class="p">,</span>
-<span class="p">}</span>
-
-<span class="n">qc</span> <span class="o">=</span> <span class="n">RouteMixed</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="s2">&quot;line3&quot;</span><span class="p">,</span> <span class="n">optionsR</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># create an obstacle</span>
+<span class="n">TransmonPocket</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">pos_x</span><span class="o">=</span><span class="s2">"1.0mm"</span><span class="p">,</span> <span class="n">pos_y</span><span class="o">=</span><span class="s2">"-2.0mm"</span><span class="p">,</span> <span class="o">**</span><span class="n">optionsQ</span><span class="p">))</span>
+<span class="n">TransmonPocket</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">pos_x</span><span class="o">=</span><span class="s2">"1.0mm"</span><span class="p">,</span> <span class="n">pos_y</span><span class="o">=</span><span class="s2">"-1.0mm"</span><span class="p">,</span> <span class="o">**</span><span class="n">optionsQ</span><span class="p">))</span>
+<span class="n">TransmonPocket</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">pos_x</span><span class="o">=</span><span class="s2">"-2.0mm"</span><span class="p">,</span> <span class="n">pos_y</span><span class="o">=</span><span class="s2">"-1.0mm"</span><span class="p">,</span> <span class="o">**</span><span class="n">optionsQ</span><span class="p">))</span>
 
 <span class="n">gui</span><span class="o">.</span><span class="n">rebuild</span><span class="p">()</span>
 <span class="n">gui</span><span class="o">.</span><span class="n">autoscale</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Figure size 800x800 with 2 Axes&gt;
+</pre></div></div>
+</div>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gui</span><span class="o">.</span><span class="n">screenshot</span><span class="p">()</span>
@@ -789,7 +761,85 @@
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="../../_images/tut_2-From-components-to-chip_2.14-Get-them-all-with-MixedRoute_16_0.png" class="no-scaled-link" src="../../_images/tut_2-From-components-to-chip_2.14-Get-them-all-with-MixedRoute_16_0.png" width="500" />
+<img alt="../../_images/tut_2-From-components-to-chip_2.14-Get-them-all-with-MixedRoute_15_0.png" src="../../_images/tut_2-From-components-to-chip_2.14-Get-them-all-with-MixedRoute_15_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">anchors</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+<span class="n">anchors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.5</span><span class="p">])</span>
+
+<span class="n">between_anchors</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>  <span class="c1"># S, M, PF</span>
+<span class="n">between_anchors</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"S"</span>
+<span class="n">between_anchors</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"PF"</span>
+
+<span class="n">jogsS</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+<span class="n">jogsS</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsS</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsS</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"L"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsS</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"L"</span><span class="p">,</span> <span class="s2">"500um"</span><span class="p">]</span>
+
+<span class="n">jogsE</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+<span class="n">jogsE</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"L"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"L"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsE</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"200um"</span><span class="p">]</span>
+<span class="n">jogsE</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"500um"</span><span class="p">]</span>
+
+<span class="n">optionsR</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"pin_inputs"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"start_pin"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"component"</span><span class="p">:</span> <span class="s2">"Q0"</span><span class="p">,</span> <span class="s2">"pin"</span><span class="p">:</span> <span class="s2">"c"</span><span class="p">},</span>
+        <span class="s2">"end_pin"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"component"</span><span class="p">:</span> <span class="s2">"Q1"</span><span class="p">,</span> <span class="s2">"pin"</span><span class="p">:</span> <span class="s2">"d"</span><span class="p">},</span>
+    <span class="p">},</span>
+    <span class="s2">"total_length"</span><span class="p">:</span> <span class="s2">"12mm"</span><span class="p">,</span>
+    <span class="s2">"chip"</span><span class="p">:</span> <span class="s2">"main"</span><span class="p">,</span>
+    <span class="s2">"layer"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"trace_width"</span><span class="p">:</span> <span class="s2">"cpw_width"</span><span class="p">,</span>
+    <span class="s2">"step_size"</span><span class="p">:</span> <span class="s2">"0.25mm"</span><span class="p">,</span>
+    <span class="s2">"anchors"</span><span class="p">:</span> <span class="n">anchors</span><span class="p">,</span>
+    <span class="s2">"between_anchors"</span><span class="p">:</span> <span class="n">between_anchors</span><span class="p">,</span>
+    <span class="s2">"advanced"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"avoid_collision"</span><span class="p">:</span> <span class="s2">"true"</span><span class="p">},</span>
+    <span class="s2">"meander"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"spacing"</span><span class="p">:</span> <span class="s2">"200um"</span><span class="p">,</span> <span class="s2">"asymmetry"</span><span class="p">:</span> <span class="s2">"0um"</span><span class="p">},</span>
+    <span class="s2">"snap"</span><span class="p">:</span> <span class="s2">"true"</span><span class="p">,</span>
+    <span class="s2">"lead"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"start_straight"</span><span class="p">:</span> <span class="s2">"0.3mm"</span><span class="p">,</span>
+        <span class="s2">"end_straight"</span><span class="p">:</span> <span class="s2">"0.3mm"</span><span class="p">,</span>
+        <span class="s2">"start_jogged_extension"</span><span class="p">:</span> <span class="n">jogsS</span><span class="p">,</span>
+        <span class="s2">"end_jogged_extension"</span><span class="p">:</span> <span class="n">jogsE</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="o">**</span><span class="n">ops</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">qc</span> <span class="o">=</span> <span class="n">RouteMixed</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="s2">"line3"</span><span class="p">,</span> <span class="n">optionsR</span><span class="p">)</span>
+
+<span class="n">gui</span><span class="o">.</span><span class="n">rebuild</span><span class="p">()</span>
+<span class="n">gui</span><span class="o">.</span><span class="n">autoscale</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;Figure size 800x800 with 2 Axes&gt;
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">gui</span><span class="o">.</span><span class="n">screenshot</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tut_2-From-components-to-chip_2.14-Get-them-all-with-MixedRoute_17_0.png" src="../../_images/tut_2-From-components-to-chip_2.14-Get-them-all-with-MixedRoute_17_0.png" />
 </div>
 </div>
 </section>
@@ -828,12 +878,12 @@
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="2.21-Design-a-4-qubit-full-chip.html">
+          <a class="next-page" href="2.15-Airbridges.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">2.21 Design a 4 qubit full chip</div>
+                <div class="title">Airbridges</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -858,7 +908,7 @@
             
             <a href="https://github.com/pradyunsg/furo">Furo</a>
             <div class="last-updated">
-              Last updated on 2026/05/28</div>
+              Last updated on 2026/09/01</div>
           </div>
           <div class="right-details">
             
@@ -893,7 +943,7 @@
       
     </aside>
   </div>
-</div><script src="../../_static/documentation_options.js?v=5a057da9"></script>
+</div><script src="../../_static/documentation_options.js?v=ec16d22d"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>
