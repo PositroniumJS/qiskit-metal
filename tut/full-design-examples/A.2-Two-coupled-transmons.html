@@ -1,0 +1,1105 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../genindex.html"><link rel="search" title="Search" href="../../search.html"><link rel="next" title="A.3 Reference design — Four-qubit multiplexed readout" href="A.3-Four-qubit-multiplexed-readout.html"><link rel="prev" title="Tunable Coupler (MIT)" href="../../circuit-examples/D.Qubit-couplers/31-TwoCrossmonsTunableCoupler.html">
+
+    <!-- Generated with Sphinx 9.1.1 and Furo 2025.12.19 -->
+        <title>A.2 Reference design — Two coupled transmons - Quantum Metal 0.9.0</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/qiskit-sphinx-theme.css?v=fc6d6d93" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Vibur" />
+    <link rel="stylesheet" type="text/css" href="../../_static/jupyterlite_sphinx.css?v=f676e775" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=6a604523" />
+    <link rel="stylesheet" type="text/css" href="../../_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <link rel="stylesheet" type="text/css" href="../../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/qm-gallery.css?v=9e28cae6" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style><link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet"></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 2H2C1.73478 2 1.48043 2.10536 1.29289 2.29289C1.10536 2.48043 1 2.73478 1 3V13C1 13.2652 1.10536 13.5196 1.29289 13.7071C1.48043 13.8946 1.73478 14 2 14H14C14.2652 14 14.5196 13.8946 14.7071 13.7071C14.8946 13.5196 15 13.2652 15 13V3C15 2.73478 14.8946 2.48043 14.7071 2.29289C14.5196 2.10536 14.2652 2 14 2V2ZM2 3H10V13H2V3ZM14 13H11V3H14V13Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M14 3H2V4H14V3Z" fill="currentColor"/>
+      <path d="M14 12H2V13H14V12Z" fill="currentColor"/>
+      <path d="M14 6H2V7H14V6Z" fill="currentColor"/>
+      <path d="M14 9H2V10H14V9Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 8L6.00005 13L5.30005 12.3L9.60005 8L5.30005 3.7L6.00005 3L11 8Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M15 13H1V14H15V13Z" fill="currentColor"/>
+      <path d="M12.7 4.5C13.1 4.1 13.1 3.5 12.7 3.1L10.9 1.3C10.5 0.9 9.9 0.9 9.5 1.3L2 8.8V12H5.2L12.7 4.5ZM10.2 2L12 3.8L10.5 5.3L8.7 3.5L10.2 2ZM3 11V9.2L8 4.2L9.8 6L4.8 11H3Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M11 13.0002C11.5523 13.0002 12 12.5525 12 12.0002C12 11.4479 11.5523 11.0002 11 11.0002C10.4477 11.0002 10 11.4479 10 12.0002C10 12.5525 10.4477 13.0002 11 13.0002Z" fill="currentColor"/>
+      <path d="M14.8884 11.7394C14.5795 10.9524 14.0464 10.2734 13.3552 9.78646C12.664 9.29954 11.8451 9.02615 11 9.00017C10.1549 9.02615 9.33604 9.29954 8.64484 9.78646C7.95365 10.2734 7.42052 10.9524 7.11155 11.7394L7 12.0002L7.11155 12.2609C7.42052 13.0479 7.95365 13.727 8.64484 14.2139C9.33604 14.7008 10.1549 14.9742 11 15.0002C11.8451 14.9742 12.664 14.7008 13.3552 14.2139C14.0464 13.727 14.5795 13.0479 14.8884 12.2609L15 12.0002L14.8884 11.7394ZM11 14.0002C10.6044 14.0002 10.2178 13.8829 9.88886 13.6631C9.55996 13.4433 9.30362 13.131 9.15224 12.7655C9.00087 12.4001 8.96126 11.998 9.03843 11.61C9.1156 11.222 9.30608 10.8657 9.58579 10.586C9.86549 10.3063 10.2219 10.1158 10.6098 10.0386C10.9978 9.96143 11.3999 10.001 11.7654 10.1524C12.1308 10.3038 12.4432 10.5601 12.6629 10.889C12.8827 11.2179 13 11.6046 13 12.0002C12.9994 12.5304 12.7885 13.0388 12.4136 13.4137C12.0386 13.7887 11.5303 13.9996 11 14.0002Z" fill="currentColor"/>
+      <path d="M6 14.0002H4V2.00017H8V5.00017C8.00077 5.26515 8.10637 5.51906 8.29374 5.70643C8.48111 5.8938 8.73502 5.99941 9 6.00017H12V8.00017H13V5.00017C13.0018 4.93446 12.9893 4.86913 12.9634 4.80871C12.9375 4.74828 12.8988 4.6942 12.85 4.65017L9.35 1.15017C9.30599 1.10134 9.2519 1.06263 9.19147 1.03674C9.13104 1.01084 9.06572 0.998364 9 1.00017H4C3.73502 1.00094 3.48111 1.10654 3.29374 1.29391C3.10637 1.48128 3.00077 1.73519 3 2.00017V14.0002C3.00077 14.2652 3.10637 14.5191 3.29374 14.7064C3.48111 14.8938 3.73502 14.9994 4 15.0002H6V14.0002ZM9 2.20017L11.8 5.00017H9V2.20017Z" fill="currentColor"/>
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../index.html"><div class="brand">Quantum Metal 0.9.0</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../index.html">
+  
+  
+  <span class="sidebar-brand-text">Quantum Metal 0.9.0</span>
+  
+</a>
+<form class="sidebar-search-container" method="get" action="../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Get Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installing Quantum Metal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../choose-your-path.html">Choose Your Path</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Showcase &amp; Learn</span></p>
+<ul class="current">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../research.html">Research Showcase</a><input aria-label="Toggle navigation of Research Showcase" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.41-The-package-mode-on-paper.html">4.41 The Package Mode on Paper</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.42-Four-ways-to-measure-a-coupling.html">4.42 Four Ways to Measure a Coupling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.43-Mesh-and-solve-the-10x10-processor.html">4.43 Mesh and Solve the 10 × 10 Processor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.44-Every-coupling-from-one-eigenmode.html">4.44 Every Coupling from One Eigenmode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.45-Four-methods-one-full-wave-model.html">4.45 Four Methods, One Full-Wave Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.46-Beyond-the-dipole-multipoles-and-magnetic-coupling.html">0. Setup and the compute budget</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.46-Beyond-the-dipole-multipoles-and-magnetic-coupling.html#1.-The-qubit-as-a-source-of-moments">1. The qubit as a source of moments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.46-Beyond-the-dipole-multipoles-and-magnetic-coupling.html#2.-The-qubit-as-a-source-of-current">2. The qubit as a source of current</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.46-Beyond-the-dipole-multipoles-and-magnetic-coupling.html#3.-What-a-flat-source-sees">3. What a flat source sees</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.46-Beyond-the-dipole-multipoles-and-magnetic-coupling.html#4.-The-package-mode-at-the-chip-plane">4. The package mode at the chip plane</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.46-Beyond-the-dipole-multipoles-and-magnetic-coupling.html#5.-The-hierarchy-of-couplings">5. The hierarchy of couplings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.46-Beyond-the-dipole-multipoles-and-magnetic-coupling.html#6.-Is-the-zero-a-blind-spot?-The-paddles,-and-the-exact-answer">6. Is the zero a blind spot? The paddles, and the exact answer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.46-Beyond-the-dipole-multipoles-and-magnetic-coupling.html#7.-Breaking-the-symmetry:-the-quadrupole,-and-the-origin">7. Breaking the symmetry: the quadrupole, and the origin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.46-Beyond-the-dipole-multipoles-and-magnetic-coupling.html#8.-Where-the-magnetic-coupling-is-not-zero">8. Where the magnetic coupling is not zero</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.46-Beyond-the-dipole-multipoles-and-magnetic-coupling.html#9.-Refining-the-mesh:-which-terms-converge,-which-zeros-stay-zero">9. Refining the mesh: which terms converge, which zeros stay zero</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.46-Beyond-the-dipole-multipoles-and-magnetic-coupling.html#10.-Error-bars:-which-terms-are-resolved">10. Error bars: which terms are resolved</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.46-Beyond-the-dipole-multipoles-and-magnetic-coupling.html#11.-The-hierarchy,-with-error-bars">11. The hierarchy, with error bars</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.46-Beyond-the-dipole-multipoles-and-magnetic-coupling.html#12.-What-was-claimed,-and-what-the-numbers-say">12. What was claimed, and what the numbers say</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.46-Beyond-the-dipole-multipoles-and-magnetic-coupling.html#What-this-tells-you">What this tells you</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.46-Beyond-the-dipole-multipoles-and-magnetic-coupling.html#Where-to-go-next">Where to go next</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.46-Beyond-the-dipole-multipoles-and-magnetic-coupling.html#References">References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/F.Small-quantum-chips/52-Barends_5Qubit_Xmon_Processor.html">5-Qubit Xmon Processor (Barends <em>et al.</em>, 2014)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/F.Small-quantum-chips/Full-Physical-Design-of-iSWAP-Gates.html">Full Physical Designs of Three iSWAP Gates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/F.Small-quantum-chips/53-Wallraff_17Qubit_SurfaceCode.html">17-Qubit Surface-Code Chip (Wallraff group, ETH Zurich)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/F.Small-quantum-chips/54-Wallraff_TwoQubit_Cell_Mesh.html">Two-Qubit Cell: Meshing Part of the 17-Qubit Chip</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../index.html">Learn</a><input aria-label="Toggle navigation of Learn" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../first-steps.html">Part 1: First steps</a><input aria-label="Toggle navigation of Part 1: First steps" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../1-Overview/1.1-Quick-start.html">1.1 Quick start</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../1-Overview/1.2-Bird%27s-eye-view-of-Quantum-Metal.html">1.2 Bird’s eye view of Quantum Metal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../1-Overview/1.3-Build-a-4-qubit-chip.html">1.3 Build a 4-qubit chip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../1-Overview/1.4-Saving-Your-Chip-Design.html">1.4 Saving Your Chip Design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../1-Overview/1.5-Parametric-design---iterate-and-compare.html">1.5 Parametric Design: Iterate and Compare</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../components-to-chip.html">Part 2: From components to chip</a><input aria-label="Toggle navigation of Part 2: From components to chip" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../2-From-components-to-chip/2.01-How-to-use-a-QComponent.html">2.01 QComponent lifecycle — use, copy, delete, rename</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../quick-topics/Managing-variables.html">Managing variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../quick-topics/Managing-pins.html">Managing pins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../2-From-components-to-chip/2.11-Routing-101.html">2.11 Routing 101</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../2-From-components-to-chip/2.12-Simple-Meander.html">2.12 Simple Meander</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../2-From-components-to-chip/2.13-Hybrid-Auto-and-AStar.html">2.13 Hybrid Auto and AStar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../2-From-components-to-chip/2.14-Get-them-all-with-MixedRoute.html">2.14 Get them all with MixedRoute</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../2-From-components-to-chip/2.15-Airbridges.html">Airbridges</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../2-From-components-to-chip/2.21-Design-a-4-qubit-full-chip.html">2.21 Design a 4 qubit full chip</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../2-From-components-to-chip/2.23-Modify-chip-options.html">2.23 Modify chip options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../2-From-components-to-chip/2.24-Design-rule-checking.html">Design rule checking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../2-From-components-to-chip/2.22-Design-100-qubits-programmatically.html">2.22 Design 100 qubits programmatically</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../2-From-components-to-chip/FlipChip-design-tutorial.html">Flip-Chip Devices in Quantum Metal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../2-From-components-to-chip/2.31-Create-a-QComponent-Basic.html">2.31 Create a QComponent - Basic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../2-From-components-to-chip/2.32-Create-a-QComponent-Advanced.html">2.32 Create a QComponent - Advanced</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../2-From-components-to-chip/2.33-Add-my-QComponent-to-a-reusable-python-file.html">2.33 Add my QComponent to a reusable python file</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../render-and-export.html">Part 3: Render and export</a><input aria-label="Toggle navigation of Part 3: Render and export" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../3-Renderers/3.1-Introduction-to-QRenderers.html">3.1 Introduction to QRenderers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../3-Renderers/3.2-Export-your-design-to-GDS.html">3.2 Export your design to GDS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../3-Renderers/3.5-Render-your-design-to-Gmsh.html">3.5 Render your design to Gmsh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../3-Renderers/3.3-Render-your-design-to-Ansys.html">3.3 Render your design to Ansys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../3-Renderers/3.4-How-do-I-make-my-custom-QRenderer.html">3.4 How do I make my custom QRenderer?</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../simulate-and-analyze.html">Part 4: Simulate and analyze</a><input aria-label="Toggle navigation of Part 4: Simulate and analyze" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../4-Analysis/4.19-Analyze-a-transmon-using-ElmerFEM.html">4.19 Analyse a Transmon Qubit using ElmerFEM</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../simulate-ansys.html">Simulate with Ansys</a><input aria-label="Toggle navigation of Simulate with Ansys" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.01-Capacitance-and-LOM.html">4.01 Capacitance matrix and LOM analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.02-Eigenmode-and-EPR.html">4.02 Eigenmode and EPR analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.03-Impedance.html">4.03 Impedance, admittance and scattering analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.11-Analyze-and-tune-a-transmon.html">4.11 Analyzing and tuning a transmon qubit</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.12-Analyze-a-resonator.html">4.12 Analyzing and tuning a resonator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.13-Analyze-transmon-and-resonator.html">4.13 Analyzing and tuning a transmon qubit with a resonator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.14-Analyze-a-double-hanger-resonator.html">4.14 Analyzing a double hanger resonator (S Param)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.16-Analyze-S21-of-Hange-Geometry-with-WirebondLunchpadDriven.html">4.16 S21 simulation of a resonator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.17-Fit-S21-of-Hanger-Resonator-Geometry.html">4.17 S21 simulation and fitting of a resonator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.18-Analyse-a-Resonator-with-Ports.html">4.18 Eigenmode simulation with Ports</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.21-Capacitance-matrix.html">4.21 Sweeps - Capacitance matrix</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.22-Eigenmode-matrix.html">4.22 Sweeps - Eigenmode matrix</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.23-Impedance-and-scattering-Z-S-Y-matrices.html">4.23 Sweeps - Impedance, scattering and admittance (Z S Y) matrices</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/pyaedt-multiplanar/Q3D-pyaedt-multiplanar.html">Q3D Capacitance Matrix of a MultiPlanar Design with pyaedt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/pyaedt-multiplanar/Eigenmode-pyaedt-multiplanar.html">Running Eigenmode Simulations &amp; EPR Analysis with <code class="docutils literal notranslate"><span class="pre">QHFSSEigenmodePyaedt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/pyaedt-multiplanar/DrivenModal-pyaedt-multiplanar.html">HFSS Driven Modal Simulation of a MultiPlanar Design with pyaedt</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../circuits-to-hamiltonians.html">From circuits to Hamiltonians</a><input aria-label="Toggle navigation of From circuits to Hamiltonians" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.04-New-LOM-and-Fluxonium-Example.html">4.04 New LOM and Fluxonium Example</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.05-New-LOM-and-Two-Coupled-Transmon-Example.html">4.05 New LOM and Two Coupled Transmon Example</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.05-New-LOM-and-Two-Coupled-Transmon-Example-with-sequence.html">4.05 New LOM and Two Coupled Transmon Example with sequence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.15-CPW-kappa-calculation.html">4.15 CPW Kappa Calculation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.31-Plot-quantum-oscillator-wavefunction.html">4.31 Plotting Wavefunctions of the Quantum Harmonic Oscillator (LC Circuit)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.32-Transmon-analytics-HCPB.html">4.32 Transmon Analytics: Plotting Eigenvalues as a Function of Offset Charge</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/4.34-Transmon-qubit-CPB-hamiltonian-charge-basis.html">4.34 Modeling transmon qubit Cooper-pair box Hamiltonian in the charge basis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/cQED-with-the-Jaynes-Cummings-Interaction-Model.html">Circuit Quantum Electrodynamics (cQED) and the Jaynes-Cummings Interaction Model Using the HCPB Class and QuTip</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../4-Analysis/Design-and-Simulation-of-a-Cross-Resonance-Gate.html">The Cross Resonance (CR) Gate</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../../circuit-examples/index.html">Examples</a><input aria-label="Toggle navigation of Examples" checked="" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../../qcomponents-gallery.html">Component Gallery</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../../circuit-examples/component-examples.html">Component examples</a><input aria-label="Toggle navigation of Component examples" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/A.Qubits/01-Transmon_cross.html">Single Transmon - Grounded (xmon)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/A.Qubits/05-Transmon_cross_fl.html">Single Transmon - Grounded (xmon) flux lines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/A.Qubits/02-Transmon_floating.html">Single Transmon - Floating</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/A.Qubits/06-Transmon_floating_6.html">Single Transmon - Floating with 6 connection pads</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/A.Qubits/10-Transmon_floating_teeth.html">Single Transmon - Floating with teeth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/A.Qubits/03-concentric_transmon.html">Concentric Transmon</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/A.Qubits/04-Interdigitated_Transmon.html">Interdigitated Transmon Qubits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../quick-topics/QComponent-Interdigitated-transmon.html">QComponent - Interdigitated transmon qubit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/A.Qubits/11-Star_shaped_qubit.html">Star shaped qubit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/E.Input-output-coupling/43-TransmonPocketCL.html">Charge Line</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/A.Qubits/08-JJ-Dolan.html">Josephson Junction (Dolan)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/A.Qubits/09-JJ-Manhattan.html">Josephson Junction (Manhattan)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../quick-topics/JJ-Demo-Notebook.html">Josephson Junction QComponent Demo Notebook</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/B.Resonators/11-Resonator_Meander.html">Simple CPW Meander</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/E.Input-output-coupling/41-LaunchPad.html">CPW Launch Pad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../quick-topics/QComponent-3-fingers-capacitor.html">QComponent - 3-fingers capacitor</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current has-children"><a class="reference internal" href="../../circuit-examples/reference-designs.html">Reference designs</a><input aria-label="Toggle navigation of Reference designs" checked="" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="A.1-Transmon-with-readout-resonator.html">A.1 Reference design — Transmon with readout resonator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/C.Composite-bi-partite/21-OneTransmonsWithMeanderAndOTG.html">Transmon coupled to CPW resonator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/E.Input-output-coupling/42-ResonatorAndLaunchPad.html">Readout line</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/D.Qubit-couplers/32-TwoTransmonsDirectCoupling.html">Direct Coupler (transmon-transmon)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/D.Qubit-couplers/33-TwoTransmonsWithMeander.html">Bus Resonator Coupler (transmon-transmon)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/D.Qubit-couplers/31-TwoCrossmonsTunableCoupler.html">Tunable Coupler (MIT)</a></li>
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">A.2 Reference design — Two coupled transmons</a></li>
+<li class="toctree-l3"><a class="reference internal" href="A.3-Four-qubit-multiplexed-readout.html">A.3 Reference design — Four-qubit multiplexed readout</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/full-design-flow-examples/A.4-Full-chip-design.html">A.4 Full chip design</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../../circuit-examples/full-design-flow-examples/A.7-IMS-2022-workshop.html">A.7 Qiskit Metal tutorial for IMS 2022</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">How It Works</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../workflow.html">Quantum Metal Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quantization.html">Quantization Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../simulation-pathways.html">Simulation Pathways</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gui-shortcuts.html">GUI Navigation &amp; Shortcuts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../apidocs/designs.html">QDesigns</a><input aria-label="Toggle navigation of QDesigns" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.designs.QDesign.html">QDesign</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.designs.DesignPlanar.html">DesignPlanar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.designs.MultiPlanar.html">MultiPlanar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.designs.DesignFlipChip.html">DesignFlipChip</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.designs.QNet.html">QNet</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.designs.Components.html">Components</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../apidocs/qlibrary.html">QComponents</a><input aria-label="Toggle navigation of QComponents" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.QComponent.html">QComponent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.ParsedDynamicAttributes_Component.html">ParsedDynamicAttributes_Component</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.BaseQubit.html">BaseQubit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.QRoute.html">QRoute</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.QRouteLead.html">QRouteLead</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.QRoutePoint.html">QRoutePoint</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.CircleCaterpillar.html">CircleCaterpillar</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.CircleRaster.html">CircleRaster</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.NGon.html">NGon</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.NSquareSpiral.html">NSquareSpiral</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.Rectangle.html">Rectangle</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.RectangleHollow.html">RectangleHollow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.Cap3Interdigital.html">Cap3Interdigital</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.CapFingerInFrame.html">CapFingerInFrame</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.CapNInterdigital.html">CapNInterdigital</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.ResonatorCoilRect.html">ResonatorCoilRect</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.CoupledLineTee.html">CoupledLineTee</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.LineTee.html">LineTee</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.CapNInterdigitalTee.html">CapNInterdigitalTee</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.TunableCoupler01.html">TunableCoupler01</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.TunableCoupler02.html">TunableCoupler02</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.ReadoutResFC.html">ReadoutResFC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.ResonatorLumped.html">ResonatorLumped</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.LaunchpadWirebond.html">LaunchpadWirebond</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.LaunchpadWirebondCoupled.html">LaunchpadWirebondCoupled</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.LaunchpadWirebondDriven.html">LaunchpadWirebondDriven</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.OpenToGround.html">OpenToGround</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.ShortToGround.html">ShortToGround</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.RouteStraight.html">RouteStraight</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.RouteFramed.html">RouteFramed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.RouteMeander.html">RouteMeander</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.RouteAnchors.html">RouteAnchors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.RouteMixed.html">RouteMixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.RoutePathfinder.html">RoutePathfinder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.PolylineCPW.html">PolylineCPW</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.jj_dolan.html">jj_dolan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.jj_manhattan.html">jj_manhattan</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.TransmonConcentric.html">TransmonConcentric</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.TransmonConcentricType2.html">TransmonConcentricType2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.TransmonCross.html">TransmonCross</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.TransmonCrossFL.html">TransmonCrossFL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.TransmonInterdigitated.html">TransmonInterdigitated</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.TransmonPocket.html">TransmonPocket</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.TransmonPocketCL.html">TransmonPocketCL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.TransmonPocket6.html">TransmonPocket6</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.TransmonPocketTeeth.html">TransmonPocketTeeth</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.TunableCoupler01.html">TunableCoupler01</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.SQUID_LOOP.html">SQUID_LOOP</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.SNAIL.html">SNAIL</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.StarQubit.html">StarQubit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qlibrary.anchored_path.html">anchored_path</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../apidocs/analyses.html">Analyses</a><input aria-label="Toggle navigation of Analyses" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.analyses.QAnalysis.html">QAnalysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.analyses.QSimulation.html">QSimulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.analyses.LOManalysis.html">LOManalysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.analyses.EPRanalysis.html">EPRanalysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.analyses.LumpedElementsSim.html">LumpedElementsSim</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.analyses.EigenmodeSim.html">EigenmodeSim</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.analyses.ScatteringImpedanceSim.html">ScatteringImpedanceSim</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.analyses.Hcpb.html">Hcpb</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.analyses.Hcpb_analytic.html">Hcpb_analytic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.analyses.HO_wavefunctions.html">HO_wavefunctions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.analyses.transmon_analytics.html">transmon_analytics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.analyses.cpw_calculations.html">cpw_calculations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.analyses.kappa_calculation.html">kappa_calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.analyses.lumped_capacitive.html">lumped_capacitive</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.analyses.Sweeper.html">Sweeper</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../apidocs/renderers.html">QRenderers</a><input aria-label="Toggle navigation of QRenderers" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.QRenderer.html">QRenderer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.QRendererGui.html">QRendererGui</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.QRendererAnalysis.html">QRendererAnalysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.PlotCanvas.html">PlotCanvas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.MplInteraction.html">MplInteraction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.ZoomOnWheel.html">ZoomOnWheel</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.PanAndZoom.html">PanAndZoom</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.QMplRenderer.html">QMplRenderer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.AnimatedText.html">AnimatedText</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.QGDSRenderer.html">QGDSRenderer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.Cheesing.html">Cheesing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.QAnsysRenderer.html">QAnsysRenderer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.QHFSSRenderer.html">QHFSSRenderer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.QQ3DRenderer.html">QQ3DRenderer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.QPyaedt.html">QPyaedt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.QQ3DPyaedt.html">QQ3DPyaedt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.QHFSSPyaedt.html">QHFSSPyaedt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.QHFSSDrivenmodalPyaedt.html">QHFSSDrivenmodalPyaedt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.QHFSSEigenmodePyaedt.html">QHFSSEigenmodePyaedt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.QGmshRenderer.html">QGmshRenderer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.renderers.Vec3DArray.html">Vec3DArray</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../apidocs/toolbox_metal.html">Toolbox</a><input aria-label="Toggle navigation of Toolbox" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.toolbox_metal.QiskitMetalExceptions.html">QiskitMetalExceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.toolbox_metal.QiskitMetalDesignError.html">QiskitMetalDesignError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.toolbox_metal.about.html">about</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.toolbox_metal.import_export.html">import_export</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.toolbox_metal.math_and_overrides.html">math_and_overrides</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.toolbox_metal.parsing.html">parsing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.toolbox_metal.layer_stack_handler.html">layer_stack_handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.toolbox_metal.bounds_for_path_and_poly_tables.html">bounds_for_path_and_poly_tables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.toolbox_metal.determine_larger_box.html">determine_larger_box</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../apidocs/qgeometries.html">QGeometry</a><input aria-label="Toggle navigation of QGeometry" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal.qgeometries.QGeometryTables.html">QGeometryTables</a></li>
+</ul>
+</li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../apidocs/gui.html">GUI</a><input aria-label="Toggle navigation of GUI" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../apidocs/qiskit_metal._gui.MetalGUI.html">MetalGUI</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Project</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../roadmap.html">Roadmap</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../faq.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../migration-to-v0.7.0.html">Migrating to v0.7.0 (lite-by-default install)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../migration-to-v0.7.0.html#v0-7-2-follow-on-prefer-qm-gui-design-over-metalgui-design">v0.7.2 follow-on: prefer <code class="docutils literal notranslate"><span class="pre">qm.gui(design)</span></code> over <code class="docutils literal notranslate"><span class="pre">MetalGUI(design)</span></code></a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../archive.html">Archived Notebooks</a><input aria-label="Toggle navigation of Archived Notebooks" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../quick-topics/Testing-QComponents-for-overlap-and-collisions.html">Demo Notebook Demonstrating How to Test for Component/CPW Overlap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../4-Analysis/4.33-Transmon-analytics.html">4.33 Transmon Analytics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/full-design-flow-examples/A.5-Launch-video-example.html">A.5 Launch video example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/full-design-flow-examples/A.6-Hackathon-exercise-South-Korea-2020.html">A.6 Hackathon exercise — South Korea 2020</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/F.Small-quantum-chips/51-Four_qubit_chip.html">Four Qubit Chip Design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../circuit-examples/A.Qubits/07-Transmon_floating_cl.html">Single Transmon - Floating with charge lines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../quick-topics/Opening-documentation.html">Opening the documentation</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Community &amp; Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ecosystem.html">Built on / with Quantum Metal</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../videoseducation.html">Videos &amp; Education</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../contributor-guide.html">Contributor Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../headless-usage.html">Using Quantum Metal without Qt</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/Qiskit/qiskit/blob/master/CODE_OF_CONDUCT.md">Code of Conduct</a></li>
+</ul>
+
+</div></div>
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../../_sources/tut/full-design-examples/A.2-Two-coupled-transmons.ipynb.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <div class="admonition-learning-path admonition">
+<p class="admonition-title">Learning path</p>
+<ul class="simple">
+<li><p><strong>Teaching</strong>: step 9 of 9 · <a class="reference internal" href="A.1-Transmon-with-readout-resonator.html"><span class="doc">← A.1</span></a> · <a class="reference internal" href="../../choose-your-path.html#path-teaching"><span class="std std-ref">all of this path</span></a></p></li>
+</ul>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This page was generated from <a class="reference external" href="https://github.com/Qiskit/qiskit-metal/blob/main/docs/tut/full-design-examples/A.2-Two-coupled-transmons.ipynb">tut/full-design-examples/A.2-Two-coupled-transmons.ipynb</a>.</p>
+</div>
+<section id="A.2-Reference-design-—-Two-coupled-transmons">
+<h1>A.2 Reference design — Two coupled transmons<a class="headerlink" href="#A.2-Reference-design-—-Two-coupled-transmons" title="Link to this heading">¶</a></h1>
+<p>Two transmons, each with its own multiplexed readout resonator, joined by a meandered coplanar-waveguide coupling bus — the building block of a two-qubit gate.</p>
+<blockquote>
+<div><p><strong>Reference design — attribution.</strong> Adapted, with attribution, from the open-source <a class="reference external" href="https://github.com/sqdlab/SQDMetal">SQDMetal</a> project (Apache-2.0) and its benchmark devices in D. Sommers, P. Pakkiam, Z. Degnan, C.-C. Chiu, D. Gautam, Y.-H. Chen, and A. Fedorov, <em>“Open-Source Highly Parallel Electromagnetic Simulations for Superconducting Circuits,”</em> <a class="reference external" href="https://arxiv.org/abs/2511.01220">arXiv:2511.01220</a> (2025). Re-implemented here with stock Quantum Metal components.</p>
+</div></blockquote>
+<p><a class="reference external" href="https://colab.research.google.com/github/qiskit-community/qiskit-metal/blob/main/docs/tut/full-design-examples/A.2-Two-coupled-transmons.ipynb"><img alt="Open in Colab" src="https://colab.research.google.com/assets/colab-badge.svg" /></a> <a class="reference external" href="https://mybinder.org/v2/gh/qiskit-community/qiskit-metal/main?labpath=docs%2Ftut%2Ffull-design-examples%2FA.2-Two-coupled-transmons.ipynb"><img alt="Binder" src="https://mybinder.org/badge_logo.svg" /></a></p>
+<blockquote>
+<div><p>💡 <strong>Running in Colab or Binder?</strong> Skip the desktop GUI install — the cell below grabs the lite (no-Qt) wheel, and <code class="docutils literal notranslate"><span class="pre">qm.gui(design)</span></code> auto-picks an inline matplotlib viewer with the same API as the desktop <code class="docutils literal notranslate"><span class="pre">MetalGUI</span></code>.</p>
+</div></blockquote>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># In Colab / Binder, uncomment to install Quantum Metal (lite, no Qt).</span>
+<span class="c1"># Locally you should already have it via `pip install quantum-metal` or</span>
+<span class="c1"># `pip install 'quantum-metal[gui]'` for the desktop GUI.</span>
+<span class="c1"># !pip install -q quantum-metal</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">qiskit_metal</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">qm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_metal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">designs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_metal.qlibrary.qubits.transmon_pocket</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransmonPocket</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_metal.qlibrary.tlines.meandered</span><span class="w"> </span><span class="kn">import</span> <span class="n">RouteMeander</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_metal.qlibrary.tlines.pathfinder</span><span class="w"> </span><span class="kn">import</span> <span class="n">RoutePathfinder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_metal.qlibrary.couplers.coupled_line_tee</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoupledLineTee</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qiskit_metal.qlibrary.terminations.launchpad_wb</span><span class="w"> </span><span class="kn">import</span> <span class="n">LaunchpadWirebond</span>
+
+<span class="n">design</span> <span class="o">=</span> <span class="n">designs</span><span class="o">.</span><span class="n">DesignPlanar</span><span class="p">()</span>
+<span class="n">design</span><span class="o">.</span><span class="n">overwrite_enabled</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="c1"># The default die is 9mm x 6mm; the launchpads below sit outside it.</span>
+<span class="n">design</span><span class="o">.</span><span class="n">chips</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="n">size</span><span class="o">.</span><span class="n">size_x</span> <span class="o">=</span> <span class="s2">"14mm"</span>
+<span class="n">design</span><span class="o">.</span><span class="n">chips</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="n">size</span><span class="o">.</span><span class="n">size_y</span> <span class="o">=</span> <span class="s2">"9mm"</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">feed</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">ap</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">bp</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Auto-route a coplanar-waveguide feedline segment between two pins."""</span>
+    <span class="n">RoutePathfinder</span><span class="p">(</span>
+        <span class="n">design</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">fillet</span><span class="o">=</span><span class="s2">"90um"</span><span class="p">,</span>
+            <span class="n">pin_inputs</span><span class="o">=</span><span class="n">Dict</span><span class="p">(</span>
+                <span class="n">start_pin</span><span class="o">=</span><span class="n">Dict</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="n">a</span><span class="p">,</span> <span class="n">pin</span><span class="o">=</span><span class="n">ap</span><span class="p">),</span> <span class="n">end_pin</span><span class="o">=</span><span class="n">Dict</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="n">b</span><span class="p">,</span> <span class="n">pin</span><span class="o">=</span><span class="n">bp</span><span class="p">)</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">readout</span><span class="p">(</span><span class="n">clt</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Meandered lambda/4 readout resonator: coupled-line tee -&gt; qubit readout pad."""</span>
+    <span class="n">RouteMeander</span><span class="p">(</span>
+        <span class="n">design</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">,</span>
+        <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">fillet</span><span class="o">=</span><span class="s2">"90um"</span><span class="p">,</span>
+            <span class="n">total_length</span><span class="o">=</span><span class="n">length</span><span class="p">,</span>
+            <span class="n">lead</span><span class="o">=</span><span class="n">Dict</span><span class="p">(</span><span class="n">start_straight</span><span class="o">=</span><span class="s2">"100um"</span><span class="p">,</span> <span class="n">end_straight</span><span class="o">=</span><span class="s2">"100um"</span><span class="p">),</span>
+            <span class="n">pin_inputs</span><span class="o">=</span><span class="n">Dict</span><span class="p">(</span>
+                <span class="n">start_pin</span><span class="o">=</span><span class="n">Dict</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="n">clt</span><span class="p">,</span> <span class="n">pin</span><span class="o">=</span><span class="s2">"second_end"</span><span class="p">),</span>
+                <span class="n">end_pin</span><span class="o">=</span><span class="n">Dict</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="n">q</span><span class="p">,</span> <span class="n">pin</span><span class="o">=</span><span class="s2">"readout"</span><span class="p">),</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<section id="1.-Two-transmons">
+<h2>1. Two transmons<a class="headerlink" href="#1.-Two-transmons" title="Link to this heading">¶</a></h2>
+<p>Each transmon gets a <code class="docutils literal notranslate"><span class="pre">readout</span></code> pad (top, outward) and a <code class="docutils literal notranslate"><span class="pre">coupler</span></code> pad (bottom, facing its neighbour).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">TransmonPocket</span><span class="p">(</span>
+    <span class="n">design</span><span class="p">,</span>
+    <span class="s2">"Q1"</span><span class="p">,</span>
+    <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">pos_x</span><span class="o">=</span><span class="s2">"-2.5mm"</span><span class="p">,</span>
+        <span class="n">pos_y</span><span class="o">=</span><span class="s2">"-1.5mm"</span><span class="p">,</span>
+        <span class="n">pad_width</span><span class="o">=</span><span class="s2">"425um"</span><span class="p">,</span>
+        <span class="n">pocket_height</span><span class="o">=</span><span class="s2">"650um"</span><span class="p">,</span>
+        <span class="n">connection_pads</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">readout</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">loc_W</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">loc_H</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">coupler</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">loc_W</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">loc_H</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">TransmonPocket</span><span class="p">(</span>
+    <span class="n">design</span><span class="p">,</span>
+    <span class="s2">"Q2"</span><span class="p">,</span>
+    <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">pos_x</span><span class="o">=</span><span class="s2">"2.5mm"</span><span class="p">,</span>
+        <span class="n">pos_y</span><span class="o">=</span><span class="s2">"-1.5mm"</span><span class="p">,</span>
+        <span class="n">pad_width</span><span class="o">=</span><span class="s2">"425um"</span><span class="p">,</span>
+        <span class="n">pocket_height</span><span class="o">=</span><span class="s2">"650um"</span><span class="p">,</span>
+        <span class="n">connection_pads</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+            <span class="n">readout</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">loc_W</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">loc_H</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">coupler</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">loc_W</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">loc_H</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.qm-card { font-family: var(--jp-ui-font-family, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif); font-size: 13px; line-height: 1.4; color: inherit;
+  background: transparent; text-align: left; border: 1px solid rgba(128,128,128,.3);
+  border-radius: 10px; padding: 10px 14px 6px 14px; margin: 4px 0 10px 0;
+  max-width: 1100px; }
+.qm-card .qm-title { display: flex; flex-wrap: wrap; align-items: baseline;
+  gap: 8px; margin: 0 0 8px 0; }
+.qm-card .qm-name { font-size: 16px; font-weight: 650; }
+.qm-card .qm-badge { font-size: 11px; font-weight: 600; padding: 1px 8px;
+  border-radius: 999px; background: rgba(59,130,246,.16); color: inherit;
+  border: 1px solid rgba(59,130,246,.35); }
+.qm-card .qm-meta { font-size: 12px; opacity: .7; }
+.qm-card details { margin: 4px 0 8px 0; }
+.qm-card summary { cursor: pointer; font-weight: 600; padding: 3px 0;
+  list-style-position: inside; }
+.qm-card summary .qm-meta { font-weight: 400; margin-left: 6px; }
+.qm-card table { border-collapse: separate; border-spacing: 0; margin: 4px 0 6px 0;
+  color: inherit; background: transparent; width: auto; }
+.qm-card table th, .qm-card table td { text-align: left !important;
+  vertical-align: top; padding: 3px 10px; border: 0 !important; color: inherit;
+  background: transparent; }
+.qm-card table th { font-size: 11px; font-weight: 650; text-transform: uppercase;
+  letter-spacing: .04em; opacity: .75; border-bottom: 1px solid rgba(128,128,128,.35) !important; }
+.qm-card table tbody tr:nth-child(even) td { background: rgba(128,128,128,.06); }
+.qm-card table tbody tr:hover td { background: rgba(59,130,246,.08); }
+.qm-card td.qm-key { font-family: var(--jp-code-font-family, ui-monospace, monospace);
+  white-space: nowrap; }
+.qm-card td.qm-val { font-family: var(--jp-code-font-family, ui-monospace, monospace);
+  white-space: nowrap; }
+.qm-card td.qm-doc { opacity: .78; max-width: 40em; white-space: normal; }
+.qm-card tr.qm-group td { font-weight: 650; opacity: .9; }
+.qm-card tr.qm-changed td { background: rgba(245,158,11,.14) !important; }
+.qm-card tr.qm-changed td.qm-key { box-shadow: inset 3px 0 0 rgba(245,158,11,.9); }
+.qm-card .qm-dot { display: inline-block; width: .6em; height: .6em;
+  border-radius: 50%; background: rgba(245,158,11,.9); margin-right: 4px; }
+.qm-card .qm-legend { font-size: 11px; opacity: .75; margin: 0 0 4px 0; }
+.qm-card img { max-width: 320px; height: auto; display: block; margin: 2px 0 8px 0;
+  border-radius: 6px; }
+</style>
+
+<div class="qm-card">
+<div class="qm-title"><span class="qm-name">Q2</span><span class="qm-badge">TransmonPocket</span><span class="qm-meta">id 2 &middot; 52 options, 7 changed &middot; 2 pins, 0 connected</span></div>
+<img alt="Q2" src="data:image/png;base64,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">
+<details open><summary>Options<span class="qm-meta">7 changed from the defaults</span></summary>
+<div class="qm-legend"><span class="qm-dot"></span>changed from the class default (hover the name for the default)</div>
+<table><thead><tr><th>option</th><th>value</th><th>parsed</th><th>description</th></tr></thead><tbody>
+<tr class="qm-changed"><td class="qm-key" style="padding-left:10px" title="default: &#x27;0.0um&#x27;">pos_x</td><td class="qm-val">&#x27;2.5mm&#x27;</td><td class="qm-val">2.5</td><td class="qm-doc">The x/y position of the center of the QComponent.</td></tr>
+<tr class="qm-changed"><td class="qm-key" style="padding-left:10px" title="default: &#x27;0.0um&#x27;">pos_y</td><td class="qm-val">&#x27;-1.5mm&#x27;</td><td class="qm-val">-1.5</td><td class="qm-doc">The x/y position of the center of the QComponent.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">orientation</td><td class="qm-val">&#x27;0.0&#x27;</td><td class="qm-val">0.0</td><td class="qm-doc">The primary direction in degrees of the QComponent. Expressed counter-clockwise orientation.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">chip</td><td class="qm-val">&#x27;main&#x27;</td><td class="qm-val">&#x27;main&#x27;</td><td class="qm-doc">Chip holding the QComponent.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">layer</td><td class="qm-val">&#x27;1&#x27;</td><td class="qm-val">1.0</td><td class="qm-doc">Manufacturing layer used for the QComponent.</td></tr>
+<tr class="qm-group"><td class="qm-key" style="padding-left:10px">connection_pads</td><td></td><td></td><td class="qm-doc">The dictionary which contains all active connection lines for the qubit.</td></tr>
+<tr class="qm-group"><td class="qm-key" style="padding-left:26px">readout</td><td></td><td></td><td class="qm-doc"></td></tr>
+<tr><td class="qm-key" style="padding-left:42px">pad_gap</td><td class="qm-val">&#x27;15um&#x27;</td><td class="qm-val">0.015</td><td class="qm-doc">Space between the connector pad and the charge island it is nearest to</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">pad_width</td><td class="qm-val">&#x27;125um&#x27;</td><td class="qm-val">0.125</td><td class="qm-doc">Width (x-axis) of the connector pad</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">pad_height</td><td class="qm-val">&#x27;30um&#x27;</td><td class="qm-val">0.03</td><td class="qm-doc">Height (y-axis) of the connector pad</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">pad_cpw_shift</td><td class="qm-val">&#x27;5um&#x27;</td><td class="qm-val">0.005</td><td class="qm-doc">Shift the connector pad cpw line by this much away from qubit</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">pad_cpw_extent</td><td class="qm-val">&#x27;25um&#x27;</td><td class="qm-val">0.025</td><td class="qm-doc">Shift the connector pad cpw line by this much away from qubit</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">cpw_width</td><td class="qm-val">&#x27;cpw_width&#x27;</td><td class="qm-val">0.01</td><td class="qm-doc">Center trace width of the CPW line</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">cpw_gap</td><td class="qm-val">&#x27;cpw_gap&#x27;</td><td class="qm-val">0.006</td><td class="qm-doc">Dielectric gap width of the CPW line</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">cpw_extend</td><td class="qm-val">&#x27;100um&#x27;</td><td class="qm-val">0.1</td><td class="qm-doc">Depth the connector line extense into ground (past the pocket edge)</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">pocket_extent</td><td class="qm-val">&#x27;5um&#x27;</td><td class="qm-val">0.005</td><td class="qm-doc">How deep into the pocket should we penetrate with the cpw connector (into the fround plane)</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">pocket_rise</td><td class="qm-val">&#x27;65um&#x27;</td><td class="qm-val">0.065</td><td class="qm-doc">How far up or downrelative to the center of the transmon should we elevate the cpw connection point on the ground plane</td></tr>
+<tr class="qm-changed"><td class="qm-key" style="padding-left:42px" title="default: &#x27;+1&#x27;">loc_W</td><td class="qm-val">1</td><td class="qm-val">1</td><td class="qm-doc">Width location  only +-1</td></tr>
+<tr class="qm-changed"><td class="qm-key" style="padding-left:42px" title="default: &#x27;+1&#x27;">loc_H</td><td class="qm-val">1</td><td class="qm-val">1</td><td class="qm-doc">Height location only +-1</td></tr>
+<tr class="qm-group"><td class="qm-key" style="padding-left:26px">coupler</td><td></td><td></td><td class="qm-doc"></td></tr>
+<tr><td class="qm-key" style="padding-left:42px">pad_gap</td><td class="qm-val">&#x27;15um&#x27;</td><td class="qm-val">0.015</td><td class="qm-doc">Space between the connector pad and the charge island it is nearest to</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">pad_width</td><td class="qm-val">&#x27;125um&#x27;</td><td class="qm-val">0.125</td><td class="qm-doc">Width (x-axis) of the connector pad</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">pad_height</td><td class="qm-val">&#x27;30um&#x27;</td><td class="qm-val">0.03</td><td class="qm-doc">Height (y-axis) of the connector pad</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">pad_cpw_shift</td><td class="qm-val">&#x27;5um&#x27;</td><td class="qm-val">0.005</td><td class="qm-doc">Shift the connector pad cpw line by this much away from qubit</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">pad_cpw_extent</td><td class="qm-val">&#x27;25um&#x27;</td><td class="qm-val">0.025</td><td class="qm-doc">Shift the connector pad cpw line by this much away from qubit</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">cpw_width</td><td class="qm-val">&#x27;cpw_width&#x27;</td><td class="qm-val">0.01</td><td class="qm-doc">Center trace width of the CPW line</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">cpw_gap</td><td class="qm-val">&#x27;cpw_gap&#x27;</td><td class="qm-val">0.006</td><td class="qm-doc">Dielectric gap width of the CPW line</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">cpw_extend</td><td class="qm-val">&#x27;100um&#x27;</td><td class="qm-val">0.1</td><td class="qm-doc">Depth the connector line extense into ground (past the pocket edge)</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">pocket_extent</td><td class="qm-val">&#x27;5um&#x27;</td><td class="qm-val">0.005</td><td class="qm-doc">How deep into the pocket should we penetrate with the cpw connector (into the fround plane)</td></tr>
+<tr><td class="qm-key" style="padding-left:42px">pocket_rise</td><td class="qm-val">&#x27;65um&#x27;</td><td class="qm-val">0.065</td><td class="qm-doc">How far up or downrelative to the center of the transmon should we elevate the cpw connection point on the ground plane</td></tr>
+<tr class="qm-changed"><td class="qm-key" style="padding-left:42px" title="default: &#x27;+1&#x27;">loc_W</td><td class="qm-val">-1</td><td class="qm-val">-1</td><td class="qm-doc">Width location  only +-1</td></tr>
+<tr class="qm-changed"><td class="qm-key" style="padding-left:42px" title="default: &#x27;+1&#x27;">loc_H</td><td class="qm-val">-1</td><td class="qm-val">-1</td><td class="qm-doc">Height location only +-1</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">pad_gap</td><td class="qm-val">&#x27;30um&#x27;</td><td class="qm-val">0.03</td><td class="qm-doc">The distance between the two charge islands, which is also the resulting &#x27;length&#x27; of the pseudo junction</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">inductor_width</td><td class="qm-val">&#x27;20um&#x27;</td><td class="qm-val">0.02</td><td class="qm-doc">Width of the pseudo junction between the two charge islands (if in doubt, make the same as pad_gap). Really just for simulating in HFSS / other EM software</td></tr>
+<tr class="qm-changed"><td class="qm-key" style="padding-left:10px" title="default: &#x27;455um&#x27;">pad_width</td><td class="qm-val">&#x27;425um&#x27;</td><td class="qm-val">0.425</td><td class="qm-doc">The width (x-axis) of the charge island pads</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">pad_height</td><td class="qm-val">&#x27;90um&#x27;</td><td class="qm-val">0.09</td><td class="qm-doc">The size (y-axis) of the charge island pads</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">pocket_width</td><td class="qm-val">&#x27;650um&#x27;</td><td class="qm-val">0.65</td><td class="qm-doc">Size of the pocket (cut out in ground) along x-axis</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">pocket_height</td><td class="qm-val">&#x27;650um&#x27;</td><td class="qm-val">0.65</td><td class="qm-doc">Size of the pocket (cut out in ground) along y-axis</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">hfss_wire_bonds</td><td class="qm-val">False</td><td class="qm-val">False</td><td class="qm-doc">Add wire bonds over this path when rendered to hfss.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">q3d_wire_bonds</td><td class="qm-val">False</td><td class="qm-val">False</td><td class="qm-doc">Add wire bonds over this path when rendered to q3d.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">aedt_q3d_wire_bonds</td><td class="qm-val">False</td><td class="qm-val">False</td><td class="qm-doc">Add wire bonds over this path when rendered to aedt_q3d.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">aedt_hfss_wire_bonds</td><td class="qm-val">False</td><td class="qm-val">False</td><td class="qm-doc">Add wire bonds over this path when rendered to aedt_hfss.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">hfss_inductance</td><td class="qm-val">&#x27;10nH&#x27;</td><td class="qm-val">&#x27;10nH&#x27;</td><td class="qm-doc">Junction inductance used when the junction is rendered to hfss.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">hfss_capacitance</td><td class="qm-val">0</td><td class="qm-val">0</td><td class="qm-doc">Junction capacitance used by hfss (0: none).</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">hfss_resistance</td><td class="qm-val">0</td><td class="qm-val">0</td><td class="qm-doc">Junction resistance used by hfss (0: none).</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">hfss_mesh_kw_jj</td><td class="qm-val">7e-06</td><td class="qm-val">7e-06</td><td class="qm-doc">Largest mesh element on the junction in hfss, in meters.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">q3d_inductance</td><td class="qm-val">&#x27;10nH&#x27;</td><td class="qm-val">&#x27;10nH&#x27;</td><td class="qm-doc">Junction inductance used when the junction is rendered to q3d.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">q3d_capacitance</td><td class="qm-val">0</td><td class="qm-val">0</td><td class="qm-doc">Junction capacitance used by q3d (0: none).</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">q3d_resistance</td><td class="qm-val">0</td><td class="qm-val">0</td><td class="qm-doc">Junction resistance used by q3d (0: none).</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">q3d_mesh_kw_jj</td><td class="qm-val">7e-06</td><td class="qm-val">7e-06</td><td class="qm-doc">Largest mesh element on the junction in q3d, in meters.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">gds_cell_name</td><td class="qm-val">&#x27;my_other_junction&#x27;</td><td class="qm-val">&#x27;my_other_junction&#x27;</td><td class="qm-doc">Cell of the junction GDS file (the GDS renderer&#x27;s path_filename) that replaces this component&#x27;s junction on export.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">aedt_q3d_inductance</td><td class="qm-val">1e-08</td><td class="qm-val">1e-08</td><td class="qm-doc">Junction inductance used when the junction is rendered to aedt_q3d.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">aedt_q3d_capacitance</td><td class="qm-val">0</td><td class="qm-val">0</td><td class="qm-doc">Junction capacitance used by aedt_q3d (0: none).</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">aedt_hfss_inductance</td><td class="qm-val">1e-08</td><td class="qm-val">1e-08</td><td class="qm-doc">Junction inductance used when the junction is rendered to aedt_hfss.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">aedt_hfss_capacitance</td><td class="qm-val">0</td><td class="qm-val">0</td><td class="qm-doc">Junction capacitance used by aedt_hfss (0: none).</td></tr>
+</tbody></table></details>
+<details open><summary>Pins<span class="qm-meta">2 pins, 0 connected</span></summary><table><thead><tr><th>pin</th><th>middle (mm)</th><th>normal</th><th>width (mm)</th><th>connected to</th></tr></thead><tbody><tr><td class="qm-key">readout</td><td class="qm-val">(2.9250, -1.3050)</td><td class="qm-val">0.0&deg;</td><td class="qm-val">0.01</td><td>&mdash;</td></tr><tr><td class="qm-key">coupler</td><td class="qm-val">(2.0750, -1.6950)</td><td class="qm-val">180.0&deg;</td><td class="qm-val">0.01</td><td>&mdash;</td></tr></tbody></table></details>
+</div></div>
+</div>
+</section>
+<section id="2.-Shared-feedline-+-two-readout-resonators">
+<h2>2. Shared feedline + two readout resonators<a class="headerlink" href="#2.-Shared-feedline-+-two-readout-resonators" title="Link to this heading">¶</a></h2>
+<p>One feedline, two coupled-line tees, two resonators of slightly different length (frequency-multiplexed readout).</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">CoupledLineTee</span><span class="p">(</span>
+    <span class="n">design</span><span class="p">,</span>
+    <span class="s2">"clt1"</span><span class="p">,</span>
+    <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">pos_x</span><span class="o">=</span><span class="s2">"-2.5mm"</span><span class="p">,</span>
+        <span class="n">pos_y</span><span class="o">=</span><span class="s2">"1.5mm"</span><span class="p">,</span>
+        <span class="n">coupling_length</span><span class="o">=</span><span class="s2">"350um"</span><span class="p">,</span>
+        <span class="n">down_length</span><span class="o">=</span><span class="s2">"300um"</span><span class="p">,</span>
+        <span class="n">fillet</span><span class="o">=</span><span class="s2">"90um"</span><span class="p">,</span>
+        <span class="n">open_termination</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">CoupledLineTee</span><span class="p">(</span>
+    <span class="n">design</span><span class="p">,</span>
+    <span class="s2">"clt2"</span><span class="p">,</span>
+    <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">pos_x</span><span class="o">=</span><span class="s2">"2.5mm"</span><span class="p">,</span>
+        <span class="n">pos_y</span><span class="o">=</span><span class="s2">"1.5mm"</span><span class="p">,</span>
+        <span class="n">coupling_length</span><span class="o">=</span><span class="s2">"350um"</span><span class="p">,</span>
+        <span class="n">down_length</span><span class="o">=</span><span class="s2">"300um"</span><span class="p">,</span>
+        <span class="n">fillet</span><span class="o">=</span><span class="s2">"90um"</span><span class="p">,</span>
+        <span class="n">open_termination</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">LaunchpadWirebond</span><span class="p">(</span>
+    <span class="n">design</span><span class="p">,</span> <span class="s2">"LP1"</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">pos_x</span><span class="o">=</span><span class="s2">"-6mm"</span><span class="p">,</span> <span class="n">pos_y</span><span class="o">=</span><span class="s2">"1.5mm"</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s2">"0"</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">LaunchpadWirebond</span><span class="p">(</span>
+    <span class="n">design</span><span class="p">,</span> <span class="s2">"LP2"</span><span class="p">,</span> <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">pos_x</span><span class="o">=</span><span class="s2">"6mm"</span><span class="p">,</span> <span class="n">pos_y</span><span class="o">=</span><span class="s2">"1.5mm"</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s2">"180"</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">feed</span><span class="p">(</span><span class="s2">"LP1"</span><span class="p">,</span> <span class="s2">"tie"</span><span class="p">,</span> <span class="s2">"clt1"</span><span class="p">,</span> <span class="s2">"prime_start"</span><span class="p">,</span> <span class="s2">"feed_L"</span><span class="p">)</span>
+<span class="n">feed</span><span class="p">(</span><span class="s2">"clt1"</span><span class="p">,</span> <span class="s2">"prime_end"</span><span class="p">,</span> <span class="s2">"clt2"</span><span class="p">,</span> <span class="s2">"prime_start"</span><span class="p">,</span> <span class="s2">"feed_M"</span><span class="p">)</span>
+<span class="n">feed</span><span class="p">(</span><span class="s2">"clt2"</span><span class="p">,</span> <span class="s2">"prime_end"</span><span class="p">,</span> <span class="s2">"LP2"</span><span class="p">,</span> <span class="s2">"tie"</span><span class="p">,</span> <span class="s2">"feed_R"</span><span class="p">)</span>
+<span class="n">readout</span><span class="p">(</span><span class="s2">"clt1"</span><span class="p">,</span> <span class="s2">"Q1"</span><span class="p">,</span> <span class="s2">"read1"</span><span class="p">,</span> <span class="s2">"7.0mm"</span><span class="p">)</span>
+<span class="n">readout</span><span class="p">(</span><span class="s2">"clt2"</span><span class="p">,</span> <span class="s2">"Q2"</span><span class="p">,</span> <span class="s2">"read2"</span><span class="p">,</span> <span class="s2">"7.2mm"</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="3.-Qubit-qubit-coupling-bus">
+<h2>3. Qubit-qubit coupling bus<a class="headerlink" href="#3.-Qubit-qubit-coupling-bus" title="Link to this heading">¶</a></h2>
+<p>A meandered CPW between the two <code class="docutils literal notranslate"><span class="pre">coupler</span></code> pads sets the exchange coupling.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">RouteMeander</span><span class="p">(</span>
+    <span class="n">design</span><span class="p">,</span>
+    <span class="s2">"coupler_bus"</span><span class="p">,</span>
+    <span class="n">options</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
+        <span class="n">fillet</span><span class="o">=</span><span class="s2">"90um"</span><span class="p">,</span>
+        <span class="n">total_length</span><span class="o">=</span><span class="s2">"8mm"</span><span class="p">,</span>
+        <span class="n">lead</span><span class="o">=</span><span class="n">Dict</span><span class="p">(</span><span class="n">start_straight</span><span class="o">=</span><span class="s2">"150um"</span><span class="p">,</span> <span class="n">end_straight</span><span class="o">=</span><span class="s2">"150um"</span><span class="p">),</span>
+        <span class="n">meander</span><span class="o">=</span><span class="n">Dict</span><span class="p">(</span><span class="n">asymmetry</span><span class="o">=</span><span class="s2">"200um"</span><span class="p">),</span>
+        <span class="n">pin_inputs</span><span class="o">=</span><span class="n">Dict</span><span class="p">(</span>
+            <span class="n">start_pin</span><span class="o">=</span><span class="n">Dict</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s2">"Q1"</span><span class="p">,</span> <span class="n">pin</span><span class="o">=</span><span class="s2">"coupler"</span><span class="p">),</span>
+            <span class="n">end_pin</span><span class="o">=</span><span class="n">Dict</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s2">"Q2"</span><span class="p">,</span> <span class="n">pin</span><span class="o">=</span><span class="s2">"coupler"</span><span class="p">),</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+06:53PM 22s WARNING [check_lengths]: For path table, component=coupler_bus, key=trace has short segments that could cause issues with fillet. Values in (37-38)  are index(es) in shapely geometry.
+06:53PM 22s WARNING [check_lengths]: For path table, component=coupler_bus, key=cut has short segments that could cause issues with fillet. Values in (37-38)  are index(es) in shapely geometry.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>
+.qm-card { font-family: var(--jp-ui-font-family, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif); font-size: 13px; line-height: 1.4; color: inherit;
+  background: transparent; text-align: left; border: 1px solid rgba(128,128,128,.3);
+  border-radius: 10px; padding: 10px 14px 6px 14px; margin: 4px 0 10px 0;
+  max-width: 1100px; }
+.qm-card .qm-title { display: flex; flex-wrap: wrap; align-items: baseline;
+  gap: 8px; margin: 0 0 8px 0; }
+.qm-card .qm-name { font-size: 16px; font-weight: 650; }
+.qm-card .qm-badge { font-size: 11px; font-weight: 600; padding: 1px 8px;
+  border-radius: 999px; background: rgba(59,130,246,.16); color: inherit;
+  border: 1px solid rgba(59,130,246,.35); }
+.qm-card .qm-meta { font-size: 12px; opacity: .7; }
+.qm-card details { margin: 4px 0 8px 0; }
+.qm-card summary { cursor: pointer; font-weight: 600; padding: 3px 0;
+  list-style-position: inside; }
+.qm-card summary .qm-meta { font-weight: 400; margin-left: 6px; }
+.qm-card table { border-collapse: separate; border-spacing: 0; margin: 4px 0 6px 0;
+  color: inherit; background: transparent; width: auto; }
+.qm-card table th, .qm-card table td { text-align: left !important;
+  vertical-align: top; padding: 3px 10px; border: 0 !important; color: inherit;
+  background: transparent; }
+.qm-card table th { font-size: 11px; font-weight: 650; text-transform: uppercase;
+  letter-spacing: .04em; opacity: .75; border-bottom: 1px solid rgba(128,128,128,.35) !important; }
+.qm-card table tbody tr:nth-child(even) td { background: rgba(128,128,128,.06); }
+.qm-card table tbody tr:hover td { background: rgba(59,130,246,.08); }
+.qm-card td.qm-key { font-family: var(--jp-code-font-family, ui-monospace, monospace);
+  white-space: nowrap; }
+.qm-card td.qm-val { font-family: var(--jp-code-font-family, ui-monospace, monospace);
+  white-space: nowrap; }
+.qm-card td.qm-doc { opacity: .78; max-width: 40em; white-space: normal; }
+.qm-card tr.qm-group td { font-weight: 650; opacity: .9; }
+.qm-card tr.qm-changed td { background: rgba(245,158,11,.14) !important; }
+.qm-card tr.qm-changed td.qm-key { box-shadow: inset 3px 0 0 rgba(245,158,11,.9); }
+.qm-card .qm-dot { display: inline-block; width: .6em; height: .6em;
+  border-radius: 50%; background: rgba(245,158,11,.9); margin-right: 4px; }
+.qm-card .qm-legend { font-size: 11px; opacity: .75; margin: 0 0 4px 0; }
+.qm-card img { max-width: 320px; height: auto; display: block; margin: 2px 0 8px 0;
+  border-radius: 6px; }
+</style>
+
+<div class="qm-card">
+<div class="qm-title"><span class="qm-name">coupler_bus</span><span class="qm-badge">RouteMeander</span><span class="qm-meta">id 12 &middot; 23 options, 9 changed &middot; 2 pins, 2 connected</span></div>
+<img alt="coupler_bus" src="data:image/png;base64,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">
+<details open><summary>Options<span class="qm-meta">9 changed from the defaults</span></summary>
+<div class="qm-legend"><span class="qm-dot"></span>changed from the class default (hover the name for the default)</div>
+<table><thead><tr><th>option</th><th>value</th><th>parsed</th><th>description</th></tr></thead><tbody>
+<tr><td class="qm-key" style="padding-left:10px">chip</td><td class="qm-val">&#x27;main&#x27;</td><td class="qm-val">&#x27;main&#x27;</td><td class="qm-doc">Chip holding the QComponent.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">layer</td><td class="qm-val">&#x27;1&#x27;</td><td class="qm-val">1.0</td><td class="qm-doc">Manufacturing layer used for the QComponent.</td></tr>
+<tr class="qm-group"><td class="qm-key" style="padding-left:10px">pin_inputs</td><td></td><td></td><td class="qm-doc"></td></tr>
+<tr class="qm-group"><td class="qm-key" style="padding-left:26px">start_pin</td><td></td><td></td><td class="qm-doc">Component and pin string pair. Define which pin to start from</td></tr>
+<tr class="qm-changed"><td class="qm-key" style="padding-left:42px" title="default: &#x27;&#x27;">component</td><td class="qm-val">&#x27;Q1&#x27;</td><td class="qm-val">&#x27;Q1&#x27;</td><td class="qm-doc">Name of component to start from, which has a pin</td></tr>
+<tr class="qm-changed"><td class="qm-key" style="padding-left:42px" title="default: &#x27;&#x27;">pin</td><td class="qm-val">&#x27;coupler&#x27;</td><td class="qm-val">&#x27;coupler&#x27;</td><td class="qm-doc">Name of pin used for pin_start</td></tr>
+<tr class="qm-group"><td class="qm-key" style="padding-left:26px">end_pin</td><td></td><td></td><td class="qm-doc">Component and pin string pair. Define which pin to start from</td></tr>
+<tr class="qm-changed"><td class="qm-key" style="padding-left:42px" title="default: &#x27;&#x27;">component</td><td class="qm-val">&#x27;Q2&#x27;</td><td class="qm-val">&#x27;Q2&#x27;</td><td class="qm-doc">Name of component to end on, which has a pin</td></tr>
+<tr class="qm-changed"><td class="qm-key" style="padding-left:42px" title="default: &#x27;&#x27;">pin</td><td class="qm-val">&#x27;coupler&#x27;</td><td class="qm-val">&#x27;coupler&#x27;</td><td class="qm-doc">Name of pin used for pin_end</td></tr>
+<tr class="qm-changed"><td class="qm-key" style="padding-left:10px" title="default: &#x27;0&#x27;">fillet</td><td class="qm-val">&#x27;90um&#x27;</td><td class="qm-val">0.09</td><td class="qm-doc"></td></tr>
+<tr class="qm-group"><td class="qm-key" style="padding-left:10px">lead</td><td></td><td></td><td class="qm-doc"></td></tr>
+<tr class="qm-changed"><td class="qm-key" style="padding-left:26px" title="default: &#x27;0mm&#x27;">start_straight</td><td class="qm-val">&#x27;150um&#x27;</td><td class="qm-val">0.15</td><td class="qm-doc">Lead-in, defined as the straight segment extension from start_pin.  Defaults to 0.1um.</td></tr>
+<tr class="qm-changed"><td class="qm-key" style="padding-left:26px" title="default: &#x27;0mm&#x27;">end_straight</td><td class="qm-val">&#x27;150um&#x27;</td><td class="qm-val">0.15</td><td class="qm-doc">Lead-out, defined as the straight segment extension from end_pin.  Defaults to 0.1um.</td></tr>
+<tr><td class="qm-key" style="padding-left:26px">start_jogged_extension</td><td class="qm-val">&#x27;&#x27;</td><td class="qm-val">&#x27;&#x27;</td><td class="qm-doc">Lead-in, jogged extension of lead-in. Described as list of tuples</td></tr>
+<tr><td class="qm-key" style="padding-left:26px">end_jogged_extension</td><td class="qm-val">&#x27;&#x27;</td><td class="qm-val">&#x27;&#x27;</td><td class="qm-doc">Lead-out, jogged extension of lead-out. Described as list of tuples</td></tr>
+<tr class="qm-changed"><td class="qm-key" style="padding-left:10px" title="default: &#x27;7mm&#x27;">total_length</td><td class="qm-val">&#x27;8mm&#x27;</td><td class="qm-val">8</td><td class="qm-doc"></td></tr>
+<tr><td class="qm-key" style="padding-left:10px">trace_width</td><td class="qm-val">&#x27;cpw_width&#x27;</td><td class="qm-val">0.01</td><td class="qm-doc">Defines the width of the line.  Defaults to &#x27;cpw_width&#x27;.</td></tr>
+<tr class="qm-group"><td class="qm-key" style="padding-left:10px">meander</td><td></td><td></td><td class="qm-doc"></td></tr>
+<tr><td class="qm-key" style="padding-left:26px">spacing</td><td class="qm-val">&#x27;200um&#x27;</td><td class="qm-val">0.2</td><td class="qm-doc">Minimum spacing between adjacent meander curves.  Defaults to 200um.</td></tr>
+<tr class="qm-changed"><td class="qm-key" style="padding-left:26px" title="default: &#x27;0um&#x27;">asymmetry</td><td class="qm-val">&#x27;200um&#x27;</td><td class="qm-val">0.2</td><td class="qm-doc">offset between the center-line of the meander and the center-line that stretches from the tip of lead-in to the x (or y) coordinate of the tip of the lead-out.  Defaults to &#x27;0um&#x27;.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">snap</td><td class="qm-val">&#x27;true&#x27;</td><td class="qm-val">&#x27;true&#x27;</td><td class="qm-doc"></td></tr>
+<tr><td class="qm-key" style="padding-left:10px">prevent_short_edges</td><td class="qm-val">&#x27;true&#x27;</td><td class="qm-val">&#x27;true&#x27;</td><td class="qm-doc"></td></tr>
+<tr><td class="qm-key" style="padding-left:10px">hfss_wire_bonds</td><td class="qm-val">False</td><td class="qm-val">False</td><td class="qm-doc">Add wire bonds over this path when rendered to hfss.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">q3d_wire_bonds</td><td class="qm-val">False</td><td class="qm-val">False</td><td class="qm-doc">Add wire bonds over this path when rendered to q3d.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">aedt_q3d_wire_bonds</td><td class="qm-val">False</td><td class="qm-val">False</td><td class="qm-doc">Add wire bonds over this path when rendered to aedt_q3d.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">aedt_hfss_wire_bonds</td><td class="qm-val">False</td><td class="qm-val">False</td><td class="qm-doc">Add wire bonds over this path when rendered to aedt_hfss.</td></tr>
+<tr><td class="qm-key" style="padding-left:10px">trace_gap</td><td class="qm-val">&#x27;cpw_gap&#x27;</td><td class="qm-val">0.006</td><td class="qm-doc"></td></tr>
+<tr><td class="qm-key" style="padding-left:10px">_actual_length</td><td class="qm-val">&#x27;7.999999999999844 mm&#x27;</td><td class="qm-val">7.999999999999844</td><td class="qm-doc"></td></tr>
+</tbody></table></details>
+<details open><summary>Pins<span class="qm-meta">2 pins, 2 connected</span></summary><table><thead><tr><th>pin</th><th>middle (mm)</th><th>normal</th><th>width (mm)</th><th>connected to</th></tr></thead><tbody><tr><td class="qm-key">start</td><td class="qm-val">(-2.0750, -1.6950)</td><td class="qm-val">180.0&deg;</td><td class="qm-val">0.01</td><td>Q1.coupler</td></tr><tr><td class="qm-key">end</td><td class="qm-val">(2.0750, -1.6950)</td><td class="qm-val">0.0&deg;</td><td class="qm-val">0.01</td><td>Q2.coupler</td></tr></tbody></table></details>
+</div></div>
+</div>
+</section>
+<section id="4.-Visualize">
+<h2>4. Visualize<a class="headerlink" href="#4.-Visualize" title="Link to this heading">¶</a></h2>
+</section>
+<section id="Next-steps">
+<h2>Next steps<a class="headerlink" href="#Next-steps" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Inspect</strong> the design tree: <code class="docutils literal notranslate"><span class="pre">design.components.keys()</span></code> and <code class="docutils literal notranslate"><span class="pre">design.qgeometry.tables</span></code>.</p></li>
+<li><p><strong>Export GDS</strong> for fabrication: <code class="docutils literal notranslate"><span class="pre">design.renderers.gds.export_to_gds('chip.gds')</span></code> (Quantum Metal uses the modern <code class="docutils literal notranslate"><span class="pre">gdstk</span></code> backend).</p></li>
+<li><p><strong>Simulate</strong>: render to Ansys HFSS/Q3D (the validation gold standard) or to the open-source FEM path (Gmsh + Elmer today; AWS Palace on the roadmap) to extract eigenmodes, <em>Q</em>, and the capacitance matrix.</p></li>
+<li><p><strong>Tweak</strong>: every dimension above is a parameter — change <code class="docutils literal notranslate"><span class="pre">total_length</span></code> to retune resonator frequencies, or <code class="docutils literal notranslate"><span class="pre">pos_x</span></code>/<code class="docutils literal notranslate"><span class="pre">pos_y</span></code> to relayout.</p></li>
+</ul>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">design</span><span class="o">.</span><span class="n">components</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&#39;Q1&#39;,
+ &#39;Q2&#39;,
+ &#39;clt1&#39;,
+ &#39;clt2&#39;,
+ &#39;LP1&#39;,
+ &#39;LP2&#39;,
+ &#39;feed_L&#39;,
+ &#39;feed_M&#39;,
+ &#39;feed_R&#39;,
+ &#39;read1&#39;,
+ &#39;read2&#39;,
+ &#39;coupler_bus&#39;]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">qm</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">design</span><span class="p">)</span>
+<span class="n">qm</span><span class="o">.</span><span class="n">show_inline</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tut_full-design-examples_A.2-Two-coupled-transmons_14_0.png" src="../../_images/tut_full-design-examples_A.2-Two-coupled-transmons_14_0.png" />
+</div>
+</div>
+</section>
+</section>
+<br><br>
+<h3>For more information, review the <b>Introduction to Quantum Computing and Quantum Hardware</b> lectures below</h3>
+<div style="border:solid 1 px #990000;">
+<table>
+<tr><td><ul><li>Superconducting Qubits I: Quantizing a Harmonic Oscillator, Josephson Junctions Part 1</ul></td>
+<td width="15%"><a href="https://www.youtube.com/watch?v=eZJjQGu85Ps&list=PLOFEBzvs-VvrXTMy5Y2IqmSaUjfnhvBHR">Lecture Video</a></td>
+<td width="15%"><a href="https://github.com/qiskit-community/intro-to-quantum-computing-and-quantum-hardware/blob/master/lectures/introqcqh-lecture-notes-6.pdf?raw=true">Lecture Notes</a></td>
+<td width="5%"><a href="https://github.com/qiskit-community/intro-to-quantum-computing-and-quantum-hardware/blob/master/labs/introqcqh-lab-6.zip?raw=true">Lab</a></td></tr>
+<tr><td><ul><li>Superconducting Qubits I: Quantizing a Harmonic Oscillator, Josephson Junctions Part 2</ul></td>
+<td><a href="https://www.youtube.com/watch?v=SDiiFOham6Y&list=PLOFEBzvs-VvrXTMy5Y2IqmSaUjfnhvBHR">Lecture Video</a></td>
+<td><a href="https://github.com/qiskit-community/intro-to-quantum-computing-and-quantum-hardware/blob/master/lectures/introqcqh-lecture-notes-6.pdf?raw=true">Lecture Notes</a></td>
+<td><a href="https://github.com/qiskit-community/intro-to-quantum-computing-and-quantum-hardware/blob/master/labs/introqcqh-lab-6.zip?raw=true">Lab</a></td></tr>
+<tr><td><ul><li>Superconducting Qubits I: Quantizing a Harmonic Oscillator, Josephson Junctions Part 3</ul></td>
+<td><a href="https://www.youtube.com/watch?v=hGBAz63NIH8&list=PLOFEBzvs-VvrXTMy5Y2IqmSaUjfnhvBHR">Lecture Video</a></td>
+<td><a href="https://github.com/qiskit-community/intro-to-quantum-computing-and-quantum-hardware/blob/master/lectures/introqcqh-lecture-notes-6.pdf?raw=true">Lecture Notes</a></td>
+<td><a href="https://github.com/qiskit-community/intro-to-quantum-computing-and-quantum-hardware/blob/master/labs/introqcqh-lab-6.zip?raw=true">Lab</a></td></tr>
+<tr><td><ul><li>Superconducting Qubits II: Circuit Quantum Electrodynamics, Readout and Calibration Methods Part 1</ul></td>
+<td><a href="https://www.youtube.com/watch?v=dmYnfGo-8eM&list=PLOFEBzvs-VvrXTMy5Y2IqmSaUjfnhvBHR">Lecture Video</a></td>
+<td><a href="https://github.com/qiskit-community/intro-to-quantum-computing-and-quantum-hardware/blob/master/lectures/introqcqh-lecture-notes-7.pdf?raw=true">Lecture Notes</a></td>
+<td><a href="https://github.com/qiskit-community/intro-to-quantum-computing-and-quantum-hardware/blob/master/labs/introqcqh-lab-7.zip?raw=true">Lab</a></td></tr>
+<tr><td><ul><li>Superconducting Qubits II: Circuit Quantum Electrodynamics, Readout and Calibration Methods Part 2</ul></td>
+<td><a href="https://www.youtube.com/watch?v=jUPAeOoZpEU&list=PLOFEBzvs-VvrXTMy5Y2IqmSaUjfnhvBHR">Lecture Video</a></td>
+<td><a href="https://github.com/qiskit-community/intro-to-quantum-computing-and-quantum-hardware/blob/master/lectures/introqcqh-lecture-notes-7.pdf?raw=true">Lecture Notes</a></td>
+<td><a href="https://github.com/qiskit-community/intro-to-quantum-computing-and-quantum-hardware/blob/master/labs/introqcqh-lab-7.zip?raw=true">Lab</a></td></tr>
+<tr><td><ul><li>Superconducting Qubits II: Circuit Quantum Electrodynamics, Readout and Calibration Methods Part 3</ul></td>
+<td><a href="https://www.youtube.com/watch?v=_IpCwMvc0dA&list=PLOFEBzvs-VvrXTMy5Y2IqmSaUjfnhvBHR">Lecture Video</a></td>
+<td><a href="https://github.com/qiskit-community/intro-to-quantum-computing-and-quantum-hardware/blob/master/lectures/introqcqh-lecture-notes-7.pdf?raw=true">Lecture Notes</a></td>
+<td><a href="https://github.com/qiskit-community/intro-to-quantum-computing-and-quantum-hardware/blob/master/labs/introqcqh-lab-7.zip?raw=true">Lab</a></td></tr></table>
+</div>
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="A.3-Four-qubit-multiplexed-readout.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">A.3 Reference design — Four-qubit multiplexed readout</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="../../circuit-examples/D.Qubit-couplers/31-TwoCrossmonsTunableCoupler.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Tunable Coupler (MIT)</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; Quantum Metal Community; 2019-2025 Qiskit Development Team
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            <div class="last-updated">
+              Last updated on 2026/11/15</div>
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">A.2 Reference design — Two coupled transmons</a><ul>
+<li><a class="reference internal" href="#1.-Two-transmons">1. Two transmons</a></li>
+<li><a class="reference internal" href="#2.-Shared-feedline-+-two-readout-resonators">2. Shared feedline + two readout resonators</a></li>
+<li><a class="reference internal" href="#3.-Qubit-qubit-coupling-bus">3. Qubit-qubit coupling bus</a></li>
+<li><a class="reference internal" href="#4.-Visualize">4. Visualize</a></li>
+<li><a class="reference internal" href="#Next-steps">Next steps</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../../_static/documentation_options.js?v=39bb1c6d"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../../_static/jupyterlite_sphinx.js?v=96e329c5"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../../_static/design-tabs.js?v=fcb327ea"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    </body>
+</html>
